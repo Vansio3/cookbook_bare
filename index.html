@@ -310,7 +310,7 @@
             <div class="page-content px-4 pt-4">
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
-            <div class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
+            <div class="sticky bottom-[76px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                  <input type="text" id="new-shopping-item-name" placeholder="Add item..." class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
                  <button id="add-shopping-item-button" class="interactive-scale bg-[#f0560e] text-white rounded-lg p-2.5 h-11 w-11 flex items-center justify-center shrink-0 hover:bg-orange-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
@@ -345,49 +345,138 @@
     <script>
         let currentPageId="page-index",previousPageId="page-index",allRecipesCache=[],editingRecipeId=null,currentRecipeImageURL=null,currentSelectedDate=new Date,currentDisplayedWeekStartDate=getStartOfWeek(new Date),isInitialPageLoad=!0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
+        let recipesLoadingPromise = null;
+
 
         function getStartOfWeek(e,t=0){const c=new Date(e),a=c.getDay(),n=(a<t?a+7:a)-t;return c.setDate(c.getDate()-n),c.setHours(0,0,0,0),c}function addDays(e,t){const c=new Date(e);return c.setDate(c.getDate()+t),c}function formatDateForDisplay(e){return isToday(e)?"Today":isSameDate(e,addDays(new Date,1))?"Tomorrow":e.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}function formatDateForFirebaseKey(e){return`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,"0")}-${String(e.getDate()).padStart(2,"0")}`}function isSameDate(e,t){return!(!e||!t)&&e.getFullYear()===t.getFullYear()&&e.getMonth()===t.getMonth()&&e.getDate()===t.getDate()}function isToday(e){return isSameDate(e,new Date)}function debounce(e,t){let c;return function(...a){clearTimeout(c),c=setTimeout(()=>e.apply(this,a),t)}}
         
-        function showPage(e,t=!1){const c=document.getElementById(currentPageId);c&&c.classList.remove("active");const a=document.getElementById(e);a?(t||currentPageId===e||(previousPageId=currentPageId,"page-index"!==e?history.pushState({page:e},`Page ${e}`,`#${e}`):""===location.hash||"#page-index"===location.hash||history.pushState({page:"page-index"},"Page page-index","#page-index")),currentPageId=e,localStorage.setItem("lastActivePageId",e),requestAnimationFrame(()=>{a.classList.add("active")}),updateNavbarUI(e),a.querySelector(".page-content")?.scrollTo(0,0),"page-index"===e?(document.getElementById("search-recipe-input")?.value.trim()?handleSearch():populateRecipeListsUI(allRecipesCache)): "page-favorites"===e?renderFavoritesPage():"page-schedule"===e?((t&&"page-recipe"===previousPageId)||(currentSelectedDate=new Date,currentDisplayedWeekStartDate=getStartOfWeek(new Date)),renderWeekView()):"page-shopping-list"===e&&loadShoppingListFromDB(),isInitialPageLoad=!1):showPage("page-index")}
+        function showPage(pageId, fromHistoryOrInitialLoad = false) {
+            const oldPage = document.getElementById(currentPageId);
+            if (oldPage) oldPage.classList.remove("active");
+
+            const newPage = document.getElementById(pageId);
+            if (newPage) {
+                if (!fromHistoryOrInitialLoad) {
+                    if(currentPageId !== pageId) previousPageId = currentPageId;
+
+                    let state = { page: pageId };
+                    let url = `#${pageId}`;
+
+                    if (pageId === "page-recipe") {
+                        const recipeId = newPage.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
+                        if (recipeId) {
+                            state.recipeId = recipeId;
+                            url += `/${recipeId}`;
+                        }
+                    } else if (pageId === "page-schedule") {
+                        // This logic ensures dates are current if navigating to schedule
+                        // If already on schedule page, dates are managed by user interactions (handleWeekDayClick, etc.)
+                        // which call updateScheduleDatesInStorageAndHistory.
+                        // If navigating *to* schedule from somewhere else (not popstate/initial):
+                        if (previousPageId === 'page-recipe' && currentPageId !== 'page-schedule') { 
+                             currentSelectedDate = new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
+                             currentDisplayedWeekStartDate = getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
+                        } else if (currentPageId !== 'page-schedule') { 
+                             currentSelectedDate = new Date();
+                             currentDisplayedWeekStartDate = getStartOfWeek(new Date());
+                        }
+                        state.selectedDate = currentSelectedDate.toISOString();
+                        state.weekStart = currentDisplayedWeekStartDate.toISOString();
+                    }
+                    history.pushState(state, `Page ${pageId}`, url);
+                }
+                
+                currentPageId = pageId;
+                localStorage.setItem("lastActivePageId", pageId);
+
+                requestAnimationFrame(() => {
+                    newPage.classList.add("active");
+                });
+                updateNavbarUI(pageId);
+                newPage.querySelector(".page-content")?.scrollTo(0, 0);
+
+                // Page specific logic for loading content, especially on history navigation or initial load
+                if (pageId === "page-index") {
+                    document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
+                } else if (pageId === "page-favorites") {
+                    renderFavoritesPage();
+                } else if (pageId === "page-schedule") {
+                    if (fromHistoryOrInitialLoad) { // Restore dates if from history/refresh
+                        const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
+                        const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+
+                        currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
+                        currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
+                    }
+                    // Persist potentially updated/defaulted dates
+                    localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
+                    localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
+                    // If history state was missing schedule dates, update it (e.g., initial load from hash without state)
+                    if (fromHistoryOrInitialLoad && history.state && (history.state.page === 'page-schedule') && (!history.state.selectedDate || !history.state.weekStart)) {
+                        history.replaceState({ 
+                            ...history.state,
+                            selectedDate: currentSelectedDate.toISOString(),
+                            weekStart: currentDisplayedWeekStartDate.toISOString()
+                        }, `Page ${pageId}`, location.href);
+                    }
+                    renderWeekView(); // This will call loadMealsForSelectedDate
+                } else if (pageId === "page-shopping-list") {
+                    loadShoppingListFromDB();
+                }
+                // For page-recipe, loadRecipeDetailFromRealtimeDB calls showPage itself with fromHistoryOrInitialLoad=true.
+            } else { 
+                console.warn(`Page ${pageId} not found, redirecting to page-index.`);
+                showPage("page-index", fromHistoryOrInitialLoad); 
+            }
+            // isInitialPageLoad is handled globally after DOMContentLoaded initial setup.
+        }
+
         function updateNavbarUI(e){document.querySelectorAll(".nav-item").forEach(t=>{t.classList.remove("nav-active");const c=t.dataset.target;let a="page-recipe"===e?c===previousPageId&&("page-index"===previousPageId||"page-favorites"===previousPageId)?!0:"page-index"===c&&"page-favorites"!==previousPageId?!0:!1:c===e;const n=a?"text-white":"text-[#bda89e]",o=t.querySelector(".nav-icon-container"),i=t.querySelector(".nav-text");["text-white","text-[#bda89e]"].forEach(e=>{t.classList.remove(e),i?.classList.remove(e),o?.classList.remove(e)}),t.classList.add(n),i?.classList.add(n),o?.classList.add(n),a&&t.classList.add("nav-active"),"page-favorites"===c&&o&&o.querySelector("svg")&&(o.querySelector("svg").innerHTML=a?'<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>':'<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>')})}
         
         async function loadRecipesFromRealtimeDB() {
+            if (allRecipesCache.length > 0 && !recipesLoadingPromise) return Promise.resolve();
+            if (recipesLoadingPromise) return recipesLoadingPromise;
+
             const featuredContainer = document.getElementById("featured-recipes-container");
-            const categorizedContainer = document.getElementById("categorized-recipes-container"); // Main container for categories
+            const categorizedContainer = document.getElementById("categorized-recipes-container");
             const searchResultsContainer = document.getElementById("search-results-container");
 
-            if (featuredContainer) featuredContainer.innerHTML = '<p class="loading-placeholder w-full">Loading recent recipes...</p>';
-            if (categorizedContainer) categorizedContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading all recipes...</p>';
-            else if (searchResultsContainer && !searchResultsContainer.classList.contains('hidden')) {
+            // Only show loading placeholders if they are currently visible and contain a placeholder
+            if (featuredContainer && featuredContainer.querySelector('.loading-placeholder')) featuredContainer.innerHTML = '<p class="loading-placeholder w-full">Loading recent recipes...</p>';
+            if (categorizedContainer && categorizedContainer.querySelector('.loading-placeholder')) categorizedContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading all recipes...</p>';
+            if (searchResultsContainer && !searchResultsContainer.classList.contains('hidden') && searchResultsContainer.querySelector('.loading-placeholder')) {
                  searchResultsContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading search results...</p>';
             }
 
+            recipesLoadingPromise = (async () => {
+                try {
+                    const snapshot = await database.ref("recipes").orderByChild("createdAt").once("value");
+                    allRecipesCache = [];
+                    if (snapshot.exists()) {
+                        allRecipesCache = Object.keys(snapshot.val()).map(id => ({ id, ...snapshot.val()[id] })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    }
+                    
+                    const activePageIndex = document.getElementById("page-index");
+                    const activePageFavorites = document.getElementById("page-favorites");
 
-            try {
-                const snapshot = await database.ref("recipes").orderByChild("createdAt").once("value");
-                allRecipesCache = [];
-                if (snapshot.exists()) {
-                    allRecipesCache = Object.keys(snapshot.val()).map(id => ({ id, ...snapshot.val()[id] })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                }
-                
-                const lastActivePage = localStorage.getItem("lastActivePageId") || "page-index";
-                if (lastActivePage === 'page-index') {
-                     document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
-                } else if (lastActivePage === 'page-favorites') {
-                    renderFavoritesPage();
-                }
-                // If the current page is a recipe detail page (e.g., from a refresh), ensure its data is loaded
-                if (currentPageId === 'page-recipe' && document.getElementById('page-recipe').dataset.currentRecipeId) {
-                    loadRecipeDetailFromRealtimeDB(document.getElementById('page-recipe').dataset.currentRecipeId);
-                }
+                    if (currentPageId === "page-index" && activePageIndex && activePageIndex.classList.contains("active")) {
+                         document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
+                    } else if (currentPageId === "page-favorites" && activePageFavorites && activePageFavorites.classList.contains("active")) {
+                        renderFavoritesPage();
+                    }
 
-            } catch (error) {
-                console.error("Error loading recipes:", error);
-                alert("Could not load recipes.");
-                if (featuredContainer) featuredContainer.innerHTML = "";
-                if (categorizedContainer) categorizedContainer.innerHTML = "";
-                if (searchResultsContainer) searchResultsContainer.innerHTML = "";
-            }
+                } catch (error) {
+                    console.error("Error loading recipes:", error);
+                    alert("Could not load recipes.");
+                    if (featuredContainer) featuredContainer.innerHTML = "";
+                    if (categorizedContainer) categorizedContainer.innerHTML = "";
+                    if (searchResultsContainer) searchResultsContainer.innerHTML = "";
+                    throw error; // Re-throw to be caught by callers if necessary
+                } finally {
+                    recipesLoadingPromise = null;
+                }
+            })();
+            return recipesLoadingPromise;
         }
 
         function populateRecipeListsUI(recipes, isSearchMode = false) {
@@ -413,10 +502,9 @@
                 if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
                 if (defaultRecipesView) defaultRecipesView.style.display = 'block';
                 
-                // Populate "Recently Added"
                 if (featuredContainer && recentlyAddedHeading) {
                     featuredContainer.innerHTML = "";
-                    const recentRecipes = recipes.slice(0, 3); // Already sorted by date desc
+                    const recentRecipes = recipes.slice(0, 3); 
                     if (recentRecipes.length > 0) {
                         recentlyAddedHeading.style.display = 'block';
                         featuredContainer.style.display = 'flex';
@@ -427,9 +515,8 @@
                     }
                 }
 
-                // Populate Categorized sections
                 if (categorizedRecipesContainer) {
-                    categorizedRecipesContainer.innerHTML = ''; // Clear previous categories
+                    categorizedRecipesContainer.innerHTML = ''; 
                     RECIPE_CATEGORIES.forEach(category => {
                         const recipesInCategory = recipes.filter(r => r.category === category)
                                                      .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
@@ -444,9 +531,9 @@
                             categorizedRecipesContainer.innerHTML += categoryHtml;
                         }
                     });
-                     if (categorizedRecipesContainer.innerHTML === '' && recipes.length > 0) { // No recipes in any defined category
+                     if (categorizedRecipesContainer.innerHTML === '' && recipes.length > 0) { 
                         categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes found in any category.</p>';
-                    } else if (recipes.length === 0) {
+                    } else if (recipes.length === 0 && !isInitialPageLoad) { // Avoid showing "no recipes" during initial load placeholder phase
                          categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes added yet. Create one!</p>';
                     }
                 }
@@ -461,17 +548,96 @@
         function populateFavoritesListUI(e,t=!1){const c=document.getElementById("favorites-recipes-container");if(c.innerHTML="",0===e.length){const a=t?'<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>':'<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>';c.innerHTML=a}else e.forEach(e=>c.innerHTML+=createRecipeCardHtml(e,!1,!0));attachRecipeCardListeners(),document.querySelectorAll(".favorite-remove-btn").forEach(e=>e.addEventListener("click",t=>{t.stopPropagation();const c=e.dataset.removeFavoriteId;c&&toggleBookmarkInRealtimeDB(c)}))}
         function handleFavoritesSearch(){renderFavoritesPage()}function attachRecipeCardListeners(){document.querySelectorAll("[data-recipe-id]").forEach(e=>{e.removeEventListener("click",handleRecipeCardClick),e.addEventListener("click",handleRecipeCardClick)})}
         function handleRecipeCardClick(e){if(e.target.closest(".favorite-remove-btn"))return;const t=e.currentTarget.dataset.recipeId;t&&loadRecipeDetailFromRealtimeDB(t)}
-        async function loadRecipeDetailFromRealtimeDB(e){let t=allRecipesCache.find(t=>t.id===e);if(t&&t.ingredients&&t.instructions&&t.description&&t.category)return displayRecipeDetailsUI(t),void showPage("page-recipe");if(0===allRecipesCache.length&&!isInitialPageLoad)try{await loadRecipesFromRealtimeDB(),t=allRecipesCache.find(t=>t.id===e),t&&t.ingredients&&t.instructions&&t.description&&t.category?(displayRecipeDetailsUI(t),showPage("page-recipe")):(console.warn("Recipe data incomplete after cache refresh for ID:",e),fetchDirectly())}catch(c){console.error("Error reloading cache for recipe detail:",c),fetchDirectly()}else fetchDirectly();async function fetchDirectly(){try{const c=await database.ref(`recipes/${e}`).once("value");c.exists()?(displayRecipeDetailsUI({id:e,...c.val()}),showPage("page-recipe")):(alert("Recipe not found."),showPage(previousPageId||"page-index",!0))}catch(c){console.error("Error getting recipe:",c),alert("Recipe load failed.")}}}
-        function displayRecipeDetailsUI(e){document.getElementById("page-recipe").dataset.currentRecipeId=e.id,document.getElementById("recipe-image").style.backgroundImage=`url("${e.imageURL||"https://via.placeholder.com/300x200.png?text=No+Image"}")`,document.getElementById("recipe-title").textContent=e.title||"Untitled",document.getElementById("recipe-description").textContent=e.description||"No description.";const t=document.getElementById("recipe-meta-info");if(t.innerHTML="",(e.prepTime||e.cookTime||e.servings)){let c="";e.prepTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`),e.cookTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`),e.servings&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`),t.innerHTML=c}const a=document.getElementById("recipe-ingredients-list");a.innerHTML="",(e.ingredients||[]).forEach(e=>a.innerHTML+=`<label class="flex gap-x-3 py-3 items-center"><input type="checkbox" class="form-checkbox-custom"/><p class="text-white text-base">${e}</p></label>`);const n=document.getElementById("recipe-instructions-list");n.innerHTML="",(e.instructions||[]).forEach(e=>n.innerHTML+=`<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);const o=document.getElementById("recipe-bookmark-icon");o.innerHTML=e.isBookmarked?'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>':'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>',o.classList.toggle("text-[#f0560e]",!!e.isBookmarked),o.classList.toggle("text-white",!e.isBookmarked),document.getElementById("recipe-bookmark-button").dataset.recipeId=e.id,document.getElementById("delete-recipe-button").dataset.recipeId=e.id,document.getElementById("delete-recipe-button").dataset.imageURL=e.imageURL||""}
+        
+        async function loadRecipeDetailFromRealtimeDB(recipeId, fromHistoryOrInitialLoad = false) {
+            let recipeData = allRecipesCache.find(r => r.id === recipeId);
+
+            if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
+                displayRecipeDetailsUI(recipeData);
+                showPage("page-recipe", fromHistoryOrInitialLoad);
+                return;
+            }
+
+            if (allRecipesCache.length === 0 || !recipeData) { // Cache is empty or recipe not in cache
+                if (recipesLoadingPromise) { 
+                    await recipesLoadingPromise;
+                } else { 
+                    await loadRecipesFromRealtimeDB();
+                }
+                recipeData = allRecipesCache.find(r => r.id === recipeId);
+                if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
+                    displayRecipeDetailsUI(recipeData);
+                    showPage("page-recipe", fromHistoryOrInitialLoad);
+                    return;
+                }
+            }
+
+            // Fallback to direct fetch if still not found/complete after checking/loading cache
+            try {
+                const snapshot = await database.ref(`recipes/${recipeId}`).once("value");
+                if (snapshot.exists()) {
+                    const fetchedRecipe = { id: recipeId, ...snapshot.val() };
+                    const cacheIndex = allRecipesCache.findIndex(r => r.id === recipeId);
+                    if (cacheIndex !== -1) allRecipesCache[cacheIndex] = fetchedRecipe;
+                    else allRecipesCache.push(fetchedRecipe); // Should be sorted if re-populating index
+
+                    displayRecipeDetailsUI(fetchedRecipe);
+                    showPage("page-recipe", fromHistoryOrInitialLoad);
+                } else {
+                    alert("Recipe not found.");
+                    showPage(previousPageId || "page-index", true); 
+                }
+            } catch (error) {
+                console.error("Error getting recipe:", error);
+                alert("Recipe load failed.");
+                showPage(previousPageId || "page-index", true);
+            }
+        }
+
+        function displayRecipeDetailsUI(e){
+            document.getElementById("page-recipe").dataset.currentRecipeId=e.id;
+            localStorage.setItem("currentRecipeDetailId", e.id); 
+            document.getElementById("recipe-image").style.backgroundImage=`url("${e.imageURL||"https://via.placeholder.com/300x200.png?text=No+Image"}")`;
+            document.getElementById("recipe-title").textContent=e.title||"Untitled";
+            document.getElementById("recipe-description").textContent=e.description||"No description.";
+            const t=document.getElementById("recipe-meta-info");if(t.innerHTML="",(e.prepTime||e.cookTime||e.servings)){let c="";e.prepTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`),e.cookTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`),e.servings&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`),t.innerHTML=c}const a=document.getElementById("recipe-ingredients-list");a.innerHTML="",(e.ingredients||[]).forEach(e=>a.innerHTML+=`<label class="flex gap-x-3 py-3 items-center"><input type="checkbox" class="form-checkbox-custom"/><p class="text-white text-base">${e}</p></label>`);const n=document.getElementById("recipe-instructions-list");n.innerHTML="",(e.instructions||[]).forEach(e=>n.innerHTML+=`<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);const o=document.getElementById("recipe-bookmark-icon");o.innerHTML=e.isBookmarked?'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>':'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>',o.classList.toggle("text-[#f0560e]",!!e.isBookmarked),o.classList.toggle("text-white",!e.isBookmarked),document.getElementById("recipe-bookmark-button").dataset.recipeId=e.id,document.getElementById("delete-recipe-button").dataset.recipeId=e.id,document.getElementById("delete-recipe-button").dataset.imageURL=e.imageURL||""}
         function resetCreateForm(){document.getElementById("create-recipe-title").value="",document.getElementById("create-recipe-category").value="Dinner",document.getElementById("create-recipe-description").value="",document.getElementById("create-recipe-ingredients").value="",document.getElementById("create-recipe-instructions").value="",document.getElementById("create-recipe-prepTime").value="",document.getElementById("create-recipe-cookTime").value="",document.getElementById("create-recipe-servings").value="",document.getElementById("create-recipe-photoInput").value="",document.querySelector("#page-create-recipe .page-header h2").textContent="New Recipe",editingRecipeId=null,currentRecipeImageURL=null}
         async function prepareEditForm(e){const t=database.ref(`recipes/${e}`);try{const c=await t.once("value");if(c.exists()){const a=c.val();editingRecipeId=e,currentRecipeImageURL=a.imageURL||"",document.querySelector("#page-create-recipe .page-header h2").textContent="Edit Recipe",document.getElementById("create-recipe-title").value=a.title||"",document.getElementById("create-recipe-category").value=a.category||"Dinner",document.getElementById("create-recipe-description").value=a.description||"",document.getElementById("create-recipe-ingredients").value=(a.ingredients||[]).join("\n"),document.getElementById("create-recipe-instructions").value=(a.instructions||[]).join("\n"),document.getElementById("create-recipe-prepTime").value=a.prepTime||"",document.getElementById("create-recipe-cookTime").value=a.cookTime||"",document.getElementById("create-recipe-servings").value=a.servings||"",document.getElementById("create-recipe-photoInput").value="",showPage("page-create-recipe")}else alert("Recipe not found for editing."),resetCreateForm()}catch(e){console.error("Error fetching for edit:",e),alert("Could not load for editing."),resetCreateForm()}}
         async function saveRecipeData(){const e=document.getElementById("create-recipe-title").value.trim();if(!e)return void alert("Recipe title is required.");const t=document.getElementById("create-recipe-category").value,c=document.getElementById("create-recipe-description").value.trim(),a=document.getElementById("create-recipe-ingredients").value.split("\n").map(e=>e.trim()).filter(e=>e),n=document.getElementById("create-recipe-instructions").value.split("\n").map(e=>e.trim()).filter(e=>e),o=document.getElementById("create-recipe-prepTime").value.trim(),i=document.getElementById("create-recipe-cookTime").value.trim(),r=document.getElementById("create-recipe-servings").value.trim(),s=document.getElementById("create-recipe-photoInput"),l=document.getElementById("save-recipe-button");l.textContent="Saving...",l.disabled=!0;let d=editingRecipeId?currentRecipeImageURL:"";try{if(s.files[0]){const e=s.files[0],t=new FormData;t.append("file",e),t.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);const c=await fetch(CLOUDINARY_UPLOAD_URL,{method:"POST",body:t}),a=await c.json();if(a.secure_url)d=a.secure_url;else throw new Error(a.error?.message||"Cloudinary upload failed")}const p={title:e,category:t,description:c,ingredients:a,instructions:n,prepTime:o,cookTime:i,servings:r,imageURL:d,isBookmarked:editingRecipeId?allRecipesCache.find(e=>e.id===editingRecipeId)?.isBookmarked||!1:!1};if(editingRecipeId){const e=await database.ref(`recipes/${editingRecipeId}/createdAt`).once("value");p.createdAt=e.exists()?e.val():serverTimestamp,p.updatedAt=serverTimestamp,await database.ref(`recipes/${editingRecipeId}`).update(p),alert("Recipe updated!")}else p.createdAt=serverTimestamp,await database.ref("recipes").push().set(p),alert("Recipe saved!");resetCreateForm(),await loadRecipesFromRealtimeDB(),showPage("page-index")}catch(e){console.error("Error saving recipe:",e),alert(`Failed to save: ${e.message}`)}finally{l.textContent="Save Recipe",l.disabled=!1}}
         async function deleteRecipeFromRealtimeDB(e,t){if(!confirm("Delete this recipe?"))return;try{await database.ref(`recipes/${e}`).remove(),alert("Recipe deleted."),await loadRecipesFromRealtimeDB(),showPage(previousPageId||"page-index",!0)}catch(e){console.error("Error deleting recipe:",e),alert("Failed to delete.")}}
         async function toggleBookmarkInRealtimeDB(e){const t=database.ref(`recipes/${e}`);try{const c=await t.once("value");if(c.exists()){const a=!c.val().isBookmarked;await t.update({isBookmarked:a});const n=document.getElementById("recipe-bookmark-icon");n&&(n.innerHTML=a?'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>':'<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>',n.classList.toggle("text-[#f0560e]",a),n.classList.toggle("text-white",!a),n.classList.add("bookmarked-animate"),setTimeout(()=>n.classList.remove("bookmarked-animate"),200));const o=allRecipesCache.find(t=>t.id===e);o&&(o.isBookmarked=a),"page-favorites"===currentPageId&&renderFavoritesPage()}}catch(e){console.error("Error toggling bookmark:",e)}}
+        
+        function updateScheduleDatesInStorageAndHistory() {
+            localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
+            localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
+            if (history.state && history.state.page === 'page-schedule') { 
+                history.replaceState({
+                    ...history.state,
+                    selectedDate: currentSelectedDate.toISOString(),
+                    weekStart: currentDisplayedWeekStartDate.toISOString()
+                }, "Page page-schedule", location.href); 
+            }
+        }
         function renderWeekView(){const e=document.getElementById("schedule-week-days"),t=document.getElementById("schedule-week-range");if(!e||!t)return;e.innerHTML="";const c=new Intl.DateTimeFormat("en-US",{weekday:"short"}),a=new Intl.DateTimeFormat("en-US",{day:"numeric"});let n=new Date(currentDisplayedWeekStartDate);for(let o=0;o<7;o++){const i=document.createElement("button");i.className="schedule-day-btn flex flex-col items-center p-1.5 fo w-[calc(100%/7-4px)] mx-0.5",i.dataset.date=n.toISOString();const r=isToday(n),s=isSameDate(n,currentSelectedDate);i.innerHTML=`<span class="day-name-span text-xs ${r&&!s?"text-[#f0560e]":"text-gray-400"}">${c.format(n).toUpperCase()}</span><span class="day-number-span text-lg font-bold ${r&&!s?"text-[#f0560e]":"text-white"}">${a.format(n)}</span>`,s&&i.classList.add("selected"),r&&i.classList.add("today"),i.addEventListener("click",handleWeekDayClick),e.appendChild(i),n=addDays(n,1)}t.textContent=`${currentDisplayedWeekStartDate.toLocaleDateString("en-US",{month:"short",day:"numeric"})} - ${addDays(currentDisplayedWeekStartDate,6).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}`,loadMealsForSelectedDate()}
-        function handleWeekDayClick(e){currentSelectedDate=new Date(e.currentTarget.dataset.date),renderWeekView()}function navigateToPreviousWeek(){currentDisplayedWeekStartDate=addDays(currentDisplayedWeekStartDate,-7),currentSelectedDate=new Date(currentDisplayedWeekStartDate),renderWeekView()}function navigateToNextWeek(){currentDisplayedWeekStartDate=addDays(currentDisplayedWeekStartDate,7),currentSelectedDate=new Date(currentDisplayedWeekStartDate),renderWeekView()}
+        function handleWeekDayClick(e){
+            currentSelectedDate=new Date(e.currentTarget.dataset.date);
+            updateScheduleDatesInStorageAndHistory();
+            renderWeekView();
+        }
+        function navigateToPreviousWeek(){
+            currentDisplayedWeekStartDate=addDays(currentDisplayedWeekStartDate,-7);
+            currentSelectedDate=new Date(currentDisplayedWeekStartDate);
+            updateScheduleDatesInStorageAndHistory();
+            renderWeekView();
+        }
+        function navigateToNextWeek(){
+            currentDisplayedWeekStartDate=addDays(currentDisplayedWeekStartDate,7);
+            currentSelectedDate=new Date(currentDisplayedWeekStartDate);
+            updateScheduleDatesInStorageAndHistory();
+            renderWeekView();
+        }
         function loadMealsForSelectedDate(){const e=document.getElementById("schedule-selected-day-title");e&&(e.textContent=`Meals for ${formatDateForDisplay(currentSelectedDate)}`,loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate)))}
-        async function loadMealPlanForDateFromRealtimeDB(e){const t=document.getElementById("schedule-meal-list");if(!t)return;t.innerHTML='<p class="loading-placeholder">Loading meals...</p>';try{const c=await database.ref(`mealPlan/${e}`).once("value");displayPlannedMealsUI(c.exists()?c.val():{},e)}catch(e){console.error("Error fetching meal plan:",e),t.innerHTML='<p class="loading-placeholder text-red-500">Error loading meals.</p>'}}
+        async function loadMealPlanForDateFromRealtimeDB(e){const t=document.getElementById("schedule-meal-list");if(!t)return;t.innerHTML='<p class="loading-placeholder">Loading meals...</p>';try{ if (allRecipesCache.length === 0) { if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB(); } const c=await database.ref(`mealPlan/${e}`).once("value");displayPlannedMealsUI(c.exists()?c.val():{},e)}catch(e){console.error("Error fetching meal plan:",e),t.innerHTML='<p class="loading-placeholder text-red-500">Error loading meals.</p>'}}
         function displayPlannedMealsUI(e,t){const c=document.getElementById("schedule-meal-list");if(!c)return;c.innerHTML="",0===Object.keys(e).length?(c.innerHTML='<p class="loading-placeholder">No meals planned.</p>',void 0):Object.entries(e).forEach(([a,n])=>{const o=allRecipesCache.find(e=>e.id===n.recipeId),i=o?.imageURL||"https://via.placeholder.com/100x100.png?text=No+Img",r=o?.cookTime||"N/A",s=document.createElement("div");s.className="flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg",s.dataset.recipeId=n.recipeId,s.dataset.mealPlanEntryId=a,s.innerHTML=`<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle||"Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`,c.appendChild(s),s.querySelector(".remove-meal-button").addEventListener("click",e=>{e.stopPropagation(),handleRemoveMealClick(t,a)}),s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click",()=>{s.dataset.recipeId&&loadRecipeDetailFromRealtimeDB(s.dataset.recipeId)})})}
         async function handleRemoveMealClick(e,t){if(!confirm("Remove meal?"))return;try{await database.ref(`mealPlan/${e}/${t}`).remove(),loadMealsForSelectedDate()}catch(e){console.error("Error removing meal:",e),alert("Failed to remove.")}}
         const addMealModal=document.getElementById("add-meal-modal"),addMealModalRecipeList=document.getElementById("add-meal-modal-recipe-list"),addMealModalSearchInput=document.getElementById("add-meal-modal-search");function openAddMealModal(){addMealModal&&addMealModalSearchInput&&(populateAddMealModalRecipeList(allRecipesCache),addMealModalSearchInput.value="",addMealModal.classList.remove("hidden"))}function closeAddMealModal(){addMealModal&&addMealModal.classList.add("hidden")}
@@ -486,7 +652,114 @@
         async function deleteShoppingItemFromDB(e,t){t.classList.remove("list-item-enter-active"),t.classList.add("list-item-leave-active"),setTimeout(async()=>{try{await database.ref(`shoppingList/${e}`).remove(),loadShoppingListFromDB()}catch(e){console.error("Error deleting shopping item:",e),t.classList.remove("list-item-leave-active"),t.classList.add("list-item-enter-active")}},200)}
         async function clearCheckedShoppingItemsFromDB(){if(!confirm("Clear all checked items?"))return;try{const e=await database.ref("shoppingList").orderByChild("checked").equalTo(!0).once("value");if(e.exists()){const t={};e.forEach(e=>{t[e.key]=null}),await database.ref("shoppingList").update(t)}loadShoppingListFromDB()}catch(e){console.error("Error clearing checked items:",e),alert("Failed to clear checked items.")}}
         async function addUncheckedIngredientsToShoppingList(){const e=document.getElementById("recipe-ingredients-list");if(!e)return;const t=[];e.querySelectorAll("label").forEach(e=>{const c=e.querySelector(".form-checkbox-custom"),a=e.querySelector("p");!c.checked&&a?.textContent&&t.push(a.textContent.trim())});if(0===t.length)return void alert("No unchecked ingredients to add or no ingredients listed.");try{const c={};t.forEach(e=>{const t=database.ref("shoppingList").push().key;c[t]={name:e,checked:!1,createdAt:serverTimestamp}}),await database.ref("shoppingList").update(c),alert(`${t.length} ingredient${1===t.length?"":"s"} added to shopping list!`)}catch(e){console.error("Error adding ingredients to shopping list:",e),alert("Failed to add ingredients.")}}
-        document.addEventListener("DOMContentLoaded",()=>{const e=localStorage.getItem("lastActivePageId")||"page-index";history.state&&history.state.page?showPage(history.state.page,!0):("page-index"!==e?history.replaceState({page:e},`Page ${e}`,`#${e}`):history.replaceState({page:"page-index"},"Page page-index","#page-index"),showPage(e)),loadRecipesFromRealtimeDB(),window.addEventListener("popstate",e=>{if(isInitialPageLoad)return;e.state&&e.state.page?showPage(e.state.page,!0):"page-index"!==currentPageId&&(showPage("page-index",!0),history.pushState({page:"page-index"},"Page page-index","#page-index"))}),document.getElementById("search-recipe-input")?.addEventListener("input",debounce(handleSearch,300)),document.getElementById("search-favorites-input")?.addEventListener("input",debounce(handleFavoritesSearch,300)),document.querySelectorAll(".nav-item").forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const c=e.dataset.target;"page-create-recipe"===c&&resetCreateForm(),showPage(c)})}),document.querySelectorAll('[data-action="back"]').forEach(e=>{e.addEventListener("click",()=>history.back())}),document.querySelector('[data-action="back-from-create"]')?.addEventListener("click",()=>history.back()),document.getElementById("header-profile-button-index")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("header-profile-button-favorites")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("save-recipe-button")?.addEventListener("click",saveRecipeData),document.getElementById("recipe-bookmark-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId)}),document.getElementById("delete-recipe-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId,e.currentTarget.dataset.imageURL)}),document.getElementById("recipe-edit-button")?.addEventListener("click",()=>{const e=document.getElementById("page-recipe").dataset.currentRecipeId;e?prepareEditForm(e):alert("Could not initiate edit.")}),document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click",addUncheckedIngredientsToShoppingList),document.getElementById("schedule-prev-week")?.addEventListener("click",navigateToPreviousWeek),document.getElementById("schedule-next-week")?.addEventListener("click",navigateToNextWeek),document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click",openAddMealModal),document.getElementById("add-meal-modal-close-button")?.addEventListener("click",closeAddMealModal),addMealModalSearchInput&&addMealModalSearchInput.addEventListener("input",debounce(handleAddMealModalSearch,300)),document.getElementById("add-shopping-item-button")?.addEventListener("click",addShoppingItemToDB),newShoppingItemNameInput&&newShoppingItemNameInput.addEventListener("keypress",e=>{"Enter"===e.key&&(e.preventDefault(),addShoppingItemToDB())}),document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click",clearCheckedShoppingItemsFromDB)});
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            isInitialPageLoad = true; // Explicitly true at start
+            let initialPageId = "page-index";
+            let recipeIdForInitialLoad = null;
+            let initialHistoryState = { page: initialPageId };
+
+            const hash = window.location.hash.substring(1);
+            if (history.state && history.state.page) { 
+                initialPageId = history.state.page;
+                initialHistoryState = { ...history.state }; // Copy existing state
+                if (initialPageId === "page-recipe") {
+                    recipeIdForInitialLoad = history.state.recipeId || localStorage.getItem("currentRecipeDetailId");
+                    initialHistoryState.recipeId = recipeIdForInitialLoad; // Ensure it's in state
+                } else if (initialPageId === "page-schedule") {
+                    initialHistoryState.selectedDate = history.state.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
+                    initialHistoryState.weekStart = history.state.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                }
+            } else if (hash) { 
+                const parts = hash.split('/');
+                initialPageId = parts[0] || "page-index";
+                initialHistoryState.page = initialPageId;
+                if (initialPageId === "page-recipe" && parts[1]) {
+                    recipeIdForInitialLoad = parts[1];
+                    initialHistoryState.recipeId = recipeIdForInitialLoad;
+                } else if (initialPageId === "page-recipe") { // Hash is #page-recipe but no ID
+                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
+                    if(recipeIdForInitialLoad) initialHistoryState.recipeId = recipeIdForInitialLoad;
+                } else if (initialPageId === "page-schedule") {
+                    initialHistoryState.selectedDate = localStorage.getItem("scheduleView_currentSelectedDate");
+                    initialHistoryState.weekStart = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                }
+            } else { 
+                 initialPageId = localStorage.getItem("lastActivePageId") || "page-index";
+                 initialHistoryState.page = initialPageId;
+                 if (initialPageId === "page-recipe") {
+                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
+                    if(recipeIdForInitialLoad) initialHistoryState.recipeId = recipeIdForInitialLoad;
+                 } else if (initialPageId === "page-schedule") {
+                    initialHistoryState.selectedDate = localStorage.getItem("scheduleView_currentSelectedDate");
+                    initialHistoryState.weekStart = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                 }
+            }
+            
+            let initialUrl = `#${initialPageId}`;
+            if (initialPageId === "page-recipe" && recipeIdForInitialLoad) {
+                initialUrl += `/${recipeIdForInitialLoad}`;
+            }
+            history.replaceState(initialHistoryState, `Page ${initialPageId}`, initialUrl);
+
+            const recipesDataPromise = loadRecipesFromRealtimeDB(); // Start loading recipes
+
+            if (initialPageId === "page-recipe") {
+                if (recipeIdForInitialLoad) {
+                    await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true); 
+                } else {
+                    console.warn("Recipe page on initial load, but no recipe ID. Navigating to index.");
+                    showPage("page-index", true); 
+                }
+            } else {
+                 showPage(initialPageId, true); 
+            }
+            
+            await recipesDataPromise; // Ensure main cache is populated
+
+            window.addEventListener("popstate", async e => {
+                // isInitialPageLoad check is primarily for very early popstate, not strictly needed here
+                // as main logic is handled by showPage with fromHistoryOrInitialLoad=true
+                if (e.state && e.state.page) {
+                    const pageToLoad = e.state.page;
+                    if (pageToLoad === "page-recipe") {
+                        const recipeIdFromState = e.state.recipeId || localStorage.getItem("currentRecipeDetailId");
+                        if (recipeIdFromState) {
+                            await loadRecipeDetailFromRealtimeDB(recipeIdFromState, true);
+                        } else {
+                             showPage("page-index", true); 
+                        }
+                    } else {
+                        showPage(pageToLoad, true);
+                    }
+                } else if (location.hash === "" || location.hash === "#") { 
+                     showPage("page-index", true);
+                }
+            });
+
+            document.getElementById("search-recipe-input")?.addEventListener("input",debounce(handleSearch,300));
+            document.getElementById("search-favorites-input")?.addEventListener("input",debounce(handleFavoritesSearch,300));
+            document.querySelectorAll(".nav-item").forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const c=e.dataset.target;"page-create-recipe"===c&&resetCreateForm(),showPage(c)})});
+            document.querySelectorAll('[data-action="back"]').forEach(e=>{e.addEventListener("click",()=>history.back())});
+            document.querySelector('[data-action="back-from-create"]')?.addEventListener("click",()=>history.back());
+            document.getElementById("header-profile-button-index")?.addEventListener("click",()=>showPage("page-profile"));
+            document.getElementById("header-profile-button-favorites")?.addEventListener("click",()=>showPage("page-profile"));
+            document.getElementById("save-recipe-button")?.addEventListener("click",saveRecipeData);
+            document.getElementById("recipe-bookmark-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId)});
+            document.getElementById("delete-recipe-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId,e.currentTarget.dataset.imageURL)});
+            document.getElementById("recipe-edit-button")?.addEventListener("click",()=>{const e=document.getElementById("page-recipe").dataset.currentRecipeId;e?prepareEditForm(e):alert("Could not initiate edit.")});
+            document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click",addUncheckedIngredientsToShoppingList);
+            document.getElementById("schedule-prev-week")?.addEventListener("click",navigateToPreviousWeek);
+            document.getElementById("schedule-next-week")?.addEventListener("click",navigateToNextWeek);
+            document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click",openAddMealModal);
+            document.getElementById("add-meal-modal-close-button")?.addEventListener("click",closeAddMealModal);
+            addMealModalSearchInput&&addMealModalSearchInput.addEventListener("input",debounce(handleAddMealModalSearch,300));
+            document.getElementById("add-shopping-item-button")?.addEventListener("click",addShoppingItemToDB);
+            newShoppingItemNameInput&&newShoppingItemNameInput.addEventListener("keypress",e=>{"Enter"===e.key&&(e.preventDefault(),addShoppingItemToDB())});
+            document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click",clearCheckedShoppingItemsFromDB);
+
+            isInitialPageLoad = false;
+        });
         "serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("/cookbook_bare/sw.js",{scope:"/cookbook_bare/"}).then(e=>console.log("SW registered!",e.scope)).catch(e=>console.log("SW registration failed: ",e))});
     </script>
 
