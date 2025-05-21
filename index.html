@@ -11,7 +11,7 @@
 
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
     <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
-        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&family=Plus+Jakarta+Sans%3Awght%40400%3B500%3B700%3B800" />
+        href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&family=Plus+Jakarta+Sans%3Awght%40400%3B500%3B700%3B800&family=Pacifico" />
     <title>Cookbook App</title>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -361,8 +361,8 @@
         <div id="page-index" class="page bg-[#1e1815] dark group/design-root">
             <div class="page-header">
                 <div class="flex items-center p-4 pb-2 justify-between">
-                    <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Opi's
-                        Cookbook</h2>
+                    <h2 class="text-white text-2xl leading-tight tracking-[-0.015em]"
+                        style="font-family: 'Pacifico', cursive;">Opi's Cookbook</h2>
                     <button id="header-profile-button-index" title="Profile"
                         class="interactive-scale text-white flex size-10 items-center justify-center rounded-full hover:bg-white/10"><svg
                             xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
@@ -600,9 +600,12 @@
                     </label>
                     <div
                         class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-[#684231]">
-                        <p class="text-white text-lg font-bold">Upload Photo</p><input type="file"
-                            id="create-recipe-photoInput" accept="image/*"
-                            class="text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#492e22] file:text-white hover:file:bg-[#5a3a2a]">
+                        <p id="create-recipe-photo-label" class="text-white text-lg font-bold">Upload Photo</p>
+                        <div id="current-image-display" class="text-center text-white text-sm mb-1 hidden w-full">
+                            <p class="truncate">Current: <span id="current-image-filename" class="italic"></span></p>
+                            <button type="button" id="remove-current-image-button" class="text-xs text-red-400 hover:text-red-500 underline">(Remove current image)</button>
+                        </div>
+                        <input type="file" id="create-recipe-photoInput" accept="image/*" class="text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#492e22] file:text-white hover:file:bg-[#5a3a2a] w-full">
                     </div>
                 </div>
                 <div class="flex px-4 py-3 mt-4"><button id="save-recipe-button"
@@ -707,7 +710,7 @@
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
             <div
-                class="sticky bottom-[76px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
+                class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                 <input type="text" id="new-shopping-item-name" placeholder="Add item..."
                     class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
                 <button id="add-shopping-item-button"
@@ -1120,9 +1123,155 @@
             document.getElementById("delete-recipe-button").dataset.recipeId = e.id;
             document.getElementById("delete-recipe-button").dataset.imageURL = e.imageURL || ""
         }
-        function resetCreateForm() { document.getElementById("create-recipe-title").value = "", document.getElementById("create-recipe-category").value = "Dinner", document.getElementById("create-recipe-description").value = "", document.getElementById("create-recipe-ingredients").value = "", document.getElementById("create-recipe-instructions").value = "", document.getElementById("create-recipe-prepTime").value = "", document.getElementById("create-recipe-cookTime").value = "", document.getElementById("create-recipe-servings").value = "", document.getElementById("create-recipe-photoInput").value = "", document.querySelector("#page-create-recipe .page-header h2").textContent = "New Recipe", editingRecipeId = null, currentRecipeImageURL = null }
-        async function prepareEditForm(e) { const t = database.ref(`recipes/${e}`); try { const c = await t.once("value"); if (c.exists()) { const a = c.val(); editingRecipeId = e, currentRecipeImageURL = a.imageURL || "", document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe", document.getElementById("create-recipe-title").value = a.title || "", document.getElementById("create-recipe-category").value = a.category || "Dinner", document.getElementById("create-recipe-description").value = a.description || "", document.getElementById("create-recipe-ingredients").value = (a.ingredients || []).join("\n"), document.getElementById("create-recipe-instructions").value = (a.instructions || []).join("\n"), document.getElementById("create-recipe-prepTime").value = a.prepTime || "", document.getElementById("create-recipe-cookTime").value = a.cookTime || "", document.getElementById("create-recipe-servings").value = a.servings || "", document.getElementById("create-recipe-photoInput").value = "", showPage("page-create-recipe") } else alert("Recipe not found for editing."), resetCreateForm() } catch (e) { console.error("Error fetching for edit:", e), alert("Could not load for editing."), resetCreateForm() } }
-        async function saveRecipeData() { const e = document.getElementById("create-recipe-title").value.trim(); if (!e) return void alert("Recipe title is required."); const t = document.getElementById("create-recipe-category").value, c = document.getElementById("create-recipe-description").value.trim(), a = document.getElementById("create-recipe-ingredients").value.split("\n").map(e => e.trim()).filter(e => e), n = document.getElementById("create-recipe-instructions").value.split("\n").map(e => e.trim()).filter(e => e), o = document.getElementById("create-recipe-prepTime").value.trim(), i = document.getElementById("create-recipe-cookTime").value.trim(), r = document.getElementById("create-recipe-servings").value.trim(), s = document.getElementById("create-recipe-photoInput"), l = document.getElementById("save-recipe-button"); l.textContent = "Saving...", l.disabled = !0; let d = editingRecipeId ? currentRecipeImageURL : ""; try { if (s.files[0]) { const e = s.files[0], t = new FormData; t.append("file", e), t.append("upload_preset", CLOUDINARY_UPLOAD_PRESET); const c = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: t }), a = await c.json(); if (a.secure_url) d = a.secure_url; else throw new Error(a.error?.message || "Cloudinary upload failed") } const p = { title: e, category: t, description: c, ingredients: a, instructions: n, prepTime: o, cookTime: i, servings: r, imageURL: d, isBookmarked: editingRecipeId ? allRecipesCache.find(e => e.id === editingRecipeId)?.isBookmarked || !1 : !1 }; if (editingRecipeId) { const e = await database.ref(`recipes/${editingRecipeId}/createdAt`).once("value"); p.createdAt = e.exists() ? e.val() : serverTimestamp, p.updatedAt = serverTimestamp, await database.ref(`recipes/${editingRecipeId}`).update(p), alert("Recipe updated!") } else p.createdAt = serverTimestamp, await database.ref("recipes").push().set(p), alert("Recipe saved!"); resetCreateForm(), await loadRecipesFromRealtimeDB(), showPage("page-index") } catch (e) { console.error("Error saving recipe:", e), alert(`Failed to save: ${e.message}`) } finally { l.textContent = "Save Recipe", l.disabled = !1 } }
+
+        function resetCreateForm() {
+            document.getElementById("create-recipe-title").value = "";
+            document.getElementById("create-recipe-category").value = "Dinner";
+            document.getElementById("create-recipe-description").value = "";
+            document.getElementById("create-recipe-ingredients").value = "";
+            document.getElementById("create-recipe-instructions").value = "";
+            document.getElementById("create-recipe-prepTime").value = "";
+            document.getElementById("create-recipe-cookTime").value = "";
+            document.getElementById("create-recipe-servings").value = "";
+            
+            document.getElementById("create-recipe-photo-label").textContent = "Upload Photo";
+            document.getElementById("current-image-display").classList.add("hidden");
+            document.getElementById("current-image-filename").textContent = "";
+            document.getElementById("create-recipe-photoInput").value = "";
+
+            document.querySelector("#page-create-recipe .page-header h2").textContent = "New Recipe";
+            editingRecipeId = null;
+            currentRecipeImageURL = null;
+        }
+
+        async function prepareEditForm(recipeId) {
+            const recipeRef = database.ref(`recipes/${recipeId}`);
+            try {
+                const snapshot = await recipeRef.once("value");
+                if (snapshot.exists()) {
+                    const recipeData = snapshot.val();
+                    editingRecipeId = recipeId;
+
+                    document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe";
+                    document.getElementById("create-recipe-title").value = recipeData.title || "";
+                    document.getElementById("create-recipe-category").value = recipeData.category || "Dinner";
+                    document.getElementById("create-recipe-description").value = recipeData.description || "";
+                    document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
+                    document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n");
+                    document.getElementById("create-recipe-prepTime").value = recipeData.prepTime || "";
+                    document.getElementById("create-recipe-cookTime").value = recipeData.cookTime || "";
+                    document.getElementById("create-recipe-servings").value = recipeData.servings || "";
+                    
+                    const photoLabel = document.getElementById("create-recipe-photo-label");
+                    const currentImageDisplay = document.getElementById("current-image-display");
+                    const currentImageFilenameSpan = document.getElementById("current-image-filename");
+
+                    if (recipeData.imageURL) {
+                        currentRecipeImageURL = recipeData.imageURL; // Store the current image URL
+                        photoLabel.textContent = "Change Photo";
+                        currentImageFilenameSpan.textContent = recipeData.imageURL.substring(recipeData.imageURL.lastIndexOf('/') + 1);
+                        currentImageDisplay.classList.remove("hidden");
+                    } else {
+                        currentRecipeImageURL = null;
+                        photoLabel.textContent = "Upload Photo";
+                        currentImageDisplay.classList.add("hidden");
+                    }
+                    document.getElementById("create-recipe-photoInput").value = ""; // Clear file input
+
+                    showPage("page-create-recipe");
+                } else {
+                    alert("Recipe not found for editing.");
+                    resetCreateForm(); 
+                }
+            } catch (error) {
+                console.error("Error fetching recipe for edit:", error);
+                alert("Could not load recipe for editing.");
+                resetCreateForm();
+            }
+        }
+
+        async function saveRecipeData() {
+            const title = document.getElementById("create-recipe-title").value.trim();
+            const category = document.getElementById("create-recipe-category").value;
+            const description = document.getElementById("create-recipe-description").value.trim();
+            const ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim();
+            const instructionsRaw = document.getElementById("create-recipe-instructions").value.trim();
+            const prepTime = document.getElementById("create-recipe-prepTime").value.trim();
+            const cookTime = document.getElementById("create-recipe-cookTime").value.trim();
+            const servings = document.getElementById("create-recipe-servings").value.trim();
+            const photoInput = document.getElementById("create-recipe-photoInput");
+
+            // Validation checks
+            if (!title) return void alert("Recipe title is required.");
+            if (!category) return void alert("Category is required.");
+            if (!description) return void alert("Description is required.");
+            if (!ingredientsRaw) return void alert("Ingredients are required (at least one line).");
+            const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e);
+            if (ingredients.length === 0) return void alert("At least one valid ingredient is required.");
+            if (!instructionsRaw) return void alert("Instructions are required (at least one line).");
+            const instructions = instructionsRaw.split("\n").map(e => e.trim()).filter(e => e);
+            if (instructions.length === 0) return void alert("At least one valid instruction step is required.");
+            if (!prepTime) return void alert("Prep time is required.");
+            if (!cookTime) return void alert("Cook time is required.");
+            if (!servings) return void alert("Servings information is required.");
+
+            let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : ""; 
+
+            const saveButton = document.getElementById("save-recipe-button");
+            saveButton.textContent = "Saving...";
+            saveButton.disabled = true;
+
+            try {
+                if (photoInput.files[0]) {
+                    const file = photoInput.files[0];
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+                    const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData });
+                    const cloudinaryData = await response.json();
+                    if (cloudinaryData.secure_url) {
+                        imageToSaveURL = cloudinaryData.secure_url;
+                    } else {
+                        throw new Error(cloudinaryData.error?.message || "Cloudinary upload failed");
+                    }
+                }
+
+                if (!imageToSaveURL) {
+                    throw new Error("A recipe photo is required.");
+                }
+
+                const recipeData = {
+                    title: title, category: category, description: description,
+                    ingredients: ingredients, instructions: instructions,
+                    prepTime: prepTime, cookTime: cookTime, servings: servings,
+                    imageURL: imageToSaveURL,
+                    isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false
+                };
+
+                if (editingRecipeId) {
+                    const createdAtSnapshot = await database.ref(`recipes/${editingRecipeId}/createdAt`).once("value");
+                    recipeData.createdAt = createdAtSnapshot.exists() ? createdAtSnapshot.val() : serverTimestamp;
+                    recipeData.updatedAt = serverTimestamp;
+                    await database.ref(`recipes/${editingRecipeId}`).update(recipeData);
+                    alert("Recipe updated!");
+                } else {
+                    recipeData.createdAt = serverTimestamp;
+                    await database.ref("recipes").push().set(recipeData);
+                    alert("Recipe saved!");
+                }
+                resetCreateForm();
+                await loadRecipesFromRealtimeDB();
+                showPage("page-index");
+
+            } catch (error) {
+                console.error("Error saving recipe:", error);
+                alert(`Failed to save: ${error.message}`);
+            } finally {
+                saveButton.textContent = "Save Recipe";
+                saveButton.disabled = false;
+            }
+        }
+
         async function deleteRecipeFromRealtimeDB(e, t) { if (!confirm("Delete this recipe?")) return; try { await database.ref(`recipes/${e}`).remove(), alert("Recipe deleted."), await loadRecipesFromRealtimeDB(), showPage(previousPageId || "page-index", !0) } catch (e) { console.error("Error deleting recipe:", e), alert("Failed to delete.") } }
         async function toggleBookmarkInRealtimeDB(e) {
             const t = database.ref(`recipes/${e}`);
@@ -1329,6 +1478,37 @@
             document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { e.currentTarget.dataset.recipeId && toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId) });
             document.getElementById("delete-recipe-button")?.addEventListener("click", e => { e.currentTarget.dataset.recipeId && deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId, e.currentTarget.dataset.imageURL) });
             document.getElementById("recipe-edit-button")?.addEventListener("click", () => { const e = document.getElementById("page-recipe").dataset.currentRecipeId; e ? prepareEditForm(e) : alert("Could not initiate edit.") });
+            
+            document.getElementById("remove-current-image-button")?.addEventListener("click", () => {
+                currentRecipeImageURL = null;
+                document.getElementById("current-image-display").classList.add("hidden");
+                document.getElementById("current-image-filename").textContent = "";
+                document.getElementById("create-recipe-photo-label").textContent = "Upload Photo";
+                const photoInput = document.getElementById("create-recipe-photoInput");
+                if (photoInput) photoInput.value = ""; 
+            });
+
+            document.getElementById("create-recipe-photoInput")?.addEventListener("change", function() {
+                const photoLabel = document.getElementById("create-recipe-photo-label");
+                const currentImageDisplay = document.getElementById("current-image-display");
+                const currentImageFilenameSpan = document.getElementById("current-image-filename");
+                
+                if (this.files && this.files.length > 0) {
+                    currentImageDisplay.classList.add("hidden");
+                    photoLabel.textContent = "Photo Selected";
+                } else {
+                    // This branch handles when a file selection is cancelled or cleared
+                    if (editingRecipeId && currentRecipeImageURL) { // currentRecipeImageURL here is the one potentially set in prepareEditForm or nulled by remove button
+                        currentImageFilenameSpan.textContent = currentRecipeImageURL.substring(currentRecipeImageURL.lastIndexOf('/') + 1);
+                        currentImageDisplay.classList.remove("hidden");
+                        photoLabel.textContent = "Change Photo";
+                    } else {
+                        currentImageDisplay.classList.add("hidden");
+                        photoLabel.textContent = "Upload Photo";
+                    }
+                }
+            });
+
             document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click", addUncheckedIngredientsToShoppingList);
             document.getElementById("schedule-prev-week")?.addEventListener("click", navigateToPreviousWeek);
             document.getElementById("schedule-next-week")?.addEventListener("click", navigateToNextWeek);
