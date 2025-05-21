@@ -250,17 +250,17 @@
             animation: pulseOpacity 1.5s infinite ease-in-out;
         }
 
-        #add-meal-modal, #delete-recipe-confirmation-modal {
+        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal {
             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        #add-meal-modal>div, #delete-recipe-confirmation-modal>div {
+        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div {
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: scale(0.95);
             opacity: 0;
         }
 
-        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div {
+        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div {
             transform: scale(1);
             opacity: 1;
         }
@@ -755,6 +755,7 @@
         </div>
     </div>
 
+    <!-- Specific Delete Recipe Confirmation Modal -->
     <div id="delete-recipe-confirmation-modal"
         class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
@@ -772,6 +773,39 @@
             </div>
         </div>
     </div>
+
+    <!-- Generic Custom Alert Modal -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+        <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+            <h3 id="custom-alert-title" class="text-white text-xl font-bold mb-4">Alert</h3>
+            <p id="custom-alert-message" class="text-[#bda89e] text-base mb-6">Message goes here.</p>
+            <div class="flex justify-end">
+                <button id="custom-alert-ok-button"
+                    class="interactive-scale px-4 py-2 rounded-md text-white bg-[#f0560e] hover:bg-orange-600 font-bold">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Custom Confirm Modal -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+        <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+            <h3 id="custom-confirm-title" class="text-white text-xl font-bold mb-4">Confirm Action</h3>
+            <p id="custom-confirm-message" class="text-[#bda89e] text-base mb-6">Are you sure?</p>
+            <div class="flex justify-end gap-3">
+                <button id="custom-confirm-cancel-button"
+                    class="interactive-scale px-4 py-2 rounded-md text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">
+                    Cancel
+                </button>
+                <button id="custom-confirm-confirm-button"
+                    class="interactive-scale px-4 py-2 rounded-md text-white bg-[#f0560e] hover:bg-orange-600 font-bold">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="bottom-nav-bar">
         <div class="flex gap-1 px-2 pb-3 pt-2">
@@ -838,6 +872,51 @@
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
+
+        // --- Custom Alert Modal Elements & Functions ---
+        let customAlertModal, customAlertTitle, customAlertMessage, customAlertOkButton;
+        function showCustomAlert(title, message) {
+            if (!customAlertModal || !customAlertTitle || !customAlertMessage) return;
+            customAlertTitle.textContent = title || "Alert";
+            customAlertMessage.textContent = message;
+            customAlertModal.classList.remove("hidden");
+        }
+        function closeCustomAlert() {
+            if (!customAlertModal) return;
+            customAlertModal.classList.add("hidden");
+        }
+
+        // --- Custom Confirm Modal Elements & Functions ---
+        let customConfirmModal, customConfirmTitle, customConfirmMessage, customConfirmCancelButton, customConfirmConfirmButton;
+        let currentConfirmResolver = null;
+
+        function showCustomConfirm(title, message, confirmButtonText = "Confirm", confirmButtonClasses = "bg-[#f0560e] hover:bg-orange-600") {
+            return new Promise((resolve) => {
+                if (!customConfirmModal || !customConfirmTitle || !customConfirmMessage || !customConfirmConfirmButton || !customConfirmCancelButton) {
+                    resolve(false); // Fallback
+                    return;
+                }
+                customConfirmTitle.textContent = title || "Confirm Action";
+                customConfirmMessage.textContent = message;
+                customConfirmConfirmButton.textContent = confirmButtonText;
+                
+                // Reset classes and apply new ones for confirm button
+                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; // Base classes
+                confirmButtonClasses.split(' ').forEach(cls => customConfirmConfirmButton.classList.add(cls));
+
+                currentConfirmResolver = resolve;
+                customConfirmModal.classList.remove("hidden");
+            });
+        }
+
+        function closeCustomConfirm(result) {
+            if (!customConfirmModal) return;
+            customConfirmModal.classList.add("hidden");
+            if (currentConfirmResolver) {
+                currentConfirmResolver(result);
+                currentConfirmResolver = null;
+            }
+        }
 
 
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
@@ -949,7 +1028,7 @@
 
                 } catch (error) {
                     console.error("Error loading recipes:", error);
-                    alert("Could not load recipes.");
+                    showCustomAlert("Error", "Could not load recipes. Please check your connection and try again.");
                     if (featuredContainer) featuredContainer.innerHTML = "";
                     if (categorizedContainer) categorizedContainer.innerHTML = "";
                     if (searchResultsContainer) searchResultsContainer.innerHTML = "";
@@ -1120,12 +1199,12 @@
                     displayRecipeDetailsUI(fetchedRecipe);
                     showPage("page-recipe", fromHistoryOrInitialLoad);
                 } else {
-                    alert("Recipe not found.");
+                    showCustomAlert("Error", "Recipe not found.");
                     showPage(previousPageId || "page-index", true);
                 }
             } catch (error) {
                 console.error("Error getting recipe:", error);
-                alert("Recipe load failed.");
+                showCustomAlert("Error", "Recipe load failed. Please try again.");
                 showPage(previousPageId || "page-index", true);
             }
         }
@@ -1185,7 +1264,6 @@
             o.classList.toggle("text-[#f0560e]", !!e.isBookmarked);
             o.classList.toggle("text-white", !e.isBookmarked);
             document.getElementById("recipe-bookmark-button").dataset.recipeId = e.id;
-            // The old delete button is removed, so no need to update its dataset here.
         }
 
         function resetCreateForm() {
@@ -1231,7 +1309,7 @@
                     const currentImageFilenameSpan = document.getElementById("current-image-filename");
 
                     if (recipeData.imageURL) {
-                        currentRecipeImageURL = recipeData.imageURL; // Store the current image URL
+                        currentRecipeImageURL = recipeData.imageURL; 
                         photoLabel.textContent = "Change Photo";
                         currentImageFilenameSpan.textContent = recipeData.imageURL.substring(recipeData.imageURL.lastIndexOf('/') + 1);
                         currentImageDisplay.classList.remove("hidden");
@@ -1240,16 +1318,16 @@
                         photoLabel.textContent = "Upload Photo";
                         currentImageDisplay.classList.add("hidden");
                     }
-                    document.getElementById("create-recipe-photoInput").value = ""; // Clear file input
+                    document.getElementById("create-recipe-photoInput").value = ""; 
 
                     showPage("page-create-recipe");
                 } else {
-                    alert("Recipe not found for editing.");
+                    showCustomAlert("Error", "Recipe not found for editing.");
                     resetCreateForm();
                 }
             } catch (error) {
                 console.error("Error fetching recipe for edit:", error);
-                alert("Could not load recipe for editing.");
+                showCustomAlert("Error", "Could not load recipe for editing. Please try again.");
                 resetCreateForm();
             }
         }
@@ -1265,19 +1343,18 @@
             const servings = document.getElementById("create-recipe-servings").value.trim();
             const photoInput = document.getElementById("create-recipe-photoInput");
 
-            // Validation checks
-            if (!title) return void alert("Recipe title is required.");
-            if (!category) return void alert("Category is required.");
-            if (!description) return void alert("Description is required.");
-            if (!ingredientsRaw) return void alert("Ingredients are required (at least one line).");
+            if (!title) return showCustomAlert("Validation Error", "Recipe title is required.");
+            if (!category) return showCustomAlert("Validation Error", "Category is required.");
+            if (!description) return showCustomAlert("Validation Error", "Description is required.");
+            if (!ingredientsRaw) return showCustomAlert("Validation Error", "Ingredients are required (at least one line).");
             const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e);
-            if (ingredients.length === 0) return void alert("At least one valid ingredient is required.");
-            if (!instructionsRaw) return void alert("Instructions are required (at least one line).");
+            if (ingredients.length === 0) return showCustomAlert("Validation Error", "At least one valid ingredient is required.");
+            if (!instructionsRaw) return showCustomAlert("Validation Error", "Instructions are required (at least one line).");
             const instructions = instructionsRaw.split("\n").map(e => e.trim()).filter(e => e);
-            if (instructions.length === 0) return void alert("At least one valid instruction step is required.");
-            if (!prepTime) return void alert("Prep time is required.");
-            if (!cookTime) return void alert("Cook time is required.");
-            if (!servings) return void alert("Servings information is required.");
+            if (instructions.length === 0) return showCustomAlert("Validation Error", "At least one valid instruction step is required.");
+            if (!prepTime) return showCustomAlert("Validation Error", "Prep time is required.");
+            if (!cookTime) return showCustomAlert("Validation Error", "Cook time is required.");
+            if (!servings) return showCustomAlert("Validation Error", "Servings information is required.");
 
             let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : "";
 
@@ -1300,9 +1377,12 @@
                     }
                 }
 
-                if (!imageToSaveURL) {
-                    throw new Error("A recipe photo is required.");
+                if (!imageToSaveURL && !editingRecipeId) { // Only enforce photo for new recipes, or if user removed existing and didn't add new
+                     if (!currentRecipeImageURL) { // if editing and current URL is also null (meaning it was removed)
+                        return showCustomAlert("Validation Error", "A recipe photo is required.");
+                     }
                 }
+
 
                 const recipeData = {
                     title: title, category: category, description: description,
@@ -1317,19 +1397,19 @@
                     recipeData.createdAt = createdAtSnapshot.exists() ? createdAtSnapshot.val() : serverTimestamp;
                     recipeData.updatedAt = serverTimestamp;
                     await database.ref(`recipes/${editingRecipeId}`).update(recipeData);
-                    alert("Recipe updated!");
+                    showCustomAlert("Success", "Recipe updated!");
                 } else {
                     recipeData.createdAt = serverTimestamp;
                     await database.ref("recipes").push().set(recipeData);
-                    alert("Recipe saved!");
+                    showCustomAlert("Success", "Recipe saved!");
                 }
                 resetCreateForm();
-                await loadRecipesFromRealtimeDB();
+                await loadRecipesFromRealtimeDB(); // This will refresh the cache
                 showPage("page-index");
 
             } catch (error) {
                 console.error("Error saving recipe:", error);
-                alert(`Failed to save: ${error.message}`);
+                showCustomAlert("Error", `Failed to save recipe: ${error.message}`);
             } finally {
                 saveButton.textContent = "Save Recipe";
                 saveButton.disabled = false;
@@ -1339,15 +1419,14 @@
         async function deleteRecipeFromRealtimeDB(recipeId, imageURL_unused) {
             try {
                 await database.ref(`recipes/${recipeId}`).remove();
-                alert("Recipe deleted.");
-                // Update local cache
+                showCustomAlert("Success", "Recipe deleted.");
+                
                 allRecipesCache = allRecipesCache.filter(recipe => recipe.id !== recipeId);
                 
-                // Update UI if on favorites page
                 if (currentPageId === "page-favorites") {
                     renderFavoritesPage();
                 }
-                // Remove from meal plan if present
+                
                 const mealPlanSnapshot = await database.ref('mealPlan').once('value');
                 if (mealPlanSnapshot.exists()) {
                     const updates = {};
@@ -1366,7 +1445,7 @@
                 showPage(previousPageId || "page-index", true); 
             } catch (error) {
                 console.error("Error deleting recipe:", error);
-                alert("Failed to delete recipe.");
+                showCustomAlert("Error", "Failed to delete recipe. Please try again.");
             }
         }
         async function toggleBookmarkInRealtimeDB(e) {
@@ -1403,7 +1482,7 @@
         function openDeleteRecipeModal(recipeId, imageURL) {
             if (!deleteRecipeConfirmationModal || !confirmDeleteRecipeButton) return;
             confirmDeleteRecipeButton.dataset.recipeId = recipeId;
-            confirmDeleteRecipeButton.dataset.imageURL = imageURL || ""; // Storing for consistency, though not used in DB func
+            confirmDeleteRecipeButton.dataset.imageURL = imageURL || ""; 
 
             deleteRecipeConfirmationModal.classList.remove("hidden");
         }
@@ -1446,36 +1525,99 @@
         function loadMealsForSelectedDate() { const e = document.getElementById("schedule-selected-day-title"); e && (e.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`, loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate))) }
         async function loadMealPlanForDateFromRealtimeDB(e) { const t = document.getElementById("schedule-meal-list"); if (!t) return; t.innerHTML = '<p class="loading-placeholder">Loading meals...</p>'; try { if (allRecipesCache.length === 0) { if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB(); } const c = await database.ref(`mealPlan/${e}`).once("value"); displayPlannedMealsUI(c.exists() ? c.val() : {}, e) } catch (e) { console.error("Error fetching meal plan:", e), t.innerHTML = '<p class="loading-placeholder text-red-500">Error loading meals.</p>' } }
         function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>', void 0) : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(), handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
-        async function handleRemoveMealClick(e, t) { if (!confirm("Remove meal?")) return; try { await database.ref(`mealPlan/${e}/${t}`).remove(), loadMealsForSelectedDate() } catch (e) { console.error("Error removing meal:", e), alert("Failed to remove.") } }
+        
+        async function handleRemoveMealClick(dateKey, mealEntryId) {
+            const confirmed = await showCustomConfirm(
+                "Remove Meal", 
+                "Are you sure you want to remove this meal from your plan?",
+                "Remove",
+                "bg-red-600 hover:bg-red-700"
+            );
+            if (!confirmed) return;
+
+            try {
+                await database.ref(`mealPlan/${dateKey}/${mealEntryId}`).remove();
+                loadMealsForSelectedDate(); // Refresh the list
+            } catch (error) {
+                console.error("Error removing meal:", error);
+                showCustomAlert("Error", "Failed to remove meal. Please try again.");
+            }
+        }
+
         const addMealModal = document.getElementById("add-meal-modal"), addMealModalRecipeList = document.getElementById("add-meal-modal-recipe-list"), addMealModalSearchInput = document.getElementById("add-meal-modal-search"); function openAddMealModal() { addMealModal && addMealModalSearchInput && (populateAddMealModalRecipeList(allRecipesCache), addMealModalSearchInput.value = "", addMealModal.classList.remove("hidden")) } function closeAddMealModal() { addMealModal && addMealModal.classList.add("hidden") }
         function populateAddMealModalRecipeList(e) { if (!addMealModalRecipeList) return; addMealModalRecipeList.innerHTML = "", 0 === e.length ? (addMealModalRecipeList.innerHTML = '<p class="loading-placeholder">No recipes.</p>', void 0) : e.forEach(t => { const c = document.createElement("div"); c.className = "add-meal-recipe-item interactive-scale flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]", c.dataset.recipeId = t.id, c.dataset.recipeTitle = t.title; const a = t.imageURL || "https://via.placeholder.com/50x50.png?text=No+Img"; c.innerHTML = `<img src="${a}" alt="${t.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0"><span class="text-white flex-grow truncate" title="${t.title}">${t.title || "Untitled"}</span><button class="add-this-recipe-button interactive-scale bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`; const n = c.querySelector(".add-this-recipe-button"); n && n.addEventListener("click", e => { e.stopPropagation(), handleAddRecipeToPlan(t.id, t.title) }), c.addEventListener("click", () => handleAddRecipeToPlan(t.id, t.title)), addMealModalRecipeList.appendChild(c) }) }
         function handleAddMealModalSearch() { if (!addMealModalSearchInput) return; const e = addMealModalSearchInput.value.trim().toLowerCase(); "" === e ? populateAddMealModalRecipeList(allRecipesCache) : populateAddMealModalRecipeList(allRecipesCache.filter(t => (t.title || "").toLowerCase().includes(e) || (t.description || "").toLowerCase().includes(e))) }
-        async function handleAddRecipeToPlan(e, t) { const c = formatDateForFirebaseKey(currentSelectedDate); try { await database.ref(`mealPlan/${c}`).push({ recipeId: e, recipeTitle: t }), closeAddMealModal(), loadMealsForSelectedDate() } catch (e) { console.error("Error adding to meal plan:", e), alert("Failed to add.") } }
+        async function handleAddRecipeToPlan(e, t) { const c = formatDateForFirebaseKey(currentSelectedDate); try { await database.ref(`mealPlan/${c}`).push({ recipeId: e, recipeTitle: t }), closeAddMealModal(), loadMealsForSelectedDate() } catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") } }
+        
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
         async function loadShoppingListFromDB() { if (!shoppingListItemsContainer) return; shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>'; try { const e = await database.ref("shoppingList").orderByChild("createdAt").once("value"), t = []; e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) }), displayShoppingListUI(t) } catch (e) { console.error("Error loading shopping list:", e), shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>' } }
         function displayShoppingListUI(e) { if (!shoppingListItemsContainer) return; if (shoppingListItemsContainer.innerHTML = "", 0 === e.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); e.sort((e, t) => e.checked === t.checked ? (e.name || "").localeCompare(t.name || "") : e.checked ? 1 : -1), e.forEach(e => { const t = document.createElement("div"); t.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${e.checked ? "checked" : ""}`, t.dataset.itemId = e.id, t.innerHTML = `\n                    <input type="checkbox" class="shopping-item-checkbox" ${e.checked ? "checked" : ""}>\n                    <span class="item-name text-white flex-grow">${e.name || "Unnamed Item"}</span>\n                    <button class="delete-shopping-item-button interactive-scale text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-white/10">\n                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>\n                    </button>\n                `, shoppingListItemsContainer.appendChild(t), requestAnimationFrame(() => { t.classList.add("list-item-enter-active") }), t.querySelector(".shopping-item-checkbox").addEventListener("change", t => { toggleShoppingItemCheckedInDB(e.id, t.target.checked) }), t.querySelector(".delete-shopping-item-button").addEventListener("click", () => { deleteShoppingItemFromDB(e.id, t) }) }) }
-        async function addShoppingItemToDB() { if (!newShoppingItemNameInput) return; const e = newShoppingItemNameInput.value.trim(); if (!e) return void alert("Please enter an item name."); try { await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp }), newShoppingItemNameInput.value = "", newShoppingItemNameInput.focus(), loadShoppingListFromDB() } catch (e) { console.error("Error adding shopping item:", e), alert("Failed to add item.") } }
+        async function addShoppingItemToDB() { if (!newShoppingItemNameInput) return; const e = newShoppingItemNameInput.value.trim(); if (!e) return showCustomAlert("Input Error", "Please enter an item name."); try { await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp }), newShoppingItemNameInput.value = "", newShoppingItemNameInput.focus(), loadShoppingListFromDB() } catch (e) { console.error("Error adding shopping item:", e), showCustomAlert("Error", "Failed to add item to shopping list.") } }
         async function toggleShoppingItemCheckedInDB(e, t) { try { await database.ref(`shoppingList/${e}`).update({ checked: t }), loadShoppingListFromDB() } catch (e) { console.error("Error updating shopping item:", e) } }
         async function deleteShoppingItemFromDB(e, t) { t.classList.remove("list-item-enter-active"), t.classList.add("list-item-leave-active"), setTimeout(async () => { try { await database.ref(`shoppingList/${e}`).remove(), loadShoppingListFromDB() } catch (e) { console.error("Error deleting shopping item:", e), t.classList.remove("list-item-leave-active"), t.classList.add("list-item-enter-active") } }, 200) }
-        async function clearCheckedShoppingItemsFromDB() { if (!confirm("Clear all checked items?")) return; try { const e = await database.ref("shoppingList").orderByChild("checked").equalTo(!0).once("value"); if (e.exists()) { const t = {}; e.forEach(e => { t[e.key] = null }), await database.ref("shoppingList").update(t) } loadShoppingListFromDB() } catch (e) { console.error("Error clearing checked items:", e), alert("Failed to clear checked items.") } }
+        
+        async function clearCheckedShoppingItemsFromDB() {
+            const confirmed = await showCustomConfirm(
+                "Clear Checked Items", 
+                "Are you sure you want to clear all checked items from the shopping list?",
+                "Clear Items",
+                "bg-red-600 hover:bg-red-700"
+            );
+            if (!confirmed) return;
+
+            try {
+                const e = await database.ref("shoppingList").orderByChild("checked").equalTo(!0).once("value");
+                if (e.exists()) {
+                    const t = {};
+                    e.forEach(e => { t[e.key] = null });
+                    await database.ref("shoppingList").update(t);
+                }
+                loadShoppingListFromDB();
+            } catch (e) {
+                console.error("Error clearing checked items:", e);
+                showCustomAlert("Error", "Failed to clear checked items.");
+            }
+        }
+        
         async function addUncheckedIngredientsToShoppingList() {
             const ingredientsToAdd = currentRecipeIngredientsState
                 .filter(ingredient => !ingredient.checked)
                 .map(ingredient => ingredient.name.trim());
 
-            if (0 === ingredientsToAdd.length) return void alert("No unchecked ingredients to add or no ingredients listed.");
+            if (0 === ingredientsToAdd.length) return showCustomAlert("Info", "No unchecked ingredients to add, or no ingredients are listed for this recipe.");
             try {
                 const c = {};
                 ingredientsToAdd.forEach(e => { const t = database.ref("shoppingList").push().key; c[t] = { name: e, checked: !1, createdAt: serverTimestamp } });
                 await database.ref("shoppingList").update(c);
-                alert(`${ingredientsToAdd.length} ingredient${1 === ingredientsToAdd.length ? "" : "s"} added to shopping list!`);
+                showCustomAlert("Success", `${ingredientsToAdd.length} ingredient${1 === ingredientsToAdd.length ? "" : "s"} added to shopping list!`);
             } catch (e) {
                 console.error("Error adding ingredients to shopping list:", e);
-                alert("Failed to add ingredients.");
+                showCustomAlert("Error", "Failed to add ingredients to shopping list.");
             }
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+            // --- Initialize Custom Modal Elements ---
+            customAlertModal = document.getElementById("custom-alert-modal");
+            customAlertTitle = document.getElementById("custom-alert-title");
+            customAlertMessage = document.getElementById("custom-alert-message");
+            customAlertOkButton = document.getElementById("custom-alert-ok-button");
+
+            customConfirmModal = document.getElementById("custom-confirm-modal");
+            customConfirmTitle = document.getElementById("custom-confirm-title");
+            customConfirmMessage = document.getElementById("custom-confirm-message");
+            customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button");
+            customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
+            
+            // --- Event Listeners for Custom Modals ---
+            customAlertOkButton?.addEventListener("click", closeCustomAlert);
+            customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
+            
+            customConfirmCancelButton?.addEventListener("click", () => closeCustomConfirm(false));
+            customConfirmConfirmButton?.addEventListener("click", () => closeCustomConfirm(true));
+            customConfirmModal?.addEventListener("click", (event) => { if (event.target === customConfirmModal) closeCustomConfirm(false); });
+
+
             isInitialPageLoad = true;
             let initialPageId = "page-index";
             let recipeIdForInitialLoad = null;
@@ -1564,17 +1706,16 @@
 
             function setupSearchClearButton(inputElement, clearButtonElement, searchHandler) {
                 if (inputElement && clearButtonElement) {
-                    inputElement.addEventListener("input", () => { // Show/hide on input
+                    inputElement.addEventListener("input", () => { 
                         clearButtonElement.classList.toggle("hidden", !inputElement.value);
-                        if (searchHandler) searchHandler(); // Call original debounced handler
+                        if (searchHandler) searchHandler(); 
                     });
                     clearButtonElement.addEventListener("click", () => {
                         inputElement.value = "";
                         clearButtonElement.classList.add("hidden");
                         inputElement.blur();
-                        if (searchHandler) searchHandler(); // Explicitly call handler after clear
+                        if (searchHandler) searchHandler(); 
                     });
-                    // Initial check in case of pre-filled value on load (e.g. from browser cache)
                     clearButtonElement.classList.toggle("hidden", !inputElement.value);
                 }
             }
@@ -1602,7 +1743,7 @@
                 if (recipeId) {
                     openDeleteRecipeModal(recipeId, imageURL);
                 } else {
-                    alert("Cannot delete: Recipe ID not found.");
+                    showCustomAlert("Error", "Cannot delete: Recipe ID not found.");
                 }
             });
 
@@ -1623,7 +1764,14 @@
                 }
             });
 
-            document.getElementById("recipe-edit-button")?.addEventListener("click", () => { const e = document.getElementById("page-recipe").dataset.currentRecipeId; e ? prepareEditForm(e) : alert("Could not initiate edit.") });
+            document.getElementById("recipe-edit-button")?.addEventListener("click", () => { 
+                const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; 
+                if (recipeId) {
+                    prepareEditForm(recipeId);
+                } else {
+                    showCustomAlert("Error", "Could not initiate edit: Recipe ID not found.");
+                }
+            });
 
             document.getElementById("remove-current-image-button")?.addEventListener("click", () => {
                 currentRecipeImageURL = null;
