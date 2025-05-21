@@ -414,6 +414,9 @@
                             <p class="loading-placeholder w-full">Loading recent recipes...</p>
                         </div>
                     </div>
+                     <div id="category-shortcuts-container" class="px-4 pt-3 pb-1 flex flex-wrap gap-2 justify-center" style="display: none;">
+                        <!-- Category shortcut buttons will be injected here by JS -->
+                    </div>
                     <div id="categorized-recipes-container">
                         <!-- Category sections will be injected here by JS -->
                     </div>
@@ -939,7 +942,7 @@
             const categorizedRecipesContainer = document.getElementById('categorized-recipes-container');
             const searchResultsContainer = document.getElementById('search-results-container');
             const defaultRecipesView = document.getElementById('default-recipes-view');
-
+            const categoryShortcutsContainer = document.getElementById('category-shortcuts-container');
 
             if (isSearchMode) {
                 if (defaultRecipesView) defaultRecipesView.style.display = 'none';
@@ -952,6 +955,7 @@
                         recipes.forEach(recipe => searchResultsContainer.innerHTML += createRecipeCardHtml(recipe));
                     }
                 }
+                 if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
             } else {
                 if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
                 if (defaultRecipesView) defaultRecipesView.style.display = 'block';
@@ -969,6 +973,7 @@
                     }
                 }
 
+                const activeCategories = [];
                 if (categorizedRecipesContainer) {
                     categorizedRecipesContainer.innerHTML = '';
                     RECIPE_CATEGORIES.forEach(category => {
@@ -976,7 +981,8 @@
                             .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
 
                         if (recipesInCategory.length > 0) {
-                            let categoryHtml = `<h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">${category} Recipes</h2>`;
+                            activeCategories.push(category);
+                            let categoryHtml = `<h2 data-category-target="${category}" class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">${category} Recipes</h2>`;
                             categoryHtml += `<div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">`;
                             recipesInCategory.forEach(recipe => {
                                 categoryHtml += createRecipeCardHtml(recipe);
@@ -985,14 +991,48 @@
                             categorizedRecipesContainer.innerHTML += categoryHtml;
                         }
                     });
+
                     if (categorizedRecipesContainer.innerHTML === '' && recipes.length > 0) {
                         categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes found in any category.</p>';
                     } else if (recipes.length === 0 && !isInitialPageLoad) {
                         categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes added yet. Create one!</p>';
                     }
                 }
+
+                if (categoryShortcutsContainer) {
+                    if (activeCategories.length > 0) {
+                        categoryShortcutsContainer.innerHTML = '';
+                        activeCategories.forEach(category => {
+                            const button = document.createElement('button');
+                            button.className = 'category-shortcut-btn interactive-scale bg-[#40322b] hover:bg-[#5a3a2a] text-white text-xs font-semibold px-3 py-1.5 rounded-md';
+                            button.textContent = category;
+                            button.dataset.category = category;
+                            categoryShortcutsContainer.appendChild(button);
+                        });
+                        categoryShortcutsContainer.style.display = 'flex';
+                        attachCategoryShortcutListeners();
+                    } else {
+                        categoryShortcutsContainer.innerHTML = '';
+                        categoryShortcutsContainer.style.display = 'none';
+                    }
+                }
             }
             attachRecipeCardListeners();
+        }
+
+        function attachCategoryShortcutListeners() {
+            document.querySelectorAll('.category-shortcut-btn').forEach(button => {
+                button.removeEventListener('click', handleCategoryShortcutClick); // Prevent multiple listeners
+                button.addEventListener('click', handleCategoryShortcutClick);
+            });
+        }
+
+        function handleCategoryShortcutClick(event) {
+            const category = event.currentTarget.dataset.category;
+            const targetHeader = document.querySelector(`#categorized-recipes-container h2[data-category-target="${category}"]`);
+            if (targetHeader) {
+                targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
 
