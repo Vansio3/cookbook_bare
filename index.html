@@ -115,6 +115,10 @@
         .schedule-day-btn.selected:not(.today) .day-number-span { color: #ffffff; }
 
         .shopping-item.checked .item-name { text-decoration: line-through; color: #857065; }
+        .ingredient-item.checked .ingredient-name {
+            text-decoration: line-through;
+            color: #857065; 
+        }
         
         @keyframes pulseOpacity { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .loading-placeholder { color: #bda89e; text-align: center; padding: 1rem; animation: pulseOpacity 1.5s infinite ease-in-out; }
@@ -177,7 +181,17 @@
                     <button id="header-profile-button-index" title="Profile" class="interactive-scale text-white flex size-10 items-center justify-center rounded-full hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM72.28,194.52a64,64,0,0,1,111.44,0,87.65,87.65,0,0,1-111.44,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.77,68.38a79.7,79.7,0,0,0-41.49-27.34,48,48,0,1,0-56.56,0,79.7,79.7,0,0,0-41.49,27.34,88,88,0,1,1,139.54,0Z"></path></svg></button>
                 </div>
                 <div class="px-4 py-3">
-                    <label class="flex flex-col min-w-40 h-12 w-full"><div class="flex w-full flex-1 items-stretch rounded-xl h-full"><div class="text-[#bda89e] flex border-none bg-[#40322b] items-center justify-center pl-4 rounded-l-xl border-r-0"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg></div><input placeholder="Search recipes" id="search-recipe-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2" /></div></label>
+                    <label class="relative flex flex-col min-w-40 h-12 w-full">
+                        <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+                            <div class="text-[#bda89e] flex border-none bg-[#40322b] items-center justify-center pl-4 rounded-l-xl border-r-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>
+                            </div>
+                            <input placeholder="Search recipes" id="search-recipe-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" />
+                            <button id="clear-search-recipe-button" class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden" title="Clear search">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+                            </button>
+                        </div>
+                    </label>
                 </div>
             </div>
             <div class="page-content">
@@ -202,7 +216,17 @@
                      <button id="header-profile-button-favorites" title="Profile" class="interactive-scale text-white flex size-10 items-center justify-center rounded-full hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM72.28,194.52a64,64,0,0,1,111.44,0,87.65,87.65,0,0,1-111.44,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.77,68.38a79.7,79.7,0,0,0-41.49-27.34,48,48,0,1,0-56.56,0,79.7,79.7,0,0,0-41.49,27.34,88,88,0,1,1,139.54,0Z"></path></svg></button>
                 </div>
                 <div class="px-4 py-3">
-                    <label class="flex flex-col min-w-40 h-12 w-full"><div class="flex w-full flex-1 items-stretch rounded-xl h-full"><div class="text-[#bda89e] flex border-none bg-[#40322b] items-center justify-center pl-4 rounded-l-xl border-r-0"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg></div><input placeholder="Search favorite recipes" id="search-favorites-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2" /></div></label>
+                    <label class="relative flex flex-col min-w-40 h-12 w-full">
+                        <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+                            <div class="text-[#bda89e] flex border-none bg-[#40322b] items-center justify-center pl-4 rounded-l-xl border-r-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"></path></svg>
+                            </div>
+                            <input placeholder="Search favorite recipes" id="search-favorites-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" />
+                             <button id="clear-search-favorites-button" class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden" title="Clear search">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+                            </button>
+                        </div>
+                    </label>
                 </div>
             </div>
             <div class="page-content"><div id="favorites-recipes-container" class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4"><p class="loading-placeholder col-span-full">Loading favorites...</p></div></div>
@@ -314,7 +338,7 @@
             <div class="page-content px-4 pt-4">
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
-            <div class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
+            <div class="sticky bottom-[76px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                  <input type="text" id="new-shopping-item-name" placeholder="Add item..." class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
                  <button id="add-shopping-item-button" class="interactive-scale bg-[#f0560e] text-white rounded-lg p-2.5 h-11 w-11 flex items-center justify-center shrink-0 hover:bg-orange-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
@@ -350,6 +374,7 @@
         let currentPageId="page-index",previousPageId="page-index",allRecipesCache=[],editingRecipeId=null,currentRecipeImageURL=null,currentSelectedDate=new Date,currentDisplayedWeekStartDate=getStartOfWeek(new Date),isInitialPageLoad=!0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         let recipesLoadingPromise = null;
+        let currentRecipeIngredientsState = [];
 
 
         function getStartOfWeek(e,t=0){const c=new Date(e),a=c.getDay(),n=(a<t?a+7:a)-t;return c.setDate(c.getDate()-n),c.setHours(0,0,0,0),c}function addDays(e,t){const c=new Date(e);return c.setDate(c.getDate()+t),c}function formatDateForDisplay(e){return isToday(e)?"Today":isSameDate(e,addDays(new Date,1))?"Tomorrow":e.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}function formatDateForFirebaseKey(e){return`${e.getFullYear()}-${String(e.getMonth()+1).padStart(2,"0")}-${String(e.getDate()).padStart(2,"0")}`}function isSameDate(e,t){return!(!e||!t)&&e.getFullYear()===t.getFullYear()&&e.getMonth()===t.getMonth()&&e.getDate()===t.getDate()}function isToday(e){return isSameDate(e,new Date)}function debounce(e,t){let c;return function(...a){clearTimeout(c),c=setTimeout(()=>e.apply(this,a),t)}}
@@ -537,10 +562,28 @@
 
 
         function createRecipeCardHtml(e,t=!1,c=!1){const a=(e.description||"No description.").substring(0,70)+((e.description||"").length>70?"...":""),n=`style='background-image: url("${e.imageURL||"https://via.placeholder.com/300x200.png?text=No+Image"}");'`,o=t?`<div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" ${n}></div><div><p class="text-white text-base font-medium">${e.title||"Untitled"}</p><p class="text-[#bda89e] text-sm">${a}</p></div></div>`:`<div class="relative flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" ${n}></div><div><p class="text-white text-base font-medium">${e.title||"Untitled"}</p><p class="text-[#bda89e] text-sm">${a}</p></div>${c?`<button class="favorite-remove-btn interactive-scale" data-remove-favorite-id="${e.id}" title="Remove from favorites"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256"><path fill="currentColor" d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path></svg></button>`:""}</div>`;return o}
-        function handleSearch(){const e=document.getElementById("search-recipe-input");if(!e)return;const t=e.value.trim().toLowerCase();""===t?populateRecipeListsUI(allRecipesCache):populateRecipeListsUI(allRecipesCache.filter(e=>(e.title||"").toLowerCase().includes(t)||(e.description||"").toLowerCase().includes(t)),!0)}
-        function renderFavoritesPage(){const e=document.getElementById("favorites-recipes-container");e&&(e.innerHTML='<p class="loading-placeholder col-span-full">Loading favorites...</p>');const t=document.getElementById("search-favorites-input"),c=t?t.value.trim().toLowerCase():"";let a=allRecipesCache.filter(e=>e.isBookmarked);""!==c&&(a=a.filter(e=>(e.title||"").toLowerCase().includes(c)||(e.description||"").toLowerCase().includes(c))),populateFavoritesListUI(a,""!==c)}
+        
+        function handleSearch(){
+            const e=document.getElementById("search-recipe-input");
+            if(!e)return;
+            const t=e.value.trim().toLowerCase();
+            document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e.value);
+            ""===t?populateRecipeListsUI(allRecipesCache):populateRecipeListsUI(allRecipesCache.filter(e=>(e.title||"").toLowerCase().includes(t)||(e.description||"").toLowerCase().includes(t)),!0)
+        }
+        
+        function renderFavoritesPage(){
+            const e=document.getElementById("favorites-recipes-container");
+            e&&(e.innerHTML='<p class="loading-placeholder col-span-full">Loading favorites...</p>');
+            const t=document.getElementById("search-favorites-input"),c=t?t.value.trim().toLowerCase():"";
+            document.getElementById("clear-search-favorites-button")?.classList.toggle("hidden", !t?.value);
+            let a=allRecipesCache.filter(e=>e.isBookmarked);""!==c&&(a=a.filter(e=>(e.title||"").toLowerCase().includes(c)||(e.description||"").toLowerCase().includes(c))),populateFavoritesListUI(a,""!==c)
+        }
+
         function populateFavoritesListUI(e,t=!1){const c=document.getElementById("favorites-recipes-container");if(c.innerHTML="",0===e.length){const a=t?'<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>':'<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>';c.innerHTML=a}else e.forEach(e=>c.innerHTML+=createRecipeCardHtml(e,!1,!0));attachRecipeCardListeners(),document.querySelectorAll(".favorite-remove-btn").forEach(e=>e.addEventListener("click",t=>{t.stopPropagation();const c=e.dataset.removeFavoriteId;c&&toggleBookmarkInRealtimeDB(c)}))}
-        function handleFavoritesSearch(){renderFavoritesPage()}function attachRecipeCardListeners(){document.querySelectorAll("[data-recipe-id]").forEach(e=>{e.removeEventListener("click",handleRecipeCardClick),e.addEventListener("click",handleRecipeCardClick)})}
+        
+        function handleFavoritesSearch(){renderFavoritesPage()}
+        
+        function attachRecipeCardListeners(){document.querySelectorAll("[data-recipe-id]").forEach(e=>{e.removeEventListener("click",handleRecipeCardClick),e.addEventListener("click",handleRecipeCardClick)})}
         function handleRecipeCardClick(e){if(e.target.closest(".favorite-remove-btn"))return;const t=e.currentTarget.dataset.recipeId;t&&loadRecipeDetailFromRealtimeDB(t)}
         
         async function loadRecipeDetailFromRealtimeDB(recipeId, fromHistoryOrInitialLoad = false) {
@@ -587,13 +630,55 @@
             }
         }
 
+        function renderRecipeIngredientsUI() {
+            const ingredientsListContainer = document.getElementById("recipe-ingredients-list");
+            if (!ingredientsListContainer) return;
+
+            ingredientsListContainer.innerHTML = ""; 
+
+            currentRecipeIngredientsState.sort((a, b) => {
+                if (a.checked === b.checked) { // If both same checked status, sort alphabetically by name
+                  return (a.name || "").localeCompare(b.name || "");
+                }
+                return a.checked ? 1 : -1; // Unchecked first, then checked
+            });
+
+            currentRecipeIngredientsState.forEach((ingredient, index) => { // Use original index for data-index if needed for direct modification
+                const originalIndex = (e.ingredients || []).indexOf(ingredient.name); // Example to get original index, might need refinement
+                
+                const label = document.createElement("label");
+                label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
+                // Store the name or a unique ID with the checkbox if re-associating after sort is complex
+                label.innerHTML = `
+                    <input type="checkbox" class="form-checkbox-custom" data-ingredient-name="${ingredient.name}" ${ingredient.checked ? "checked" : ""}>
+                    <p class="text-white text-base ingredient-name">${ingredient.name}</p>
+                `;
+                ingredientsListContainer.appendChild(label);
+
+                label.querySelector(".form-checkbox-custom").addEventListener("change", (event) => {
+                    const changedIngredientName = event.target.dataset.ingredientName;
+                    const ingredientInState = currentRecipeIngredientsState.find(item => item.name === changedIngredientName);
+                    if (ingredientInState) {
+                         ingredientInState.checked = event.target.checked;
+                    }
+                    renderRecipeIngredientsUI(); 
+                });
+            });
+        }
+
+
         function displayRecipeDetailsUI(e){
             document.getElementById("page-recipe").dataset.currentRecipeId=e.id;
             localStorage.setItem("currentRecipeDetailId", e.id); 
             document.getElementById("recipe-image").style.backgroundImage=`url("${e.imageURL||"https://via.placeholder.com/300x200.png?text=No+Image"}")`;
             document.getElementById("recipe-title").textContent=e.title||"Untitled";
             document.getElementById("recipe-description").textContent=e.description||"No description.";
-            const t=document.getElementById("recipe-meta-info");if(t.innerHTML="",(e.prepTime||e.cookTime||e.servings)){let c="";e.prepTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`),e.cookTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`),e.servings&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`),t.innerHTML=c}const a=document.getElementById("recipe-ingredients-list");a.innerHTML="",(e.ingredients||[]).forEach(e=>a.innerHTML+=`<label class="flex gap-x-3 py-3 items-center"><input type="checkbox" class="form-checkbox-custom"/><p class="text-white text-base">${e}</p></label>`);const n=document.getElementById("recipe-instructions-list");n.innerHTML="",(e.instructions||[]).forEach(e=>n.innerHTML+=`<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);
+            const t=document.getElementById("recipe-meta-info");if(t.innerHTML="",(e.prepTime||e.cookTime||e.servings)){let c="";e.prepTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`),e.cookTime&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`),e.servings&&(c+=`<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`),t.innerHTML=c}
+            
+            currentRecipeIngredientsState = (e.ingredients || []).map(name => ({ name, checked: false }));
+            renderRecipeIngredientsUI(); 
+
+            const n=document.getElementById("recipe-instructions-list");n.innerHTML="",(e.instructions||[]).forEach(e=>n.innerHTML+=`<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);
             const o=document.getElementById("recipe-bookmark-icon");
             const filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>';
             const outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
@@ -680,7 +765,22 @@
         async function toggleShoppingItemCheckedInDB(e,t){try{await database.ref(`shoppingList/${e}`).update({checked:t}),loadShoppingListFromDB()}catch(e){console.error("Error updating shopping item:",e)}}
         async function deleteShoppingItemFromDB(e,t){t.classList.remove("list-item-enter-active"),t.classList.add("list-item-leave-active"),setTimeout(async()=>{try{await database.ref(`shoppingList/${e}`).remove(),loadShoppingListFromDB()}catch(e){console.error("Error deleting shopping item:",e),t.classList.remove("list-item-leave-active"),t.classList.add("list-item-enter-active")}},200)}
         async function clearCheckedShoppingItemsFromDB(){if(!confirm("Clear all checked items?"))return;try{const e=await database.ref("shoppingList").orderByChild("checked").equalTo(!0).once("value");if(e.exists()){const t={};e.forEach(e=>{t[e.key]=null}),await database.ref("shoppingList").update(t)}loadShoppingListFromDB()}catch(e){console.error("Error clearing checked items:",e),alert("Failed to clear checked items.")}}
-        async function addUncheckedIngredientsToShoppingList(){const e=document.getElementById("recipe-ingredients-list");if(!e)return;const t=[];e.querySelectorAll("label").forEach(e=>{const c=e.querySelector(".form-checkbox-custom"),a=e.querySelector("p");!c.checked&&a?.textContent&&t.push(a.textContent.trim())});if(0===t.length)return void alert("No unchecked ingredients to add or no ingredients listed.");try{const c={};t.forEach(e=>{const t=database.ref("shoppingList").push().key;c[t]={name:e,checked:!1,createdAt:serverTimestamp}}),await database.ref("shoppingList").update(c),alert(`${t.length} ingredient${1===t.length?"":"s"} added to shopping list!`)}catch(e){console.error("Error adding ingredients to shopping list:",e),alert("Failed to add ingredients.")}}
+        async function addUncheckedIngredientsToShoppingList(){
+            const ingredientsToAdd = currentRecipeIngredientsState
+                .filter(ingredient => !ingredient.checked)
+                .map(ingredient => ingredient.name.trim());
+
+            if(0===ingredientsToAdd.length)return void alert("No unchecked ingredients to add or no ingredients listed.");
+            try{
+                const c={};
+                ingredientsToAdd.forEach(e=>{const t=database.ref("shoppingList").push().key;c[t]={name:e,checked:!1,createdAt:serverTimestamp}});
+                await database.ref("shoppingList").update(c);
+                alert(`${ingredientsToAdd.length} ingredient${1===ingredientsToAdd.length?"":"s"} added to shopping list!`);
+            }catch(e){
+                console.error("Error adding ingredients to shopping list:",e);
+                alert("Failed to add ingredients.");
+            }
+        }
         
         document.addEventListener("DOMContentLoaded", async () => {
             isInitialPageLoad = true; 
@@ -763,9 +863,33 @@
                      showPage("page-index", true);
                 }
             });
+            
+            const searchRecipeInput = document.getElementById("search-recipe-input");
+            const clearSearchRecipeButton = document.getElementById("clear-search-recipe-button");
+            const searchFavoritesInput = document.getElementById("search-favorites-input");
+            const clearSearchFavoritesButton = document.getElementById("clear-search-favorites-button");
 
-            document.getElementById("search-recipe-input")?.addEventListener("input",debounce(handleSearch,300));
-            document.getElementById("search-favorites-input")?.addEventListener("input",debounce(handleFavoritesSearch,300));
+            function setupSearchClearButton(inputElement, clearButtonElement, searchHandler) {
+                if (inputElement && clearButtonElement) {
+                    inputElement.addEventListener("input", () => { // Show/hide on input
+                        clearButtonElement.classList.toggle("hidden", !inputElement.value);
+                        if (searchHandler) searchHandler(); // Call original debounced handler
+                    });
+                    clearButtonElement.addEventListener("click", () => {
+                        inputElement.value = "";
+                        clearButtonElement.classList.add("hidden");
+                        inputElement.blur(); 
+                        if (searchHandler) searchHandler(); // Explicitly call handler after clear
+                    });
+                    // Initial check in case of pre-filled value on load (e.g. from browser cache)
+                    clearButtonElement.classList.toggle("hidden", !inputElement.value);
+                }
+            }
+
+            setupSearchClearButton(searchRecipeInput, clearSearchRecipeButton, debounce(handleSearch,300));
+            setupSearchClearButton(searchFavoritesInput, clearSearchFavoritesButton, debounce(handleFavoritesSearch,300));
+
+
             document.querySelectorAll(".nav-item").forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const c=e.dataset.target;"page-create-recipe"===c&&resetCreateForm(),showPage(c)})});
             document.querySelectorAll('[data-action="back"]').forEach(e=>{e.addEventListener("click",()=>history.back())});
             document.querySelector('[data-action="back-from-create"]')?.addEventListener("click",()=>history.back());
