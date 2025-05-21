@@ -117,10 +117,34 @@
         .horizontal-scroll-cards::-webkit-scrollbar {
             display: none;
         }
-
-        .calendar-day-button.selected>div {
-            background-color: #f0560e !important;
+        
+        /* Styles for selected day and today in week view */
+        .schedule-day-btn.selected {
+            background-color: #40322b; /* bg-[#40322b] */
+            border-radius: 0.5rem; /* rounded-lg */
         }
+        .schedule-day-btn.today:not(.selected) .day-number-span { /* Today but not selected */
+             /* ring-2 ring-[#f0560e] rounded-full px-1 py-0.5 */
+            box-shadow: 0 0 0 2px #f0560e; /* Equivalent to ring-2 */
+            border-radius: 9999px; /* rounded-full */
+            padding-left: 0.25rem; padding-right: 0.25rem; /* px-1 */
+            padding-top: 0.125rem; padding-bottom: 0.125rem; /* py-0.5 */
+        }
+        .schedule-day-btn.today.selected { /* Today AND selected */
+             border: 2px solid #f0560e;
+        }
+        .schedule-day-btn.today .day-name-span,
+        .schedule-day-btn.today .day-number-span {
+            color: #f0560e; /* text-[#f0560e] */
+        }
+        .schedule-day-btn.selected:not(.today) .day-name-span {
+            color: #d1d5db; /* Tailwind text-gray-300 as text-gray-400 on dark bg might be too dim */
+        }
+         .schedule-day-btn.selected:not(.today) .day-number-span {
+            color: #ffffff; /* text-white */
+        }
+
+
     </style>
 
     <!-- Firebase SDKs -->
@@ -315,65 +339,52 @@
                 </div>
             </div>
             <div class="page-content">
-                <div class="flex flex-wrap items-start justify-center gap-6 p-4">
-                    <div class="flex min-w-72 max-w-[336px] flex-1 flex-col gap-0.5">
-                        <div class="flex items-center p-1 justify-between"><button>
-                                <div class="text-white flex size-10 items-center justify-center"><svg
-                                        xmlns="http://www.w3.org/2000/svg" width="18px" height="18px"
-                                        fill="currentColor" viewBox="0 0 256 256">
-                                        <path
-                                            d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z">
-                                        </path>
-                                    </svg></div>
-                            </button>
-                            <p class="text-white text-base font-bold flex-1 text-center pr-10">October 2024</p>
-                        </div>
-                        <div id="calendar-october" class="grid grid-cols-7">
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">S</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">M</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">T</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">W</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">T</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">F</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">S</p>
-                        </div>
+                <!-- Week Navigation and Display -->
+                <div class="flex items-center justify-between p-4 sticky top-0 bg-[#231610] z-10">
+                    <button id="schedule-prev-week" class="text-white p-2 rounded-full hover:bg-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path></svg>
+                    </button>
+                    <h3 id="schedule-week-range" class="text-white text-lg font-semibold text-center"></h3>
+                    <button id="schedule-next-week" class="text-white p-2 rounded-full hover:bg-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg>
+                    </button>
+                </div>
+                <div id="schedule-week-days" class="flex justify-around p-2 border-b border-gray-700 mb-3 sticky top-[72px] bg-[#231610] z-10">
+                    <!-- Day buttons will be injected here by JS -->
+                </div>
+
+                <!-- Selected Day's Meals -->
+                <h2 id="schedule-selected-day-title" class="text-white text-[22px] font-bold px-4 pb-3 pt-2">Meals for Today</h2>
+                <div id="schedule-meal-list" class="px-4">
+                    <!-- Meals will be injected here -->
+                </div>
+                <div class="flex justify-center px-4 py-5">
+                    <button id="schedule-open-add-meal-modal-button" class="flex items-center justify-center rounded-xl h-12 px-5 bg-[#f0560e] text-white text-base font-bold gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path></svg>
+                        <span>Add Meal</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Meal Modal (initially hidden) -->
+            <div id="add-meal-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1100] hidden">
+                <div class="bg-[#2e241f] p-4 rounded-lg shadow-xl w-11/12 max-w-md max-h-[80vh] flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-white text-xl font-bold">Add Recipe to Meal Plan</h3>
+                        <button id="add-meal-modal-close-button" class="text-white p-1 hover:bg-white/10 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+                        </button>
                     </div>
-                    <div class="flex min-w-72 max-w-[336px] flex-1 flex-col gap-0.5">
-                        <div class="flex items-center p-1 justify-between">
-                            <p class="text-white text-base font-bold flex-1 text-center pl-10">November 2024</p><button>
-                                <div class="text-white flex size-10 items-center justify-center"><svg
-                                        xmlns="http://www.w3.org/2000/svg" width="18px" height="18px"
-                                        fill="currentColor" viewBox="0 0 256 256">
-                                        <path
-                                            d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z">
-                                        </path>
-                                    </svg></div>
-                            </button>
-                        </div>
-                        <div id="calendar-november" class="grid grid-cols-7">
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">S</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">M</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">T</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">W</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">T</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">F</p>
-                            <p class="text-white text-[13px] font-bold flex h-12 items-center justify-center">S</p>
-                        </div>
+                    <div class="mb-3">
+                        <input type="text" id="add-meal-modal-search" placeholder="Search recipes..." class="form-input w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-12 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
+                    </div>
+                    <div id="add-meal-modal-recipe-list" class="overflow-y-auto flex-grow space-y-2 pr-1">
+                        <!-- Recipe items will be injected here by JS -->
                     </div>
                 </div>
-                <h2 id="schedule-selected-date-title" class="text-white text-[22px] font-bold px-4 pb-3 pt-5"></h2>
-                <div id="schedule-meal-list"></div>
-                <div class="flex justify-end px-5 pb-5 pt-3"><button id="schedule-add-meal-button"
-                        class="flex max-w-[480px] cursor-pointer items-center justify-center rounded-xl h-14 bg-[#f0560e] text-white text-base font-bold min-w-0 px-2 gap-4 pl-4 pr-6">
-                        <div class="text-white"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px"
-                                fill="currentColor" viewBox="0 0 256 256">
-                                <path
-                                    d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z">
-                                </path>
-                            </svg></div>
-                    </button></div>
             </div>
         </div>
+
 
         <div id="page-profile" class="page bg-[#1e1815] dark group/design-root">
             <div class="page-header">
@@ -440,10 +451,51 @@
     <script>
         // --- Global App Variables ---
         let currentPageId = 'page-index';
-        let currentSelectedCalendarDate = { day: 5, month: 'October', year: 2024 };
         let allRecipesCache = [];
         let editingRecipeId = null; 
         let currentRecipeImageURL = null; 
+        let currentSelectedDate = new Date(); // For new meal planner
+        let currentDisplayedWeekStartDate = getStartOfWeek(new Date()); // For new meal planner
+
+        // --- Date Helper Functions ---
+        function getStartOfWeek(date, startDay = 0) { // 0 for Sunday, 1 for Monday (Locale dependent, JS getDay() is 0 for Sun)
+            const d = new Date(date);
+            const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+            const diff = (day < startDay ? day + 7 : day) - startDay;
+            d.setDate(d.getDate() - diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        function formatDateForDisplay(date) { // e.g., "Mon, Nov 4" or "Today"
+            if (isToday(date)) return "Today";
+            if (isSameDate(date, addDays(new Date(), 1))) return "Tomorrow";
+            return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+        function formatDateForFirebaseKey(date) { // e.g., "2024-11-04"
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function isSameDate(date1, date2) {
+            if (!date1 || !date2) return false;
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        }
+
+        function isToday(date) {
+            return isSameDate(date, new Date());
+        }
+
 
         // --- Debounce Utility ---
         function debounce(func, delay) {
@@ -465,14 +517,17 @@
                 const activePageContent = targetPage.querySelector('.page-content');
                 if (activePageContent) activePageContent.scrollTop = 0;
 
-                // If navigating to index, ensure search state is correctly handled
                 if (pageId === 'page-index') {
                     const searchInput = document.getElementById('search-recipe-input');
-                    if (searchInput && searchInput.value.trim() === '') { // If search is empty, show default
-                        handleSearch(); // This will call populateRecipeListsUI(allRecipesCache, false)
+                    if (searchInput && searchInput.value.trim() === '') { 
+                        handleSearch(); 
                     }
-                    // If search has text, it means it was already filtered, so leave it as is.
+                } else if (pageId === 'page-schedule') {
+                    currentSelectedDate = new Date(); // Reset to today
+                    currentDisplayedWeekStartDate = getStartOfWeek(new Date()); // Reset to current week's start
+                    renderWeekView(); // This will also call loadMealsForSelectedDate
                 }
+
 
             } else { showPage('page-index'); }
         }
@@ -496,12 +551,11 @@
                     allRecipesCache = Object.keys(recipesData).map(key => ({ id: key, ...recipesData[key] }))
                         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); 
                 }
-                // Check current search state before populating
                 const searchInput = document.getElementById('search-recipe-input');
                 if (searchInput && searchInput.value.trim() !== '') {
-                    handleSearch(); // Repopulate based on existing search term
+                    handleSearch(); 
                 } else {
-                    populateRecipeListsUI(allRecipesCache, false); // Default display
+                    populateRecipeListsUI(allRecipesCache, false); 
                 }
             } catch (error) { console.error("Error fetching recipes from RTDB: ", error); alert("Could not load recipes."); }
         }
@@ -540,19 +594,28 @@
 
                 if (recipes.length === 0) {
                     const noRecipesMessage = '<p class="text-center text-[#cba390] py-4 px-4 w-full col-span-full">No recipes added yet. Create one!</p>';
-                    featuredContainer.innerHTML = noRecipesMessage;
+                    featuredContainer.innerHTML = noRecipesMessage; // For featured
+                    quickEasyContainer.innerHTML = noRecipesMessage; // For all recipes area
                 } else {
                     recipes.forEach((recipe, index) => {
                         const descSnippet = (recipe.description || 'No description.').substring(0, 70) + ((recipe.description || '').length > 70 ? '...' : '');
                         
-                        if (index < 3) {
+                        if (index < 5 && recipes.length > 3) { // Show up to 5 featured if more than 3 recipes total
                             const featuredCardHtml = `
                             <div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${recipe.id}">
                               <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" style='background-image: url("${recipe.imageURL || 'https://via.placeholder.com/300x200.png?text=No+Image'}");'></div>
                               <div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div>
                             </div>`;
                             featuredContainer.innerHTML += featuredCardHtml;
+                        } else if (recipes.length <=3 && index < recipes.length ) { // if 3 or less recipes, all are featured
+                             const featuredCardHtml = `
+                            <div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${recipe.id}">
+                              <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" style='background-image: url("${recipe.imageURL || 'https://via.placeholder.com/300x200.png?text=No+Image'}");'></div>
+                              <div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div>
+                            </div>`;
+                            featuredContainer.innerHTML += featuredCardHtml;
                         }
+
 
                         const quickEasyCardHtml = `
                         <div class="flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${recipe.id}">
@@ -561,6 +624,9 @@
                         </div>`;
                         quickEasyContainer.innerHTML += quickEasyCardHtml;
                     });
+                     if (featuredContainer.innerHTML === '' && recipes.length > 0) { // Fallback if featured logic fails to populate but recipes exist
+                        recentlyAddedHeading.style.display = 'none';
+                     }
                 }
             }
             attachRecipeCardListeners();
@@ -709,7 +775,7 @@
                 }
 
                 resetCreateForm();
-                loadRecipesFromRealtimeDB(); // This will now respect search state if any
+                loadRecipesFromRealtimeDB(); 
                 showPage('page-index');
 
             } catch (error) {
@@ -724,8 +790,10 @@
         async function deleteRecipeFromRealtimeDB(recipeId, imageURL) {
             if (!confirm("Are you sure you want to delete this recipe?")) return;
             try {
-                await database.ref(`recipes/${recipeId}`).remove(); alert("Recipe deleted from database."); 
-                loadRecipesFromRealtimeDB(); // Refresh list, respecting search state
+                await database.ref(`recipes/${recipeId}`).remove(); 
+                // Note: Image deletion from Cloudinary is not implemented here to keep it simple.
+                alert("Recipe deleted from database."); 
+                loadRecipesFromRealtimeDB(); 
                 showPage('page-index');
             } catch (error) { console.error("Error deleting recipe from RTDB:", error); alert("Failed to delete recipe."); }
         }
@@ -736,49 +804,229 @@
             } catch (error) { console.error("Error toggling bookmark in RTDB:", error); }
         }
 
-        // --- Meal Planning (Using Realtime Database) ---
-        function monthNameToIndex(name) { return ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(name); }
-        async function addRecipeToMealPlanInRealtimeDB(dateString, recipeId, recipeTitle) {
-            const newMealData = { recipeId, recipeTitle, type: "lunch" };
-            try {
-                await database.ref(`mealPlan/${dateString}`).push(newMealData); alert(`${recipeTitle} added to meal plan for ${dateString}!`); loadMealPlanForDateFromRealtimeDB(dateString);
-            } catch (error) { console.error("Error adding to meal plan in RTDB:", error); }
-        }
-        async function loadMealPlanForDateFromRealtimeDB(dateString) {
-            const mealListContainer = document.getElementById('schedule-meal-list'); mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">Loading meals...</p>';
-            try {
-                const snapshot = await database.ref(`mealPlan/${dateString}`).once('value');
-                if (snapshot.exists()) {
-                    mealListContainer.innerHTML = ''; const meals = snapshot.val();
-                    Object.values(meals).forEach(meal => {
-                        const details = allRecipesCache.find(r => r.id === meal.recipeId); const img = details?.imageURL || 'https://via.placeholder.com/100'; const time = details?.cookTime || 'N/A';
-                        mealListContainer.innerHTML += `<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 cursor-pointer" data-recipe-id="${meal.recipeId}"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-14" style='background-image: url("${img}");'></div><div><p class="text-white text-base font-medium">${meal.recipeTitle}</p><p class="text-[#cba390] text-sm">${time}</p></div></div>`;
-                    });
-                    attachRecipeCardListeners(); 
-                } else { mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">No meals planned.</p>'; }
-            } catch (error) { console.error("Error fetching meal plan from RTDB:", error); mealListContainer.innerHTML = '<p class="text-center text-red-500 py-4">Error loading meals.</p>'; }
+        // --- Meal Planning (New Week View Logic) ---
+
+        function renderWeekView() {
+            const weekDaysContainer = document.getElementById('schedule-week-days');
+            const weekRangeEl = document.getElementById('schedule-week-range');
+            if (!weekDaysContainer || !weekRangeEl) return; // Guard if elements not found
+            
+            weekDaysContainer.innerHTML = '';
+
+            const dayFormatterShort = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
+            const dayFormatterNumeric = new Intl.DateTimeFormat('en-US', { day: 'numeric' });
+
+            let tempDate = new Date(currentDisplayedWeekStartDate);
+            for (let i = 0; i < 7; i++) {
+                const dayName = dayFormatterShort.format(tempDate).toUpperCase();
+                const dayNumber = dayFormatterNumeric.format(tempDate);
+
+                const dayButton = document.createElement('button');
+                dayButton.className = 'schedule-day-btn flex flex-col items-center p-1.5 focus:outline-none w-[calc(100%/7-4px)] mx-0.5';
+                dayButton.dataset.date = tempDate.toISOString();
+
+                const isCurrentDayToday = isToday(tempDate);
+                const isCurrentDaySelected = isSameDate(tempDate, currentSelectedDate);
+
+                dayButton.innerHTML = `
+                    <span class="day-name-span text-xs ${isCurrentDayToday && !isCurrentDaySelected ? 'text-[#f0560e]' : 'text-gray-400'}">${dayName}</span>
+                    <span class="day-number-span text-lg font-bold ${isCurrentDayToday && !isCurrentDaySelected ? 'text-[#f0560e]' : 'text-white'}">${dayNumber}</span>
+                `;
+                
+                // Apply classes based on state
+                if (isCurrentDaySelected) dayButton.classList.add('selected');
+                if (isCurrentDayToday) dayButton.classList.add('today');
+
+                dayButton.addEventListener('click', handleWeekDayClick);
+                weekDaysContainer.appendChild(dayButton);
+                tempDate = addDays(tempDate, 1);
+            }
+            
+            const endDateOfWeek = addDays(currentDisplayedWeekStartDate, 6);
+            weekRangeEl.textContent = `${currentDisplayedWeekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDateOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
+            loadMealsForSelectedDate();
         }
 
-        // --- Calendar ---
-        function generateCalendarDays(monthContainerId, year, monthIndex, daysInMonth, firstDayOfMonth) {
-            const calendarGrid = document.getElementById(monthContainerId); calendarGrid.querySelectorAll('button.calendar-day-button, .empty-calendar-cell').forEach(el => el.remove());
-            for (let i = 0; i < firstDayOfMonth; i++) calendarGrid.insertAdjacentHTML('beforeend', '<div class="h-12 w-full"></div>');
-            for (let day = 1; day <= daysInMonth; day++) { const btn = document.createElement('button'); btn.className = 'calendar-day-button h-12 w-full text-white text-sm font-medium'; Object.assign(btn.dataset, { day, month: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][monthIndex], year }); btn.innerHTML = `<div class="flex size-full items-center justify-center rounded-full">${day}</div>`; if (day === currentSelectedCalendarDate.day && btn.dataset.month === currentSelectedCalendarDate.month && year === currentSelectedCalendarDate.year) btn.classList.add('selected'); btn.addEventListener('click', handleCalendarDateClick); calendarGrid.appendChild(btn); }
+        function handleWeekDayClick(event) {
+            const button = event.currentTarget;
+            currentSelectedDate = new Date(button.dataset.date);
+            renderWeekView(); 
         }
-        function handleCalendarDateClick(event) {
-            const btn = event.currentTarget; Object.assign(currentSelectedCalendarDate, { day: parseInt(btn.dataset.day), month: btn.dataset.month, year: parseInt(btn.dataset.year) });
-            document.querySelectorAll('.calendar-day-button.selected').forEach(b => b.classList.remove('selected')); btn.classList.add('selected');
-            const dateTitle = `${currentSelectedCalendarDate.month} ${currentSelectedCalendarDate.day}, ${currentSelectedCalendarDate.year}`; document.getElementById('schedule-selected-date-title').textContent = dateTitle;
-            const dateStr = `${currentSelectedCalendarDate.year}-${String(monthNameToIndex(currentSelectedCalendarDate.month) + 1).padStart(2, '0')}-${String(currentSelectedCalendarDate.day).padStart(2, '0')}`;
+
+        function navigateToPreviousWeek() {
+            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, -7);
+            currentSelectedDate = new Date(currentDisplayedWeekStartDate); 
+            renderWeekView();
+        }
+
+        function navigateToNextWeek() {
+            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, 7);
+            currentSelectedDate = new Date(currentDisplayedWeekStartDate); 
+            renderWeekView();
+        }
+
+        function loadMealsForSelectedDate() {
+            const selectedDayTitleEl = document.getElementById('schedule-selected-day-title');
+            if (!selectedDayTitleEl) return;
+            selectedDayTitleEl.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`;
+            const dateStr = formatDateForFirebaseKey(currentSelectedDate);
             loadMealPlanForDateFromRealtimeDB(dateStr);
+        }
+
+        async function loadMealPlanForDateFromRealtimeDB(dateString) {
+            const mealListContainer = document.getElementById('schedule-meal-list'); 
+            if (!mealListContainer) return;
+            mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">Loading meals...</p>';
+            try {
+                const snapshot = await database.ref(`mealPlan/${dateString}`).once('value');
+                displayPlannedMealsUI(snapshot.exists() ? snapshot.val() : {}, dateString);
+            } catch (error) { 
+                console.error("Error fetching meal plan from RTDB:", error); 
+                mealListContainer.innerHTML = '<p class="text-center text-red-500 py-4">Error loading meals.</p>'; 
+            }
+        }
+
+        function displayPlannedMealsUI(mealsData, dateString) {
+            const mealListContainer = document.getElementById('schedule-meal-list');
+            if (!mealListContainer) return;
+            mealListContainer.innerHTML = ''; 
+
+            if (Object.keys(mealsData).length === 0) {
+                mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">No meals planned for this day.</p>';
+                return;
+            }
+
+            Object.entries(mealsData).forEach(([mealPlanEntryId, meal]) => {
+                const recipeDetails = allRecipesCache.find(r => r.id === meal.recipeId);
+                const imageUrl = recipeDetails?.imageURL || 'https://via.placeholder.com/100x100.png?text=No+Img';
+                const cookTime = recipeDetails?.cookTime || 'N/A';
+
+                const mealDiv = document.createElement('div');
+                mealDiv.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg";
+                mealDiv.dataset.recipeId = meal.recipeId; 
+                mealDiv.dataset.mealPlanEntryId = mealPlanEntryId;
+
+                mealDiv.innerHTML = `
+                    <div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${imageUrl}");'></div>
+                        <div>
+                            <p class="text-white text-base font-medium">${meal.recipeTitle || 'Unknown Recipe'}</p>
+                            <p class="text-[#cba390] text-sm">Cook time: ${cookTime}</p>
+                        </div>
+                    </div>
+                    <button class="remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove meal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>
+                    </button>
+                `;
+                mealListContainer.appendChild(mealDiv);
+
+                mealDiv.querySelector('.remove-meal-button').addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    handleRemoveMealClick(dateString, mealPlanEntryId);
+                });
+                mealDiv.querySelector('[data-action="view-recipe-from-plan"]').addEventListener('click', () => {
+                    const recipeId = mealDiv.dataset.recipeId;
+                    if (recipeId) loadRecipeDetailFromRealtimeDB(recipeId);
+                });
+            });
+        }
+
+        async function handleRemoveMealClick(dateString, mealPlanEntryId) {
+            if (!confirm("Are you sure you want to remove this meal from the plan?")) return;
+            try {
+                await database.ref(`mealPlan/${dateString}/${mealPlanEntryId}`).remove();
+                loadMealsForSelectedDate(); 
+            } catch (error) {
+                console.error("Error removing meal from plan:", error);
+                alert("Failed to remove meal.");
+            }
+        }
+
+        // --- Add Meal Modal Logic ---
+        const addMealModal = document.getElementById('add-meal-modal');
+        const addMealModalRecipeList = document.getElementById('add-meal-modal-recipe-list');
+        const addMealModalSearchInput = document.getElementById('add-meal-modal-search');
+
+        function openAddMealModal() {
+            if (!addMealModal || !addMealModalSearchInput) return;
+            populateAddMealModalRecipeList(allRecipesCache);
+            addMealModalSearchInput.value = ''; 
+            addMealModal.classList.remove('hidden');
+        }
+
+        function closeAddMealModal() {
+            if (!addMealModal) return;
+            addMealModal.classList.add('hidden');
+        }
+
+        function populateAddMealModalRecipeList(recipesToDisplay) {
+            if (!addMealModalRecipeList) return;
+            addMealModalRecipeList.innerHTML = '';
+            if (recipesToDisplay.length === 0) {
+                addMealModalRecipeList.innerHTML = '<p class="text-center text-[#bda89e] py-3">No recipes found.</p>';
+                return;
+            }
+
+            recipesToDisplay.forEach(recipe => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "add-meal-recipe-item flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]";
+                itemDiv.dataset.recipeId = recipe.id;
+                itemDiv.dataset.recipeTitle = recipe.title;
+
+                const imageUrl = recipe.imageURL || 'https://via.placeholder.com/50x50.png?text=No+Img';
+                itemDiv.innerHTML = `
+                    <img src="${imageUrl}" alt="${recipe.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0">
+                    <span class="text-white flex-grow truncate" title="${recipe.title}">${recipe.title || 'Untitled Recipe'}</span>
+                    <button class="add-this-recipe-button bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>
+                `;
+                
+                const addThisButton = itemDiv.querySelector('.add-this-recipe-button');
+                if(addThisButton) {
+                    addThisButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        handleAddRecipeToPlan(recipe.id, recipe.title);
+                    });
+                }
+                itemDiv.addEventListener('click', () => { // Clicking whole item also adds
+                     handleAddRecipeToPlan(recipe.id, recipe.title);
+                });
+                addMealModalRecipeList.appendChild(itemDiv);
+            });
+        }
+
+        function handleAddMealModalSearch() {
+            if (!addMealModalSearchInput) return;
+            const searchTerm = addMealModalSearchInput.value.trim().toLowerCase();
+            if (searchTerm === "") {
+                populateAddMealModalRecipeList(allRecipesCache);
+            } else {
+                const filtered = allRecipesCache.filter(r => 
+                    (r.title || '').toLowerCase().includes(searchTerm) ||
+                    (r.description || '').toLowerCase().includes(searchTerm)
+                );
+                populateAddMealModalRecipeList(filtered);
+            }
+        }
+        
+        async function handleAddRecipeToPlan(recipeId, recipeTitle) {
+            const dateStr = formatDateForFirebaseKey(currentSelectedDate);
+            const newMealData = { recipeId, recipeTitle };
+            try {
+                await database.ref(`mealPlan/${dateStr}`).push(newMealData);
+                closeAddMealModal();
+                loadMealsForSelectedDate(); 
+            } catch (error) { 
+                console.error("Error adding to meal plan in RTDB:", error); 
+                alert("Failed to add recipe to plan.");
+            }
         }
 
         // --- Event Listeners Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            showPage('page-index'); // Show initial page
-            loadRecipesFromRealtimeDB(); // Load data, will respect search if input has value
+            showPage('page-index'); 
+            loadRecipesFromRealtimeDB(); 
 
-            // Search functionality
             const searchInput = document.getElementById('search-recipe-input');
             if (searchInput) {
                 const debouncedSearchHandler = debounce(handleSearch, 300);
@@ -817,21 +1065,16 @@
                 }
             });
 
-            document.getElementById('schedule-add-meal-button')?.addEventListener('click', () => {
-                const recipeQuery = prompt("Enter Recipe Title or ID to add for " + document.getElementById('schedule-selected-date-title').textContent);
-                if (recipeQuery) {
-                    const selected = allRecipesCache.find(r => r.id === recipeQuery.trim() || (r.title || '').toLowerCase() === recipeQuery.trim().toLowerCase());
-                    if (selected) {
-                        const dateStr = `${currentSelectedCalendarDate.year}-${String(monthNameToIndex(currentSelectedCalendarDate.month) + 1).padStart(2, '0')}-${String(currentSelectedCalendarDate.day).padStart(2, '0')}`;
-                        addRecipeToMealPlanInRealtimeDB(dateStr, selected.id, selected.title);
-                    } else alert("Recipe not found.");
-                }
-            });
-
-            generateCalendarDays('calendar-october', 2024, 9, 31, 2); generateCalendarDays('calendar-november', 2024, 10, 30, 5);
-            const initialDateTitle = `${currentSelectedCalendarDate.month} ${currentSelectedCalendarDate.day}, ${currentSelectedCalendarDate.year}`; document.getElementById('schedule-selected-date-title').textContent = initialDateTitle;
-            const initialDateStr = `${currentSelectedCalendarDate.year}-${String(monthNameToIndex(currentSelectedCalendarDate.month) + 1).padStart(2, '0')}-${String(currentSelectedCalendarDate.day).padStart(2, '0')}`;
-            loadMealPlanForDateFromRealtimeDB(initialDateStr);
+            // Meal Planner Listeners
+            document.getElementById('schedule-prev-week')?.addEventListener('click', navigateToPreviousWeek);
+            document.getElementById('schedule-next-week')?.addEventListener('click', navigateToNextWeek);
+            document.getElementById('schedule-open-add-meal-modal-button')?.addEventListener('click', openAddMealModal);
+            document.getElementById('add-meal-modal-close-button')?.addEventListener('click', closeAddMealModal);
+            
+            if(addMealModalSearchInput){
+                const debouncedModalSearch = debounce(handleAddMealModalSearch, 300);
+                addMealModalSearchInput.addEventListener('input', debouncedModalSearch);
+            }
         });
     </script>
 
