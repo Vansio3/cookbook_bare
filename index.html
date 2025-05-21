@@ -84,10 +84,9 @@
             overflow-y: auto;
         }
 
-        /* Removed specific padding-bottom for shopping list page content here */
-        /* #page-shopping-list .page-content {
-            padding-bottom: 140px; 
-        } */
+        #page-shopping-list .page-content {
+            padding-bottom: 140px;
+        }
 
         #page-index .page-content,
         #page-favorites .page-content,
@@ -95,9 +94,8 @@
         #page-create-recipe .page-content,
         #page-schedule .page-content,
         #page-profile .page-content {
-            padding-bottom: 90px; /* This is for general pages to clear the main bottom nav */
+            padding-bottom: 90px;
         }
-
 
         .bottom-nav-bar {
             position: sticky;
@@ -696,8 +694,8 @@
             </div>
         </div>
 
-        <div id="page-shopping-list" class="page bg-[#231610] dark group/design-root flex flex-col">
-            <div class="page-header flex-shrink-0">
+        <div id="page-shopping-list" class="page bg-[#231610] dark group/design-root">
+            <div class="page-header">
                 <div class="flex items-center p-4 pb-2 justify-between">
                     <div class="interactive-scale text-white flex size-12 shrink-0 items-center cursor-pointer"
                         data-action="back"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px"
@@ -718,11 +716,11 @@
                     </button>
                 </div>
             </div>
-            <div class="page-content px-4 pt-4 pb-4 flex-grow overflow-y-auto">
+            <div class="page-content px-4 pt-4">
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
-            <div id="shopping-list-add-item-bar"
-                class="flex-shrink-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
+            <div
+                class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                 <input type="text" id="new-shopping-item-name" placeholder="Add item..."
                     class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
                 <button id="add-shopping-item-button"
@@ -902,7 +900,8 @@
                 customConfirmMessage.textContent = message;
                 customConfirmConfirmButton.textContent = confirmButtonText;
                 
-                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; 
+                // Reset classes and apply new ones for confirm button
+                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; // Base classes
                 confirmButtonClasses.split(' ').forEach(cls => customConfirmConfirmButton.classList.add(cls));
 
                 currentConfirmResolver = resolve;
@@ -1127,7 +1126,7 @@
 
         function attachCategoryShortcutListeners() {
             document.querySelectorAll('.category-shortcut-btn').forEach(button => {
-                button.removeEventListener('click', handleCategoryShortcutClick); 
+                button.removeEventListener('click', handleCategoryShortcutClick); // Prevent multiple listeners
                 button.addEventListener('click', handleCategoryShortcutClick);
             });
         }
@@ -1223,7 +1222,7 @@
                 return a.checked ? 1 : -1;
             });
 
-            currentRecipeIngredientsState.forEach((ingredient) => { 
+            currentRecipeIngredientsState.forEach((ingredient) => { // No need for index if using name for data attribute
                 const label = document.createElement("label");
                 label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
 
@@ -1378,8 +1377,8 @@
                     }
                 }
 
-                if (!imageToSaveURL && !editingRecipeId) { 
-                     if (!currentRecipeImageURL) { 
+                if (!imageToSaveURL && !editingRecipeId) { // Only enforce photo for new recipes, or if user removed existing and didn't add new
+                     if (!currentRecipeImageURL) { // if editing and current URL is also null (meaning it was removed)
                         return showCustomAlert("Validation Error", "A recipe photo is required.");
                      }
                 }
@@ -1405,7 +1404,7 @@
                     showCustomAlert("Success", "Recipe saved!");
                 }
                 resetCreateForm();
-                await loadRecipesFromRealtimeDB(); 
+                await loadRecipesFromRealtimeDB(); // This will refresh the cache
                 showPage("page-index");
 
             } catch (error) {
@@ -1538,7 +1537,7 @@
 
             try {
                 await database.ref(`mealPlan/${dateKey}/${mealEntryId}`).remove();
-                loadMealsForSelectedDate(); 
+                loadMealsForSelectedDate(); // Refresh the list
             } catch (error) {
                 console.error("Error removing meal:", error);
                 showCustomAlert("Error", "Failed to remove meal. Please try again.");
@@ -1598,6 +1597,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+            // --- Initialize Custom Modal Elements ---
             customAlertModal = document.getElementById("custom-alert-modal");
             customAlertTitle = document.getElementById("custom-alert-title");
             customAlertMessage = document.getElementById("custom-alert-message");
@@ -1609,6 +1609,7 @@
             customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button");
             customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
             
+            // --- Event Listeners for Custom Modals ---
             customAlertOkButton?.addEventListener("click", closeCustomAlert);
             customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
             
@@ -1819,4 +1820,3 @@
 </body>
 
 </html>
-```
