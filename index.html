@@ -398,9 +398,10 @@
                             </button>
                         </div>
                     </label>
-                    <div id="category-shortcuts-container" class="px-4 pt-3 pb-1 flex flex-wrap gap-2 justify-center" style="display: none;">
-                       <!-- Category shortcut buttons will be injected here by JS -->
-                   </div>
+                    <div id="category-shortcuts-container"
+                        class="px-4 pt-3 pb-1 flex gap-2 justify-center horizontal-scroll-cards" style="display: none;">
+                        <!-- Category shortcut buttons will be injected here by JS -->
+                    </div>
                 </div>
             </div>
             <div class="page-content">
@@ -606,9 +607,12 @@
                         <p id="create-recipe-photo-label" class="text-white text-lg font-bold">Upload Photo</p>
                         <div id="current-image-display" class="text-center text-white text-sm mb-1 hidden w-full">
                             <p class="truncate">Current: <span id="current-image-filename" class="italic"></span></p>
-                            <button type="button" id="remove-current-image-button" class="text-xs text-red-400 hover:text-red-500 underline">(Remove current image)</button>
+                            <button type="button" id="remove-current-image-button"
+                                class="text-xs text-red-400 hover:text-red-500 underline">(Remove current
+                                image)</button>
                         </div>
-                        <input type="file" id="create-recipe-photoInput" accept="image/*" class="text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#492e22] file:text-white hover:file:bg-[#5a3a2a] w-full">
+                        <input type="file" id="create-recipe-photoInput" accept="image/*"
+                            class="text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#492e22] file:text-white hover:file:bg-[#5a3a2a] w-full">
                     </div>
                 </div>
                 <div class="flex px-4 py-3 mt-4"><button id="save-recipe-button"
@@ -955,7 +959,7 @@
                         recipes.forEach(recipe => searchResultsContainer.innerHTML += createRecipeCardHtml(recipe));
                     }
                 }
-                 if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
+                if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
             } else {
                 if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
                 if (defaultRecipesView) defaultRecipesView.style.display = 'block';
@@ -1173,7 +1177,7 @@
             document.getElementById("create-recipe-prepTime").value = "";
             document.getElementById("create-recipe-cookTime").value = "";
             document.getElementById("create-recipe-servings").value = "";
-            
+
             document.getElementById("create-recipe-photo-label").textContent = "Upload Photo";
             document.getElementById("current-image-display").classList.add("hidden");
             document.getElementById("current-image-filename").textContent = "";
@@ -1201,7 +1205,7 @@
                     document.getElementById("create-recipe-prepTime").value = recipeData.prepTime || "";
                     document.getElementById("create-recipe-cookTime").value = recipeData.cookTime || "";
                     document.getElementById("create-recipe-servings").value = recipeData.servings || "";
-                    
+
                     const photoLabel = document.getElementById("create-recipe-photo-label");
                     const currentImageDisplay = document.getElementById("current-image-display");
                     const currentImageFilenameSpan = document.getElementById("current-image-filename");
@@ -1221,7 +1225,7 @@
                     showPage("page-create-recipe");
                 } else {
                     alert("Recipe not found for editing.");
-                    resetCreateForm(); 
+                    resetCreateForm();
                 }
             } catch (error) {
                 console.error("Error fetching recipe for edit:", error);
@@ -1255,7 +1259,7 @@
             if (!cookTime) return void alert("Cook time is required.");
             if (!servings) return void alert("Servings information is required.");
 
-            let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : ""; 
+            let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : "";
 
             const saveButton = document.getElementById("save-recipe-button");
             saveButton.textContent = "Saving...";
@@ -1518,21 +1522,21 @@
             document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { e.currentTarget.dataset.recipeId && toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId) });
             document.getElementById("delete-recipe-button")?.addEventListener("click", e => { e.currentTarget.dataset.recipeId && deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId, e.currentTarget.dataset.imageURL) });
             document.getElementById("recipe-edit-button")?.addEventListener("click", () => { const e = document.getElementById("page-recipe").dataset.currentRecipeId; e ? prepareEditForm(e) : alert("Could not initiate edit.") });
-            
+
             document.getElementById("remove-current-image-button")?.addEventListener("click", () => {
                 currentRecipeImageURL = null;
                 document.getElementById("current-image-display").classList.add("hidden");
                 document.getElementById("current-image-filename").textContent = "";
                 document.getElementById("create-recipe-photo-label").textContent = "Upload Photo";
                 const photoInput = document.getElementById("create-recipe-photoInput");
-                if (photoInput) photoInput.value = ""; 
+                if (photoInput) photoInput.value = "";
             });
 
-            document.getElementById("create-recipe-photoInput")?.addEventListener("change", function() {
+            document.getElementById("create-recipe-photoInput")?.addEventListener("change", function () {
                 const photoLabel = document.getElementById("create-recipe-photo-label");
                 const currentImageDisplay = document.getElementById("current-image-display");
                 const currentImageFilenameSpan = document.getElementById("current-image-filename");
-                
+
                 if (this.files && this.files.length > 0) {
                     currentImageDisplay.classList.add("hidden");
                     photoLabel.textContent = "Photo Selected";
