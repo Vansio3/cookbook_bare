@@ -145,8 +145,10 @@
 
         .form-checkbox-custom:focus {
             outline: none;
-            box-shadow: none;
-            border-color: #684231;
+            border-color: #f0560e;
+            /* Orange border on focus */
+            /* Custom orange focus ring: 2px offset (recipe page bg), 2px actual ring */
+            box-shadow: 0 0 0 2px #231610, 0 0 0 4px #f0560e;
         }
 
         .shopping-item-checkbox {
@@ -179,8 +181,10 @@
 
         .shopping-item-checkbox:focus {
             outline: none;
-            box-shadow: none;
-            border-color: #684231;
+            border-color: #f0560e;
+            /* Orange border on focus */
+            /* Custom orange focus ring: 2px offset (shopping item card bg), 2px actual ring */
+            box-shadow: 0 0 0 2px #40322b, 0 0 0 4px #f0560e;
         }
 
         .horizontal-scroll-cards {
@@ -556,7 +560,7 @@
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Recipe Title</p><input id="create-recipe-title"
                             placeholder="Enter recipe title"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px]" />
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Category</p>
@@ -573,34 +577,34 @@
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Description</p><textarea
                             id="create-recipe-description" placeholder="Brief description"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-24 p-[15px]"></textarea>
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-24 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Ingredients (one per line)</p><textarea
                             id="create-recipe-ingredients" placeholder="Flour, 1 cup..."
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px]"></textarea>
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Instructions (one step per line)</p><textarea
                             id="create-recipe-instructions" placeholder="1. Mix flour..."
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px]"></textarea>
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <div class="flex gap-4 w-full">
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Prep Time</p><input
                                 id="create-recipe-prepTime" placeholder="e.g., 15 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px]" />
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                         </label>
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Cook Time</p><input
                                 id="create-recipe-cookTime" placeholder="e.g., 30 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px]" />
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                         </label>
                     </div>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Servings</p><input id="create-recipe-servings"
                             placeholder="e.g., 4"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px]" />
+    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                     </label>
                     <div
                         class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-[#684231]">
