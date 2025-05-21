@@ -21,14 +21,14 @@
             --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(255,255,255)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh; /* CHANGED: Fix height to viewport height */
             margin: 0;
             background-color: #1e1815;
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
-            overflow-x: hidden;
+            overflow: hidden; /* CHANGED: Prevent body from scrolling */
         }
 
         .page-container {
@@ -83,28 +83,27 @@
             flex-grow: 1;
             overflow-y: auto;
         }
-
-        #page-shopping-list .page-content {
-            padding-bottom: 140px;
-        }
-
+        
+        /* Adjust padding for page-content for most pages */
         #page-index .page-content,
         #page-favorites .page-content,
         #page-recipe .page-content,
         #page-create-recipe .page-content,
         #page-schedule .page-content,
         #page-profile .page-content {
-            padding-bottom: 90px;
+            padding-bottom: 20px; /* CHANGED: Smaller bottom padding */
         }
 
+        /* Adjust padding for shopping list page content */
+        #page-shopping-list .page-content {
+             padding-bottom: 76px; /* CHANGED: Approx height of input bar (68px) + small buffer (8px) */
+        }
+
+
         .bottom-nav-bar {
-            position: sticky;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
             border-top: 1px solid #40322b;
             background-color: #2e241f;
+            flex-shrink: 0; /* ADDED: Ensure it doesn't shrink */
         }
 
         .interactive-scale {
@@ -720,7 +719,7 @@
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
             <div
-                class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
+                class="sticky bottom-0 left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center" id="shopping-list-input-bar-container">
                 <input type="text" id="new-shopping-item-name" placeholder="Add item..."
                     class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
                 <button id="add-shopping-item-button"
@@ -1377,8 +1376,8 @@
                     }
                 }
 
-                if (!imageToSaveURL && !editingRecipeId) { // Only enforce photo for new recipes, or if user removed existing and didn't add new
-                     if (!currentRecipeImageURL) { // if editing and current URL is also null (meaning it was removed)
+                if (!imageToSaveURL && !editingRecipeId) { 
+                     if (!currentRecipeImageURL) { 
                         return showCustomAlert("Validation Error", "A recipe photo is required.");
                      }
                 }
@@ -1404,7 +1403,7 @@
                     showCustomAlert("Success", "Recipe saved!");
                 }
                 resetCreateForm();
-                await loadRecipesFromRealtimeDB(); // This will refresh the cache
+                await loadRecipesFromRealtimeDB();
                 showPage("page-index");
 
             } catch (error) {
@@ -1537,7 +1536,7 @@
 
             try {
                 await database.ref(`mealPlan/${dateKey}/${mealEntryId}`).remove();
-                loadMealsForSelectedDate(); // Refresh the list
+                loadMealsForSelectedDate(); 
             } catch (error) {
                 console.error("Error removing meal:", error);
                 showCustomAlert("Error", "Failed to remove meal. Please try again.");
@@ -1597,7 +1596,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            // --- Initialize Custom Modal Elements ---
             customAlertModal = document.getElementById("custom-alert-modal");
             customAlertTitle = document.getElementById("custom-alert-title");
             customAlertMessage = document.getElementById("custom-alert-message");
@@ -1609,7 +1607,6 @@
             customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button");
             customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
             
-            // --- Event Listeners for Custom Modals ---
             customAlertOkButton?.addEventListener("click", closeCustomAlert);
             customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
             
