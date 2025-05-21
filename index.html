@@ -130,10 +130,10 @@
             transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, transform 0.1s ease-out;
         }
 
-        .form-checkbox-custom:checked {
-            background-color: #f0560e;
-            border-color: #f0560e;
-            background-image: var(--checkbox-tick-svg);
+        input[type="checkbox"].form-checkbox-custom:checked {
+            background-color: #f0560e; /* Orange background when checked */
+            border-color: #f0560e;     /* Orange border when checked */
+            background-image: var(--checkbox-tick-svg); /* Your white SVG tick */
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -145,9 +145,7 @@
 
         .form-checkbox-custom:focus {
             outline: none;
-            border-color: #f0560e;
-            /* Orange border on focus */
-            /* Custom orange focus ring: 2px offset (recipe page bg), 2px actual ring */
+            border-color: #f0560e; 
             box-shadow: 0 0 0 2px #231610, 0 0 0 4px #f0560e;
         }
 
@@ -166,10 +164,10 @@
             transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, transform 0.1s ease-out;
         }
 
-        .shopping-item-checkbox:checked {
-            background-color: #52423a;
-            border-color: #52423a;
-            background-image: var(--checkbox-tick-svg);
+        input[type="checkbox"].shopping-item-checkbox:checked {
+            background-color: #f0560e; /* Orange background when checked */
+            border-color: #f0560e;     /* Orange border when checked */
+            background-image: var(--checkbox-tick-svg); /* Your white SVG tick */
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -182,8 +180,6 @@
         .shopping-item-checkbox:focus {
             outline: none;
             border-color: #f0560e;
-            /* Orange border on focus */
-            /* Custom orange focus ring: 2px offset (shopping item card bg), 2px actual ring */
             box-shadow: 0 0 0 2px #40322b, 0 0 0 4px #f0560e;
         }
 
