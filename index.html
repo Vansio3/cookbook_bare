@@ -900,7 +900,6 @@
                 customConfirmMessage.textContent = message;
                 customConfirmConfirmButton.textContent = confirmButtonText;
                 
-                // Reset classes and apply new ones for confirm button
                 customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; // Base classes
                 confirmButtonClasses.split(' ').forEach(cls => customConfirmConfirmButton.classList.add(cls));
 
@@ -922,75 +921,96 @@
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
 
         function showPage(pageId, fromHistoryOrInitialLoad = false) {
-            const oldPage = document.getElementById(currentPageId);
-            if (oldPage) oldPage.classList.remove("active");
-
             const newPage = document.getElementById(pageId);
-            if (newPage) {
-                if (!fromHistoryOrInitialLoad) {
-                    if (currentPageId !== pageId) previousPageId = currentPageId;
-
-                    let state = { page: pageId };
-                    let url = `#${pageId}`;
-
-                    if (pageId === "page-recipe") {
-                        const recipeId = newPage.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
-                        if (recipeId) {
-                            state.recipeId = recipeId;
-                            url += `/${recipeId}`;
-                        }
-                    } else if (pageId === "page-schedule") {
-                        if (previousPageId === 'page-recipe' && currentPageId !== 'page-schedule') {
-                            currentSelectedDate = new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
-                            currentDisplayedWeekStartDate = getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
-                        } else if (currentPageId !== 'page-schedule') {
-                            currentSelectedDate = new Date();
-                            currentDisplayedWeekStartDate = getStartOfWeek(new Date());
-                        }
-                        state.selectedDate = currentSelectedDate.toISOString();
-                        state.weekStart = currentDisplayedWeekStartDate.toISOString();
-                    }
-                    history.pushState(state, `Page ${pageId}`, url);
-                }
-
-                currentPageId = pageId;
-                localStorage.setItem("lastActivePageId", pageId);
-
-                requestAnimationFrame(() => {
-                    newPage.classList.add("active");
-                });
-                updateNavbarUI(pageId);
-                newPage.querySelector(".page-content")?.scrollTo(0, 0);
-
-                if (pageId === "page-index") {
-                    document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
-                } else if (pageId === "page-favorites") {
-                    renderFavoritesPage();
-                } else if (pageId === "page-schedule") {
-                    if (fromHistoryOrInitialLoad) {
-                        const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
-                        const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
-
-                        currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
-                        currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
-                    }
-                    localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
-                    localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
-                    if (fromHistoryOrInitialLoad && history.state && (history.state.page === 'page-schedule') && (!history.state.selectedDate || !history.state.weekStart)) {
-                        history.replaceState({
-                            ...history.state,
-                            selectedDate: currentSelectedDate.toISOString(),
-                            weekStart: currentDisplayedWeekStartDate.toISOString()
-                        }, `Page ${pageId}`, location.href);
-                    }
-                    renderWeekView();
-                } else if (pageId === "page-shopping-list") {
-                    loadShoppingListFromDB();
-                }
-            } else {
+            if (!newPage) {
                 console.warn(`Page ${pageId} not found, redirecting to page-index.`);
+                if (pageId === "page-index") { // Avoid infinite loop if page-index itself is missing
+                    document.body.innerHTML = "Critical error: page-index not found. Cannot recover.";
+                    return;
+                }
                 showPage("page-index", fromHistoryOrInitialLoad);
+                return;
             }
+
+            // Determine if we are trying to show the same page that's already active,
+            // and it's not a history navigation (popstate or initial load).
+            const isSamePageAlreadyActive = (currentPageId === pageId && newPage.classList.contains("active"));
+            const shouldPushHistory = !fromHistoryOrInitialLoad && !isSamePageAlreadyActive;
+
+            const oldPage = document.getElementById(currentPageId);
+            if (oldPage && oldPage !== newPage) {
+                oldPage.classList.remove("active");
+            }
+
+            if (shouldPushHistory) {
+                if (currentPageId !== pageId) { // Update previousPageId only if changing pages
+                    previousPageId = currentPageId;
+                }
+
+                let state = { page: pageId };
+                let url = `#${pageId}`;
+
+                if (pageId === "page-recipe") {
+                    const recipeId = newPage.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
+                    if (recipeId) {
+                        state.recipeId = recipeId;
+                        url += `/${recipeId}`;
+                    }
+                } else if (pageId === "page-schedule") {
+                    if (previousPageId === 'page-recipe' && currentPageId !== 'page-schedule') {
+                        currentSelectedDate = new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
+                        currentDisplayedWeekStartDate = getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
+                    } else if (currentPageId !== 'page-schedule') {
+                        currentSelectedDate = new Date();
+                        currentDisplayedWeekStartDate = getStartOfWeek(new Date());
+                    }
+                    state.selectedDate = currentSelectedDate.toISOString();
+                    state.weekStart = currentDisplayedWeekStartDate.toISOString();
+                }
+                history.pushState(state, `Page ${pageId}`, url);
+            }
+
+            currentPageId = pageId;
+            localStorage.setItem("lastActivePageId", pageId);
+
+            requestAnimationFrame(() => {
+                newPage.classList.add("active");
+            });
+            updateNavbarUI(pageId);
+            
+            // Only scroll to top if it's a genuinely new page activation or a history navigation.
+            // Not if it's just a "refresh" of the same active page.
+            if (!isSamePageAlreadyActive || fromHistoryOrInitialLoad) {
+                 newPage.querySelector(".page-content")?.scrollTo(0, 0);
+            }
+
+            // Page-specific loading/rendering logic
+            if (pageId === "page-index") {
+                document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
+            } else if (pageId === "page-favorites") {
+                renderFavoritesPage();
+            } else if (pageId === "page-schedule") {
+                if (fromHistoryOrInitialLoad) {
+                    const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
+                    const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                    currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
+                    currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
+                }
+                localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
+                localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
+                if (fromHistoryOrInitialLoad && history.state && (history.state.page === 'page-schedule') && (!history.state.selectedDate || !history.state.weekStart)) {
+                     history.replaceState({
+                        ...history.state,
+                        selectedDate: currentSelectedDate.toISOString(),
+                        weekStart: currentDisplayedWeekStartDate.toISOString()
+                    }, `Page ${pageId}`, location.href);
+                }
+                renderWeekView();
+            } else if (pageId === "page-shopping-list") {
+                loadShoppingListFromDB();
+            }
+            // Note: page-recipe loading is typically handled by loadRecipeDetailFromRealtimeDB, which then calls showPage.
+            // The `fromHistoryOrInitialLoad` flag passed to showPage from there is critical.
         }
 
         function updateNavbarUI(e) { document.querySelectorAll(".nav-item").forEach(t => { t.classList.remove("nav-active"); const c = t.dataset.target; let a = "page-recipe" === e ? c === previousPageId && ("page-index" === previousPageId || "page-favorites" === previousPageId) ? !0 : "page-index" === c && "page-favorites" !== previousPageId ? !0 : !1 : c === e; const n = a ? "text-white" : "text-[#bda89e]", o = t.querySelector(".nav-icon-container"), i = t.querySelector(".nav-text");["text-white", "text-[#bda89e]"].forEach(e => { t.classList.remove(e), i?.classList.remove(e), o?.classList.remove(e) }), t.classList.add(n), i?.classList.add(n), o?.classList.add(n), a && t.classList.add("nav-active"), "page-favorites" === c && o && o.querySelector("svg") && (o.querySelector("svg").innerHTML = a ? '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>' : '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>') }) }
@@ -1126,7 +1146,7 @@
 
         function attachCategoryShortcutListeners() {
             document.querySelectorAll('.category-shortcut-btn').forEach(button => {
-                button.removeEventListener('click', handleCategoryShortcutClick); // Prevent multiple listeners
+                button.removeEventListener('click', handleCategoryShortcutClick); 
                 button.addEventListener('click', handleCategoryShortcutClick);
             });
         }
@@ -1170,7 +1190,7 @@
 
             if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                 displayRecipeDetailsUI(recipeData);
-                showPage("page-recipe", fromHistoryOrInitialLoad);
+                showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
                 return;
             }
 
@@ -1183,7 +1203,7 @@
                 recipeData = allRecipesCache.find(r => r.id === recipeId);
                 if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                     displayRecipeDetailsUI(recipeData);
-                    showPage("page-recipe", fromHistoryOrInitialLoad);
+                    showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
                     return;
                 }
             }
@@ -1197,15 +1217,15 @@
                     else allRecipesCache.push(fetchedRecipe);
 
                     displayRecipeDetailsUI(fetchedRecipe);
-                    showPage("page-recipe", fromHistoryOrInitialLoad);
+                    showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
                 } else {
                     showCustomAlert("Error", "Recipe not found.");
-                    showPage(previousPageId || "page-index", true);
+                    showPage(previousPageId || "page-index", true); // true because this is like a history fallback
                 }
             } catch (error) {
                 console.error("Error getting recipe:", error);
                 showCustomAlert("Error", "Recipe load failed. Please try again.");
-                showPage(previousPageId || "page-index", true);
+                showPage(previousPageId || "page-index", true); // true for fallback
             }
         }
 
@@ -1222,7 +1242,7 @@
                 return a.checked ? 1 : -1;
             });
 
-            currentRecipeIngredientsState.forEach((ingredient) => { // No need for index if using name for data attribute
+            currentRecipeIngredientsState.forEach((ingredient) => { 
                 const label = document.createElement("label");
                 label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
 
@@ -1377,8 +1397,10 @@
                     }
                 }
 
-                if (!imageToSaveURL && !editingRecipeId) { // Only enforce photo for new recipes, or if user removed existing and didn't add new
-                     if (!currentRecipeImageURL) { // if editing and current URL is also null (meaning it was removed)
+                if (!imageToSaveURL && !editingRecipeId) { 
+                     if (!currentRecipeImageURL) { 
+                        saveButton.textContent = "Save Recipe"; // Reset button text before showing alert
+                        saveButton.disabled = false;
                         return showCustomAlert("Validation Error", "A recipe photo is required.");
                      }
                 }
@@ -1404,7 +1426,7 @@
                     showCustomAlert("Success", "Recipe saved!");
                 }
                 resetCreateForm();
-                await loadRecipesFromRealtimeDB(); // This will refresh the cache
+                await loadRecipesFromRealtimeDB(); 
                 showPage("page-index");
 
             } catch (error) {
@@ -1537,7 +1559,7 @@
 
             try {
                 await database.ref(`mealPlan/${dateKey}/${mealEntryId}`).remove();
-                loadMealsForSelectedDate(); // Refresh the list
+                loadMealsForSelectedDate(); 
             } catch (error) {
                 console.error("Error removing meal:", error);
                 showCustomAlert("Error", "Failed to remove meal. Please try again.");
@@ -1597,7 +1619,6 @@
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
-            // --- Initialize Custom Modal Elements ---
             customAlertModal = document.getElementById("custom-alert-modal");
             customAlertTitle = document.getElementById("custom-alert-title");
             customAlertMessage = document.getElementById("custom-alert-message");
@@ -1609,7 +1630,6 @@
             customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button");
             customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
             
-            // --- Event Listeners for Custom Modals ---
             customAlertOkButton?.addEventListener("click", closeCustomAlert);
             customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
             
