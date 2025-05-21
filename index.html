@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Updated viewport to disable zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e1815">
@@ -24,6 +25,11 @@
             min-height: 100vh;
             margin: 0;
             background-color: #1e1815;
+            /* Disable text selection */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         .page-container {
@@ -63,7 +69,6 @@
             background-color: #231610;
         }
 
-
         .page-content {
             flex-grow: 1;
             overflow-y: auto;
@@ -80,7 +85,6 @@
             padding-bottom: 90px; 
         }
 
-
         .bottom-nav-bar {
             position: sticky;
             bottom: 0;
@@ -91,12 +95,12 @@
             background-color: #2e241f;
         }
 
-        /* Standard checkbox (recipe ingredients) */
+        /* Custom checkbox style for recipe ingredients and general use */
         .form-checkbox-custom {
             appearance: none; -webkit-appearance: none; -moz-appearance: none;
             height: 1.25rem; width: 1.25rem; border-radius: 0.25rem;
             border-width: 2px; border-color: #684231; background-color: transparent;
-            flex-shrink: 0;
+            flex-shrink: 0; cursor: pointer;
         }
         .form-checkbox-custom:checked {
             background-color: #f0560e; border-color: #f0560e;
@@ -105,22 +109,20 @@
         }
         .form-checkbox-custom:focus { outline: none; box-shadow: none; border-color: #684231; }
 
-
         /* Shopping list item specific checkbox styles */
         .shopping-item-checkbox {
             appearance: none; -webkit-appearance: none; -moz-appearance: none;
             height: 1.25rem; width: 1.25rem; border-radius: 0.25rem;
             border-width: 2px; border-color: #684231; background-color: transparent;
-            flex-shrink: 0;
+            flex-shrink: 0; cursor: pointer;
         }
         .shopping-item-checkbox:checked {
-            background-color: #52423a; /* Dimmer orange/brown for checked shopping item */
+            background-color: #52423a; 
             border-color: #52423a;
             background-image: var(--checkbox-tick-svg); background-repeat: no-repeat;
             background-position: center; background-size: 70%;
         }
          .shopping-item-checkbox:focus { outline: none; box-shadow: none; border-color: #684231; }
-
 
         .horizontal-scroll-cards { overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; }
         .horizontal-scroll-cards::-webkit-scrollbar { display: none; }
@@ -132,12 +134,10 @@
         .schedule-day-btn.selected:not(.today) .day-name-span { color: #d1d5db; }
         .schedule-day-btn.selected:not(.today) .day-number-span { color: #ffffff; }
 
-        /* Shopping list item text style when checked */
         .shopping-item.checked .item-name {
             text-decoration: line-through;
-            color: #857065; /* Tailwind gray-500 equivalent for this theme */
+            color: #857065; 
         }
-
     </style>
 
     <!-- Firebase SDKs -->
@@ -191,7 +191,7 @@
                 </div>
             </div>
             <div class="page-content">
-                <h2 id="recently-added-heading" class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Recently Added</h2>
+                <h2 id="recently-added-heading" class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5" style="display: none;">Recently Added</h2>
                 <div class="horizontal-scroll-cards flex"><div id="featured-recipes-container" class="flex items-stretch p-4 gap-3"></div></div>
                 <h2 id="all-recipes-heading" class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">All Recipes</h2>
                 <div id="quick-easy-recipes-container" class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4"></div>
@@ -299,7 +299,7 @@
                     <div class="text-white flex size-12 shrink-0 items-center cursor-pointer" data-action="back"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg></div>
                     <h2 class="text-white text-lg font-bold flex-1 text-center">Shopping List</h2>
                     <button id="clear-checked-shopping-items-button" title="Clear Checked Items" class="text-white flex size-12 items-center justify-center rounded-full hover:bg-white/10">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256"><path d="M228,56H205.12L148,26.12A20,20,0,0,0,112.35,32H72a20,20,0,0,0-20,20V208a20,20,0,0,0,40,0V96h24V208a20,20,0,0,0,40,0V96h24V208a20,20,0,0,0,40,0V88a20,20,0,0,0-13.17-18.72L232,64A12,12,0,0,0,228,56ZM72,72h40.35L148,89.88,112.35,104Zm24,120a4,4,0,0,1-8,0V96a4,4,0,0,1,8,0Zm40,0a4,4,0,0,1-8,0V96a4,4,0,0,1,8,0Zm40,0a4,4,0,0,1-8,0V88a4,4,0,0,1,8,0Z"></path></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>
                     </button>
                 </div>
             </div>
@@ -336,7 +336,6 @@
             <a class="nav-item just flex flex-1 flex-col items-center justify-end gap-1 text-[#bda89e]" href="#" data-target="page-shopping-list" data-icon-name="ShoppingCart"><div class="nav-icon-container text-[#bda89e] flex h-8 items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M96,216a16,16,0,1,1-16-16A16,16,0,0,1,96,216Zm88-16a16,16,0,1,0,16,16A16,16,0,0,0,184,200ZM228.1,65.21l-28.52,92.68A23.88,23.88,0,0,1,176.7,176H88.06A24,24,0,0,1,65.9,159.34L29.11,50.3A8,8,0,0,0,24,48H16a8,8,0,0,1,0-16H24a16,16,0,0,1,15.23,10.31L50.1,63.36A8,8,0,0,1,56,64H216a8,8,0,0,1,7.44,10.33A8.12,8.12,0,0,1,228.1,65.21ZM82.25,160H176.7a8,8,0,0,0,7.58-5.07L208,72H60.49Z"></path></svg></div><p class="nav-text text-[#bda89e] text-xs font-medium">Shopping</p></a>
             <a class="nav-item just flex flex-1 flex-col items-center justify-end gap-1 text-[#bda89e]" href="#" data-target="page-schedule" data-icon-name="Calendar"><div class="nav-icon-container text-[#bda89e] flex h-8 items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-96-88v64a8,8,0,0,1-16,0V132.94l-4.42,2.22a8,8,0,0,1-7.16-14.32l16-8A8,8,0,0,1,112,120Zm59.16,30.45L152,176h16a8,8,0,0,1,0,16H136a8,8,0,0,1-6.4-12.8l28.78-38.37A8,8,0,1,0,145.07,132a8,8,0,1,1-13.85-8A24,24,0,0,1,176,136,23.76,23.76,0,0,1,171.16,150.45Z"></path></svg></div><p class="nav-text text-[#bda89e] text-xs font-medium">Meal Plan</p></a>
         </div>
-        <div class="h-5 bg-[#2e241f]"></div>
     </div>
 
     <script>
@@ -344,7 +343,7 @@
         function showPage(e,t=!1){document.querySelectorAll(".page").forEach(e=>e.classList.remove("active"));const c=document.getElementById(e);c?(t||currentPageId===e||(previousPageId=currentPageId),c.classList.add("active"),currentPageId=e,updateNavbarUI(e),c.querySelector(".page-content")?.scrollTo(0,0),"page-index"===e?(document.getElementById("search-recipe-input")?.value.trim()||handleSearch()):"page-favorites"===e?renderFavoritesPage():"page-schedule"===e?((t&&"page-recipe"===previousPageId)||(currentSelectedDate=new Date,currentDisplayedWeekStartDate=getStartOfWeek(new Date)),renderWeekView()):"page-shopping-list"===e&&loadShoppingListFromDB()):showPage("page-index")}
         function updateNavbarUI(e){document.querySelectorAll(".nav-item").forEach(t=>{const c=t.dataset.target;let a="page-recipe"===e?c===previousPageId&&("page-index"===previousPageId||"page-favorites"===previousPageId)?!0:"page-index"===c&&"page-favorites"!==previousPageId?!0:!1:c===e;const n=a?"text-white":"text-[#bda89e]",o=t.querySelector(".nav-icon-container"),i=t.querySelector(".nav-text");["text-white","text-[#bda89e]"].forEach(e=>{t.classList.remove(e),i?.classList.remove(e),o?.classList.remove(e)}),t.classList.add(n),i?.classList.add(n),o?.classList.add(n),"page-favorites"===c&&o&&o.querySelector("svg")&&(o.querySelector("svg").innerHTML=a?'<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>':'<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>')})}
         async function loadRecipesFromRealtimeDB(){try{const e=await database.ref("recipes").orderByChild("createdAt").once("value");allRecipesCache=[],e.exists()&&(allRecipesCache=Object.keys(e.val()).map(t=>({id:t,...e.val()[t]})).sort((e,t)=>(t.createdAt||0)-(e.createdAt||0))),"page-index"===currentPageId?document.getElementById("search-recipe-input")?.value.trim()?handleSearch():populateRecipeListsUI(allRecipesCache):"page-favorites"===currentPageId&&renderFavoritesPage()}catch(e){console.error("Error recipes:",e),alert("Could not load recipes.")}}
-        function populateRecipeListsUI(e,t=!1){const c=document.getElementById("featured-recipes-container"),a=document.getElementById("quick-easy-recipes-container"),n=document.getElementById("recently-added-heading"),o=document.getElementById("all-recipes-heading");if(c.innerHTML="",a.innerHTML="",t)n.style.display="none",o.style.display="none",c.style.display="none",0===e.length?a.innerHTML='<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes matching search.</p>':e.forEach(e=>a.innerHTML+=createRecipeCardHtml(e));else{n.style.display="block",o.style.display="block",c.style.display="flex";const i='<p class="text-center text-[#cba390] py-4 px-4 w-full col-span-full">No recipes yet. Create one!</p>';0===e.length?(c.innerHTML=i,a.innerHTML=i):e.forEach((e,t)=>{(t<5&&e.length>3||e.length<=3&&t<e.length)&&(c.innerHTML+=createRecipeCardHtml(e,!0)),a.innerHTML+=createRecipeCardHtml(e,!1)}),""===c.innerHTML&&e.length>0&&(n.style.display="none")}attachRecipeCardListeners()}
+        function populateRecipeListsUI(e,t=!1){const c=document.getElementById("featured-recipes-container"),a=document.getElementById("quick-easy-recipes-container"),n=document.getElementById("recently-added-heading"),o=document.getElementById("all-recipes-heading");if(c.innerHTML="",a.innerHTML="",t)n.style.display="none",o.style.display="none",c.style.display="none",0===e.length?a.innerHTML='<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes matching search.</p>':e.forEach(e=>a.innerHTML+=createRecipeCardHtml(e));else{const i=e.slice(0,3);i.length>0?(n.style.display="block",c.style.display="flex",i.forEach(e=>c.innerHTML+=createRecipeCardHtml(e,!0))):(n.style.display="none",c.style.display="none");const r='<p class="text-center text-[#cba390] py-4 px-4 w-full col-span-full">No recipes yet. Create one!</p>';0===e.length?(o.style.display="none",a.innerHTML=r):(o.style.display="block",e.forEach(e=>a.innerHTML+=createRecipeCardHtml(e)))}attachRecipeCardListeners()}
         function createRecipeCardHtml(e,t=!1){const c=(e.description||"No description.").substring(0,70)+( (e.description||"").length>70?"...":""),a=`style='background-image: url("${e.imageURL||"https://via.placeholder.com/300x200.png?text=No+Image"}");'`;return t?`<div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" ${a}></div><div><p class="text-white text-base font-medium">${e.title||"Untitled"}</p><p class="text-[#bda89e] text-sm">${c}</p></div></div>`:`<div class="flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" ${a}></div><div><p class="text-white text-base font-medium">${e.title||"Untitled"}</p><p class="text-[#bda89e] text-sm">${c}</p></div></div>`}
         function handleSearch(){const e=document.getElementById("search-recipe-input");if(!e)return;const t=e.value.trim().toLowerCase();""===t?populateRecipeListsUI(allRecipesCache):populateRecipeListsUI(allRecipesCache.filter(e=>(e.title||"").toLowerCase().includes(t)||(e.description||"").toLowerCase().includes(t)),!0)}
         function renderFavoritesPage(){const e=document.getElementById("search-favorites-input"),t=e?e.value.trim().toLowerCase():"";let c=allRecipesCache.filter(e=>e.isBookmarked);""!==t&&(c=c.filter(e=>(e.title||"").toLowerCase().includes(t)||(e.description||"").toLowerCase().includes(t))),populateFavoritesListUI(c,""!==t)}
@@ -375,7 +374,7 @@
         async function toggleShoppingItemCheckedInDB(e,t){try{await database.ref(`shoppingList/${e}`).update({checked:t}),loadShoppingListFromDB()}catch(e){console.error("Error updating shopping item:",e)}}
         async function deleteShoppingItemFromDB(e){try{await database.ref(`shoppingList/${e}`).remove(),loadShoppingListFromDB()}catch(e){console.error("Error deleting shopping item:",e)}}
         async function clearCheckedShoppingItemsFromDB(){if(!confirm("Clear all checked items?"))return;try{const e=await database.ref("shoppingList").orderByChild("checked").equalTo(!0).once("value");if(e.exists()){const t={};e.forEach(e=>{t[e.key]=null}),await database.ref("shoppingList").update(t)}loadShoppingListFromDB()}catch(e){console.error("Error clearing checked items:",e),alert("Failed to clear checked items.")}}
-        document.addEventListener("DOMContentLoaded",()=>{showPage("page-index"),loadRecipesFromRealtimeDB(),document.getElementById("search-recipe-input")?.addEventListener("input",debounce(handleSearch,300)),document.getElementById("search-favorites-input")?.addEventListener("input",debounce(handleFavoritesSearch,300)),document.querySelectorAll(".nav-item").forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const c=e.dataset.target;"page-create-recipe"===c&&resetCreateForm(),showPage(c)})}),document.querySelectorAll('[data-action="back"]').forEach(e=>{e.addEventListener("click",()=>{let t=previousPageId||"page-index";"page-favorites"!==currentPageId&&"page-schedule"!==currentPageId&&"page-shopping-list"!==currentPageId||(t="page-index"),showPage(t,!0)})}),document.querySelector('[data-action="back-from-create"]')?.addEventListener("click",()=>{resetCreateForm(),showPage(previousPageId||"page-index",!0)}),document.getElementById("header-profile-button-index")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("header-profile-button-favorites")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("save-recipe-button")?.addEventListener("click",saveRecipeData),document.getElementById("recipe-bookmark-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId)}),document.getElementById("delete-recipe-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId,e.currentTarget.dataset.imageURL)}),document.getElementById("recipe-edit-button")?.addEventListener("click",()=>{const e=document.getElementById("page-recipe").dataset.currentRecipeId;e?prepareEditForm(e):alert("Could not initiate edit.")}),document.getElementById("schedule-prev-week")?.addEventListener("click",navigateToPreviousWeek),document.getElementById("schedule-next-week")?.addEventListener("click",navigateToNextWeek),document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click",openAddMealModal),document.getElementById("add-meal-modal-close-button")?.addEventListener("click",closeAddMealModal),addMealModalSearchInput&&addMealModalSearchInput.addEventListener("input",debounce(handleAddMealModalSearch,300)),document.getElementById("add-shopping-item-button")?.addEventListener("click",addShoppingItemToDB),newShoppingItemNameInput&&newShoppingItemNameInput.addEventListener("keypress",e=>{"Enter"===e.key&&(e.preventDefault(),addShoppingItemToDB())}),document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click",clearCheckedShoppingItemsFromDB)});
+        document.addEventListener("DOMContentLoaded",()=>{showPage("page-index"),loadRecipesFromRealtimeDB(),document.getElementById("search-recipe-input")?.addEventListener("input",debounce(handleSearch,300)),document.getElementById("search-favorites-input")?.addEventListener("input",debounce(handleFavoritesSearch,300)),document.querySelectorAll(".nav-item").forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();const c=e.dataset.target;"page-create-recipe"===c&&resetCreateForm(),showPage(c)})}),document.querySelectorAll('[data-action="back"]').forEach(e=>{e.addEventListener("click",()=>{let t=previousPageId||"page-index";"page-favorites"!==currentPageId&&"page-schedule"!==currentPageId&&"page-shopping-list"!==currentPageId&&"page-profile"!==currentPageId||(t="page-index"),showPage(t,!0)})}),document.querySelector('[data-action="back-from-create"]')?.addEventListener("click",()=>{resetCreateForm(),showPage(previousPageId||"page-index",!0)}),document.getElementById("header-profile-button-index")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("header-profile-button-favorites")?.addEventListener("click",()=>showPage("page-profile")),document.getElementById("save-recipe-button")?.addEventListener("click",saveRecipeData),document.getElementById("recipe-bookmark-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&toggleBookmarkInRealtimeDB(e.currentTarget.dataset.recipeId)}),document.getElementById("delete-recipe-button")?.addEventListener("click",e=>{e.currentTarget.dataset.recipeId&&deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId,e.currentTarget.dataset.imageURL)}),document.getElementById("recipe-edit-button")?.addEventListener("click",()=>{const e=document.getElementById("page-recipe").dataset.currentRecipeId;e?prepareEditForm(e):alert("Could not initiate edit.")}),document.getElementById("schedule-prev-week")?.addEventListener("click",navigateToPreviousWeek),document.getElementById("schedule-next-week")?.addEventListener("click",navigateToNextWeek),document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click",openAddMealModal),document.getElementById("add-meal-modal-close-button")?.addEventListener("click",closeAddMealModal),addMealModalSearchInput&&addMealModalSearchInput.addEventListener("input",debounce(handleAddMealModalSearch,300)),document.getElementById("add-shopping-item-button")?.addEventListener("click",addShoppingItemToDB),newShoppingItemNameInput&&newShoppingItemNameInput.addEventListener("keypress",e=>{"Enter"===e.key&&(e.preventDefault(),addShoppingItemToDB())}),document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click",clearCheckedShoppingItemsFromDB)});
         "serviceWorker"in navigator&&window.addEventListener("load",()=>{navigator.serviceWorker.register("/cookbook_bare/sw.js",{scope:"/cookbook_bare/"}).then(e=>console.log("SW registered!",e.scope)).catch(e=>console.log("SW registration failed: ",e))});
     </script>
 
