@@ -42,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository (or specify path to your site's root if different)
+          #  Upload entire repository (or specify path to your site's root if different)
           path: '.' 
 
       - name: Deploy to GitHub Pages
