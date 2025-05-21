@@ -50,10 +50,14 @@
             z-index: 900;
         }
 
-        #page-index .page-header,
-        #page-favorites .page-header { /* Added favorites page header */
+        #page-index .page-header { 
             background-color: #1e1815;
         }
+        /* Updated to include #page-favorites header style */
+        #page-favorites .page-header {
+            background-color: #1e1815; 
+        }
+
 
         #page-recipe .page-header,
         #page-create-recipe .page-header,
@@ -214,7 +218,14 @@
         <div id="page-favorites" class="page bg-[#1e1815] dark group/design-root">
             <div class="page-header">
                 <div class="flex items-center p-4 pb-2 justify-between">
-                    <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
+                     <div class="text-white flex size-12 shrink-0 items-center cursor-pointer" data-action="back"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                            viewBox="0 0 256 256">
+                            <path
+                                d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z">
+                            </path>
+                        </svg></div>
+                    <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
                         Favorite Recipes
                     </h2>
                 </div>
@@ -239,7 +250,6 @@
             <div class="page-content">
                 <div id="favorites-recipes-container"
                     class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
-                    <!-- Favorite recipes will be injected here -->
                 </div>
             </div>
         </div>
@@ -263,10 +273,7 @@
                             class="flex h-12 w-12 items-center justify-center rounded-lg text-white hover:bg-white/10"> 
                             <div class="text-white"><svg id="recipe-bookmark-icon" xmlns="http://www.w3.org/2000/svg"
                                     width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <!-- Regular bookmark icon path -->
                                     <path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>
-                                    <!-- Filled bookmark icon path (can be toggled or use a different SVG) -->
-                                    <!-- <path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path> -->
                                 </svg></div>
                         </button>
                     </div>
@@ -424,7 +431,7 @@
     </div>
 
     <div class="bottom-nav-bar">
-        <div class="flex gap-1 px-2 pb-3 pt-2"> <!-- Reduced gap for 5 items -->
+        <div class="flex gap-1 px-2 pb-3 pt-2">
             <a class="nav-item just flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-white"
                 href="#" data-target="page-index" data-icon-name="BookOpen">
                 <div class="nav-icon-container text-white flex h-8 items-center justify-center"><svg
@@ -437,12 +444,10 @@
                 <p class="nav-text text-white text-xs font-medium">Recipes</p>
             </a>
             <a class="nav-item just flex flex-1 flex-col items-center justify-end gap-1 text-[#bda89e]" href="#"
-                data-target="page-favorites" data-icon-name="Heart"> <!-- New Favorites Nav Item -->
+                data-target="page-favorites" data-icon-name="Heart"> 
                 <div class="nav-icon-container text-[#bda89e] flex h-8 items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                         <path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>
-                        <!-- Filled Heart path for active state (can use JS to swap SVG or change fill): -->
-                        <!-- <path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>-->
                     </svg>
                 </div>
                 <p class="nav-text text-[#bda89e] text-xs font-medium">Favorites</p>
@@ -486,7 +491,7 @@
     <script>
         // --- Global App Variables ---
         let currentPageId = 'page-index';
-        let previousPageId = 'page-index'; // To handle back button from recipe detail
+        let previousPageId = 'page-index'; 
         let allRecipesCache = [];
         let editingRecipeId = null; 
         let currentRecipeImageURL = null; 
@@ -495,17 +500,12 @@
 
         // --- Date Helper Functions ---
         function getStartOfWeek(date, startDay = 0) { 
-            const d = new Date(date);
-            const day = d.getDay(); 
+            const d = new Date(date); const day = d.getDay(); 
             const diff = (day < startDay ? day + 7 : day) - startDay;
-            d.setDate(d.getDate() - diff);
-            d.setHours(0, 0, 0, 0);
-            return d;
+            d.setDate(d.getDate() - diff); d.setHours(0, 0, 0, 0); return d;
         }
         function addDays(date, days) {
-            const result = new Date(date);
-            result.setDate(result.getDate() + days);
-            return result;
+            const result = new Date(date); result.setDate(result.getDate() + days); return result;
         }
         function formatDateForDisplay(date) { 
             if (isToday(date)) return "Today";
@@ -513,26 +513,19 @@
             return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         }
         function formatDateForFirebaseKey(date) { 
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            const year = date.getFullYear(); const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`;
         }
         function isSameDate(date1, date2) {
             if (!date1 || !date2) return false;
-            return date1.getFullYear() === date2.getFullYear() &&
-                   date1.getMonth() === date2.getMonth() &&
-                   date1.getDate() === date2.getDate();
+            return date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate();
         }
         function isToday(date) { return isSameDate(date, new Date()); }
 
         // --- Debounce Utility ---
         function debounce(func, delay) {
             let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(this, args), delay);
-            };
+            return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); };
         }
 
         // --- Navigation and Page Display ---
@@ -540,7 +533,7 @@
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             const targetPage = document.getElementById(pageId);
             if (targetPage) {
-                if (!fromBackButton && currentPageId !== pageId) { // Don't update previousPageId if it's a back navigation
+                if (!fromBackButton && currentPageId !== pageId) {
                     previousPageId = currentPageId;
                 }
                 targetPage.classList.add('active');
@@ -551,15 +544,12 @@
 
                 if (pageId === 'page-index') {
                     const searchInput = document.getElementById('search-recipe-input');
-                    if (searchInput && searchInput.value.trim() === '') { 
-                        handleSearch(); 
-                    }
+                    if (searchInput && searchInput.value.trim() === '') handleSearch(); 
                 } else if (pageId === 'page-favorites') {
                     renderFavoritesPage();
                 } else if (pageId === 'page-schedule') {
-                    if (!fromBackButton || previousPageId !== 'page-recipe') { // Only reset if not coming back from recipe detail to schedule
-                        currentSelectedDate = new Date(); 
-                        currentDisplayedWeekStartDate = getStartOfWeek(new Date()); 
+                    if (!fromBackButton || previousPageId !== 'page-recipe') { 
+                        currentSelectedDate = new Date(); currentDisplayedWeekStartDate = getStartOfWeek(new Date()); 
                     }
                     renderWeekView(); 
                 }
@@ -571,11 +561,10 @@
                 const target = item.dataset.target;
                 let isEffectivelyActive = (target === activePageId);
 
-                // Special handling for recipe page to keep "Recipes" or "Favorites" nav active
                 if (activePageId === 'page-recipe') {
                     if (target === previousPageId && (previousPageId === 'page-index' || previousPageId === 'page-favorites')) {
                         isEffectivelyActive = true;
-                    } else if (target === 'page-index' && previousPageId !== 'page-favorites') { // Default to recipes if previous not favorites
+                    } else if (target === 'page-index' && previousPageId !== 'page-favorites') { 
                          isEffectivelyActive = true;
                     }
                 }
@@ -593,15 +582,12 @@
                 if (textElement) textElement.classList.add(textColor);
                 if (iconContainer) iconContainer.classList.add(textColor);
 
-                // For favorites icon, swap between outlined and filled
                 if (target === 'page-favorites' && iconContainer) {
                     const heartSVG = iconContainer.querySelector('svg');
                     if (heartSVG) {
-                        if (isEffectivelyActive) {
-                            heartSVG.innerHTML = `<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>`; // Filled heart
-                        } else {
-                            heartSVG.innerHTML = `<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>`; // Outlined heart
-                        }
+                        heartSVG.innerHTML = isEffectivelyActive 
+                            ? `<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>`
+                            : `<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>`;
                     }
                 }
             });
@@ -617,15 +603,13 @@
                     allRecipesCache = Object.keys(recipesData).map(key => ({ id: key, ...recipesData[key] }))
                         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); 
                 }
-                // Initial load for current page
                 if (currentPageId === 'page-index') {
                     const searchInput = document.getElementById('search-recipe-input');
                     if (searchInput && searchInput.value.trim() !== '') handleSearch(); 
                     else populateRecipeListsUI(allRecipesCache, false); 
                 } else if (currentPageId === 'page-favorites') {
-                    renderFavoritesPage(); // This will also handle search if input has value
+                    renderFavoritesPage(); 
                 }
-                
             } catch (error) { console.error("Error fetching recipes from RTDB: ", error); alert("Could not load recipes."); }
         }
 
@@ -635,40 +619,26 @@
             const recentlyAddedHeading = document.getElementById('recently-added-heading');
             const allRecipesHeading = document.getElementById('all-recipes-heading');
 
-            featuredContainer.innerHTML = '';
-            quickEasyContainer.innerHTML = '';
+            featuredContainer.innerHTML = ''; quickEasyContainer.innerHTML = '';
 
             if (isSearchMode) {
-                recentlyAddedHeading.style.display = 'none';
-                allRecipesHeading.style.display = 'none';
+                recentlyAddedHeading.style.display = 'none'; allRecipesHeading.style.display = 'none';
                 featuredContainer.style.display = 'none';
-
-                if (recipes.length === 0) {
-                    quickEasyContainer.innerHTML = '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes found matching your search.</p>';
-                } else {
-                    recipes.forEach(recipe => quickEasyContainer.innerHTML += createRecipeCardHtml(recipe));
-                }
+                if (recipes.length === 0) quickEasyContainer.innerHTML = '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes found matching your search.</p>';
+                else recipes.forEach(recipe => quickEasyContainer.innerHTML += createRecipeCardHtml(recipe));
             } else { 
-                recentlyAddedHeading.style.display = 'block';
-                allRecipesHeading.style.display = 'block';
+                recentlyAddedHeading.style.display = 'block'; allRecipesHeading.style.display = 'block';
                 featuredContainer.style.display = 'flex';
-
                 if (recipes.length === 0) {
-                    const noRecipesMessage = '<p class="text-center text-[#cba390] py-4 px-4 w-full col-span-full">No recipes added yet. Create one!</p>';
-                    featuredContainer.innerHTML = noRecipesMessage; 
-                    quickEasyContainer.innerHTML = noRecipesMessage; 
+                    const noMsg = '<p class="text-center text-[#cba390] py-4 px-4 w-full col-span-full">No recipes added yet. Create one!</p>';
+                    featuredContainer.innerHTML = noMsg; quickEasyContainer.innerHTML = noMsg; 
                 } else {
                     recipes.forEach((recipe, index) => {
-                        if (index < 5 && recipes.length > 3) {
-                            featuredContainer.innerHTML += createRecipeCardHtml(recipe, true);
-                        } else if (recipes.length <=3 && index < recipes.length ) {
-                            featuredContainer.innerHTML += createRecipeCardHtml(recipe, true);
-                        }
+                        if (index < 5 && recipes.length > 3) featuredContainer.innerHTML += createRecipeCardHtml(recipe, true);
+                        else if (recipes.length <=3 && index < recipes.length ) featuredContainer.innerHTML += createRecipeCardHtml(recipe, true);
                         quickEasyContainer.innerHTML += createRecipeCardHtml(recipe, false);
                     });
-                     if (featuredContainer.innerHTML === '' && recipes.length > 0) { 
-                        recentlyAddedHeading.style.display = 'none';
-                     }
+                     if (featuredContainer.innerHTML === '' && recipes.length > 0) recentlyAddedHeading.style.display = 'none';
                 }
             }
             attachRecipeCardListeners();
@@ -677,33 +647,17 @@
         function createRecipeCardHtml(recipe, isFeatured = false) {
             const descSnippet = (recipe.description || 'No description.').substring(0, 70) + ((recipe.description || '').length > 70 ? '...' : '');
             const imageStyle = `style='background-image: url("${recipe.imageURL || 'https://via.placeholder.com/300x200.png?text=No+Image'}");'`;
-            
-            if (isFeatured) {
-                return `
-                <div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${recipe.id}">
-                  <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" ${imageStyle}></div>
-                  <div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div>
-                </div>`;
-            } else {
-                return `
-                <div class="flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${recipe.id}">
-                  <div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" ${imageStyle}></div>
-                  <div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div>
-                </div>`;
-            }
+            if (isFeatured) return `<div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${recipe.id}"><div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" ${imageStyle}></div><div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div></div>`;
+            else return `<div class="flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${recipe.id}"><div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" ${imageStyle}></div><div><p class="text-white text-base font-medium">${recipe.title || 'Untitled'}</p><p class="text-[#bda89e] text-sm">${descSnippet}</p></div></div>`;
         }
 
         function handleSearch() {
-            const searchInput = document.getElementById('search-recipe-input');
-            if (!searchInput) return; 
+            const searchInput = document.getElementById('search-recipe-input'); if (!searchInput) return; 
             const searchTerm = searchInput.value.trim().toLowerCase();
             if (searchTerm === "") populateRecipeListsUI(allRecipesCache, false); 
             else {
-                const filteredRecipes = allRecipesCache.filter(recipe => 
-                    (recipe.title || '').toLowerCase().includes(searchTerm) ||
-                    (recipe.description || '').toLowerCase().includes(searchTerm)
-                );
-                populateRecipeListsUI(filteredRecipes, true); 
+                const filtered = allRecipesCache.filter(r => (r.title||'').toLowerCase().includes(searchTerm) || (r.description||'').toLowerCase().includes(searchTerm));
+                populateRecipeListsUI(filtered, true); 
             }
         }
         
@@ -712,35 +666,20 @@
             const searchInput = document.getElementById('search-favorites-input');
             const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
             let bookmarkedRecipes = allRecipesCache.filter(r => r.isBookmarked);
-
             if (searchTerm !== "") {
-                bookmarkedRecipes = bookmarkedRecipes.filter(recipe => 
-                    (recipe.title || '').toLowerCase().includes(searchTerm) ||
-                    (recipe.description || '').toLowerCase().includes(searchTerm)
-                );
+                bookmarkedRecipes = bookmarkedRecipes.filter(r => (r.title||'').toLowerCase().includes(searchTerm) || (r.description||'').toLowerCase().includes(searchTerm));
             }
             populateFavoritesListUI(bookmarkedRecipes, searchTerm !== "");
         }
-
         function populateFavoritesListUI(bookmarkedRecipes, isSearchMode = false) {
-            const container = document.getElementById('favorites-recipes-container');
-            container.innerHTML = '';
-
+            const container = document.getElementById('favorites-recipes-container'); container.innerHTML = '';
             if (bookmarkedRecipes.length === 0) {
-                const message = isSearchMode 
-                    ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes found matching your search.</p>'
-                    : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>';
+                const message = isSearchMode ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes found matching your search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>';
                 container.innerHTML = message;
-            } else {
-                bookmarkedRecipes.forEach(recipe => container.innerHTML += createRecipeCardHtml(recipe, false));
-            }
+            } else bookmarkedRecipes.forEach(recipe => container.innerHTML += createRecipeCardHtml(recipe, false));
             attachRecipeCardListeners();
         }
-
-        function handleFavoritesSearch() {
-            renderFavoritesPage(); // Re-render based on new search term
-        }
-
+        function handleFavoritesSearch() { renderFavoritesPage(); }
 
         function attachRecipeCardListeners() {
             document.querySelectorAll('[data-recipe-id]').forEach(card => { card.removeEventListener('click', handleRecipeCardClick); card.addEventListener('click', handleRecipeCardClick); });
@@ -752,41 +691,32 @@
             try {
                 const snapshot = await database.ref(`recipes/${recipeId}`).once('value');
                 if (snapshot.exists()) { displayRecipeDetailsUI({ id: recipeId, ...snapshot.val() }); showPage('page-recipe'); }
-                else { alert("Recipe not found."); showPage('page-index'); }
+                else { alert("Recipe not found."); showPage(previousPageId || 'page-index', true); }
             } catch (error) { console.error("Error getting recipe from RTDB:", error); }
         }
         function displayRecipeDetailsUI(recipe) {
             document.getElementById('page-recipe').dataset.currentRecipeId = recipe.id; 
-
             document.getElementById('recipe-image').style.backgroundImage = `url("${recipe.imageURL || 'https://via.placeholder.com/300x200.png?text=No+Image'}")`;
-            document.getElementById('recipe-title').textContent = recipe.title || 'Untitled'; document.getElementById('recipe-description').textContent = recipe.description || 'No description.';
+            document.getElementById('recipe-title').textContent = recipe.title || 'Untitled'; 
+            document.getElementById('recipe-description').textContent = recipe.description || 'No description.';
             const ingredientsList = document.getElementById('recipe-ingredients-list'); ingredientsList.innerHTML = ''; (recipe.ingredients || []).forEach(ing => ingredientsList.innerHTML += `<label class="flex gap-x-3 py-3 items-center"><input type="checkbox" class="form-checkbox-custom"/><p class="text-white text-base">${ing}</p></label>`);
             const instructionsList = document.getElementById('recipe-instructions-list'); instructionsList.innerHTML = ''; (recipe.instructions || []).forEach(step => instructionsList.innerHTML += `<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${step}</p></div>`);
             
-            const bookmarkButtonIcon = document.getElementById('recipe-bookmark-icon');
-            bookmarkButtonIcon.innerHTML = recipe.isBookmarked 
-                ? `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>` // Filled bookmark
-                : `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>`; // Outlined bookmark
-            bookmarkButtonIcon.classList.toggle('text-[#f0560e]', !!recipe.isBookmarked);
-            bookmarkButtonIcon.classList.toggle('text-white', !recipe.isBookmarked); // Ensure base color is white if not bookmarked
-
+            const bmIcon = document.getElementById('recipe-bookmark-icon');
+            bmIcon.innerHTML = recipe.isBookmarked ? `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>` : `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>`;
+            bmIcon.classList.toggle('text-[#f0560e]', !!recipe.isBookmarked); bmIcon.classList.toggle('text-white', !recipe.isBookmarked);
             document.getElementById('recipe-bookmark-button').dataset.recipeId = recipe.id;
-            const deleteButton = document.getElementById('delete-recipe-button'); deleteButton.dataset.recipeId = recipe.id; deleteButton.dataset.imageURL = recipe.imageURL || '';
+            document.getElementById('delete-recipe-button').dataset.recipeId = recipe.id; 
+            document.getElementById('delete-recipe-button').dataset.imageURL = recipe.imageURL || '';
         }
 
         function resetCreateForm() {
-            document.getElementById('create-recipe-title').value = '';
-            document.getElementById('create-recipe-description').value = '';
-            document.getElementById('create-recipe-ingredients').value = '';
-            document.getElementById('create-recipe-instructions').value = '';
-            document.getElementById('create-recipe-prepTime').value = '';
-            document.getElementById('create-recipe-cookTime').value = '';
-            document.getElementById('create-recipe-servings').value = '';
-            document.getElementById('create-recipe-photoInput').value = ''; 
-
+            document.getElementById('create-recipe-title').value = ''; document.getElementById('create-recipe-description').value = '';
+            document.getElementById('create-recipe-ingredients').value = ''; document.getElementById('create-recipe-instructions').value = '';
+            document.getElementById('create-recipe-prepTime').value = ''; document.getElementById('create-recipe-cookTime').value = '';
+            document.getElementById('create-recipe-servings').value = ''; document.getElementById('create-recipe-photoInput').value = ''; 
             document.querySelector('#page-create-recipe .page-header h2').textContent = 'New Recipe';
-            editingRecipeId = null;
-            currentRecipeImageURL = null;
+            editingRecipeId = null; currentRecipeImageURL = null;
         }
 
         async function prepareEditForm(recipeIdToEdit) {
@@ -794,104 +724,60 @@
             try {
                 const snapshot = await recipeRef.once('value');
                 if (snapshot.exists()) {
-                    const recipe = snapshot.val();
-                    editingRecipeId = recipeIdToEdit;
-                    currentRecipeImageURL = recipe.imageURL || '';
-
+                    const r = snapshot.val(); editingRecipeId = recipeIdToEdit; currentRecipeImageURL = r.imageURL || '';
                     document.querySelector('#page-create-recipe .page-header h2').textContent = 'Edit Recipe';
-                    document.getElementById('create-recipe-title').value = recipe.title || '';
-                    document.getElementById('create-recipe-description').value = recipe.description || '';
-                    document.getElementById('create-recipe-ingredients').value = (recipe.ingredients || []).join('\n');
-                    document.getElementById('create-recipe-instructions').value = (recipe.instructions || []).join('\n');
-                    document.getElementById('create-recipe-prepTime').value = recipe.prepTime || '';
-                    document.getElementById('create-recipe-cookTime').value = recipe.cookTime || '';
-                    document.getElementById('create-recipe-servings').value = recipe.servings || '';
+                    document.getElementById('create-recipe-title').value = r.title || '';
+                    document.getElementById('create-recipe-description').value = r.description || '';
+                    document.getElementById('create-recipe-ingredients').value = (r.ingredients || []).join('\n');
+                    document.getElementById('create-recipe-instructions').value = (r.instructions || []).join('\n');
+                    document.getElementById('create-recipe-prepTime').value = r.prepTime || '';
+                    document.getElementById('create-recipe-cookTime').value = r.cookTime || '';
+                    document.getElementById('create-recipe-servings').value = r.servings || '';
                     document.getElementById('create-recipe-photoInput').value = ''; 
-
                     showPage('page-create-recipe');
-                } else {
-                    alert("Recipe not found for editing.");
-                    resetCreateForm();
-                }
-            } catch (error) {
-                console.error("Error fetching recipe for edit:", error);
-                alert("Could not load recipe for editing.");
-                resetCreateForm();
-            }
+                } else { alert("Recipe not found for editing."); resetCreateForm(); }
+            } catch (error) { console.error("Error fetching recipe for edit:", error); alert("Could not load recipe for editing."); resetCreateForm(); }
         }
 
         async function saveRecipeData() {
-            const title = document.getElementById('create-recipe-title').value.trim();
+            const title = document.getElementById('create-recipe-title').value.trim(); if (!title) { alert("Recipe title is required."); return; }
             const description = document.getElementById('create-recipe-description').value.trim();
             const ingredients = document.getElementById('create-recipe-ingredients').value.split('\n').map(s => s.trim()).filter(s => s);
             const instructions = document.getElementById('create-recipe-instructions').value.split('\n').map(s => s.trim()).filter(s => s);
-            const prepTime = document.getElementById('create-recipe-prepTime').value.trim();
-            const cookTime = document.getElementById('create-recipe-cookTime').value.trim();
-            const servings = document.getElementById('create-recipe-servings').value.trim();
-            const imageFileInput = document.getElementById('create-recipe-photoInput');
-
-            if (!title) { alert("Recipe title is required."); return; }
-
-            const saveBtn = document.getElementById('save-recipe-button');
-            saveBtn.textContent = "Saving...";
-            saveBtn.disabled = true;
-
+            const prepTime = document.getElementById('create-recipe-prepTime').value.trim(); const cookTime = document.getElementById('create-recipe-cookTime').value.trim();
+            const servings = document.getElementById('create-recipe-servings').value.trim(); const imageFileInput = document.getElementById('create-recipe-photoInput');
+            const saveBtn = document.getElementById('save-recipe-button'); saveBtn.textContent = "Saving..."; saveBtn.disabled = true;
             let imageURL = editingRecipeId ? currentRecipeImageURL : '';
 
             try {
                 if (imageFileInput.files[0]) {
-                    const file = imageFileInput.files[0];
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                    const file = imageFileInput.files[0]; const formData = new FormData();
+                    formData.append('file', file); formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                     const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: 'POST', body: formData });
                     const data = await response.json();
-                    if (data.secure_url) {
-                        imageURL = data.secure_url;
-                    } else {
-                        throw new Error(data.error?.message || 'Cloudinary upload failed');
-                    }
+                    if (data.secure_url) imageURL = data.secure_url;
+                    else throw new Error(data.error?.message || 'Cloudinary upload failed');
                 }
-
-                const recipeData = {
-                    title, description, ingredients, instructions, prepTime, cookTime, servings, imageURL,
-                    isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false,
-                };
-
+                const recipeData = { title, description, ingredients, instructions, prepTime, cookTime, servings, imageURL, isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false };
                 if (editingRecipeId) {
-                    const existingRecipeSnapshot = await database.ref(`recipes/${editingRecipeId}/createdAt`).once('value');
-                    if (existingRecipeSnapshot.exists()) recipeData.createdAt = existingRecipeSnapshot.val();
-                    else recipeData.createdAt = serverTimestamp; 
+                    const snap = await database.ref(`recipes/${editingRecipeId}/createdAt`).once('value');
+                    recipeData.createdAt = snap.exists() ? snap.val() : serverTimestamp; 
                     recipeData.updatedAt = serverTimestamp;
-                    await database.ref(`recipes/${editingRecipeId}`).update(recipeData);
-                    alert("Recipe updated successfully!");
+                    await database.ref(`recipes/${editingRecipeId}`).update(recipeData); alert("Recipe updated successfully!");
                 } else {
                     recipeData.createdAt = serverTimestamp;
-                    const newRecipeRef = database.ref('recipes').push();
-                    await newRecipeRef.set(recipeData);
-                    alert("Recipe saved successfully!");
+                    await database.ref('recipes').push().set(recipeData); alert("Recipe saved successfully!");
                 }
-
-                resetCreateForm();
-                await loadRecipesFromRealtimeDB(); // Ensure cache is updated before navigating
-                showPage('page-index'); // Or navigate to 'page-recipe' if editing? For now, index.
-
-            } catch (error) {
-                console.error("Error saving recipe: ", error);
-                alert("Failed to save recipe: " + error.message);
-            } finally {
-                saveBtn.textContent = "Save Recipe";
-                saveBtn.disabled = false;
-            }
+                resetCreateForm(); await loadRecipesFromRealtimeDB(); showPage('page-index');
+            } catch (error) { console.error("Error saving recipe: ", error); alert("Failed to save recipe: " + error.message); } 
+            finally { saveBtn.textContent = "Save Recipe"; saveBtn.disabled = false; }
         }
 
         async function deleteRecipeFromRealtimeDB(recipeId, imageURL) {
             if (!confirm("Are you sure you want to delete this recipe?")) return;
             try {
-                await database.ref(`recipes/${recipeId}`).remove(); 
-                alert("Recipe deleted from database."); 
-                await loadRecipesFromRealtimeDB(); 
-                showPage(previousPageId || 'page-index', true); // Go back to where user was before recipe detail
+                await database.ref(`recipes/${recipeId}`).remove(); alert("Recipe deleted from database."); 
+                await loadRecipesFromRealtimeDB(); showPage(previousPageId || 'page-index', true);
             } catch (error) { console.error("Error deleting recipe from RTDB:", error); alert("Failed to delete recipe."); }
         }
         async function toggleBookmarkInRealtimeDB(recipeId) {
@@ -899,216 +785,125 @@
             try {
                 const snapshot = await recipeRef.once('value'); 
                 if (snapshot.exists()) { 
-                    const currentIsBookmarked = !!snapshot.val().isBookmarked;
-                    const newIsBookmarked = !currentIsBookmarked;
+                    const newIsBookmarked = !snapshot.val().isBookmarked;
                     await recipeRef.update({ isBookmarked: newIsBookmarked }); 
-                    
-                    const bookmarkButtonIcon = document.getElementById('recipe-bookmark-icon');
-                    bookmarkButtonIcon.innerHTML = newIsBookmarked 
-                        ? `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>` // Filled bookmark
-                        : `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>`; // Outlined bookmark
-                    bookmarkButtonIcon.classList.toggle('text-[#f0560e]', newIsBookmarked);
-                    bookmarkButtonIcon.classList.toggle('text-white', !newIsBookmarked);
-
-                    const cachedRecipe = allRecipesCache.find(r => r.id === recipeId); 
-                    if (cachedRecipe) cachedRecipe.isBookmarked = newIsBookmarked; 
-
-                    // If on favorites page and unbookmarked, refresh its view
-                    if (currentPageId === 'page-favorites' && !newIsBookmarked) {
-                         renderFavoritesPage();
-                    }
+                    const bmIcon = document.getElementById('recipe-bookmark-icon');
+                    bmIcon.innerHTML = newIsBookmarked ? `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Z"></path>` : `<path d="M184,32H72A16,16,0,0,0,56,48V224a8,8,0,0,0,12.24,6.78L128,193.43l59.77,37.35A8,8,0,0,0,200,224V48A16,16,0,0,0,184,32Zm0,177.57-51.77-32.35a8,8,0,0,0-8.48,0L72,209.57V48H184Z"></path>`;
+                    bmIcon.classList.toggle('text-[#f0560e]', newIsBookmarked); bmIcon.classList.toggle('text-white', !newIsBookmarked);
+                    const cachedRecipe = allRecipesCache.find(r => r.id === recipeId); if (cachedRecipe) cachedRecipe.isBookmarked = newIsBookmarked; 
+                    if (currentPageId === 'page-favorites' && !newIsBookmarked) renderFavoritesPage();
                 }
             } catch (error) { console.error("Error toggling bookmark in RTDB:", error); }
         }
 
-        // --- Meal Planning (New Week View Logic) ---
+        // --- Meal Planning ---
         function renderWeekView() {
-            const weekDaysContainer = document.getElementById('schedule-week-days');
-            const weekRangeEl = document.getElementById('schedule-week-range');
-            if (!weekDaysContainer || !weekRangeEl) return; 
-            
-            weekDaysContainer.innerHTML = '';
-            const dayFormatterShort = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
-            const dayFormatterNumeric = new Intl.DateTimeFormat('en-US', { day: 'numeric' });
+            const weekDaysContainer = document.getElementById('schedule-week-days'); const weekRangeEl = document.getElementById('schedule-week-range');
+            if (!weekDaysContainer || !weekRangeEl) return; weekDaysContainer.innerHTML = '';
+            const dayFmtShort = new Intl.DateTimeFormat('en-US', { weekday: 'short' }); const dayFmtNum = new Intl.DateTimeFormat('en-US', { day: 'numeric' });
             let tempDate = new Date(currentDisplayedWeekStartDate);
-
             for (let i = 0; i < 7; i++) {
-                const dayName = dayFormatterShort.format(tempDate).toUpperCase();
-                const dayNumber = dayFormatterNumeric.format(tempDate);
-                const dayButton = document.createElement('button');
-                dayButton.className = 'schedule-day-btn flex flex-col items-center p-1.5 focus:outline-none w-[calc(100%/7-4px)] mx-0.5';
-                dayButton.dataset.date = tempDate.toISOString();
-                const isCurrentDayToday = isToday(tempDate);
-                const isCurrentDaySelected = isSameDate(tempDate, currentSelectedDate);
-
-                dayButton.innerHTML = `
-                    <span class="day-name-span text-xs ${isCurrentDayToday && !isCurrentDaySelected ? 'text-[#f0560e]' : 'text-gray-400'}">${dayName}</span>
-                    <span class="day-number-span text-lg font-bold ${isCurrentDayToday && !isCurrentDaySelected ? 'text-[#f0560e]' : 'text-white'}">${dayNumber}</span>`;
-                if (isCurrentDaySelected) dayButton.classList.add('selected');
-                if (isCurrentDayToday) dayButton.classList.add('today');
-                dayButton.addEventListener('click', handleWeekDayClick);
-                weekDaysContainer.appendChild(dayButton);
-                tempDate = addDays(tempDate, 1);
+                const btn = document.createElement('button'); btn.className = 'schedule-day-btn flex flex-col items-center p-1.5 fo w-[calc(100%/7-4px)] mx-0.5';
+                btn.dataset.date = tempDate.toISOString();
+                const isTodayFlg = isToday(tempDate); const isSelectedFlg = isSameDate(tempDate, currentSelectedDate);
+                btn.innerHTML = `<span class="day-name-span text-xs ${isTodayFlg && !isSelectedFlg ? 'text-[#f0560e]' : 'text-gray-400'}">${dayFmtShort.format(tempDate).toUpperCase()}</span><span class="day-number-span text-lg font-bold ${isTodayFlg && !isSelectedFlg ? 'text-[#f0560e]' : 'text-white'}">${dayFmtNum.format(tempDate)}</span>`;
+                if (isSelectedFlg) btn.classList.add('selected'); if (isTodayFlg) btn.classList.add('today');
+                btn.addEventListener('click', handleWeekDayClick); weekDaysContainer.appendChild(btn); tempDate = addDays(tempDate, 1);
             }
-            const endDateOfWeek = addDays(currentDisplayedWeekStartDate, 6);
-            weekRangeEl.textContent = `${currentDisplayedWeekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDateOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            weekRangeEl.textContent = `${currentDisplayedWeekStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${addDays(currentDisplayedWeekStartDate, 6).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
             loadMealsForSelectedDate();
         }
-        function handleWeekDayClick(event) {
-            currentSelectedDate = new Date(event.currentTarget.dataset.date);
-            renderWeekView(); 
-        }
-        function navigateToPreviousWeek() {
-            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, -7);
-            currentSelectedDate = new Date(currentDisplayedWeekStartDate); 
-            renderWeekView();
-        }
-        function navigateToNextWeek() {
-            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, 7);
-            currentSelectedDate = new Date(currentDisplayedWeekStartDate); 
-            renderWeekView();
-        }
+        function handleWeekDayClick(event) { currentSelectedDate = new Date(event.currentTarget.dataset.date); renderWeekView(); }
+        function navigateToPreviousWeek() { currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, -7); currentSelectedDate = new Date(currentDisplayedWeekStartDate); renderWeekView(); }
+        function navigateToNextWeek() { currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, 7); currentSelectedDate = new Date(currentDisplayedWeekStartDate); renderWeekView(); }
         function loadMealsForSelectedDate() {
-            const selectedDayTitleEl = document.getElementById('schedule-selected-day-title');
-            if (!selectedDayTitleEl) return;
-            selectedDayTitleEl.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`;
+            const titleEl = document.getElementById('schedule-selected-day-title'); if (!titleEl) return;
+            titleEl.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`;
             loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate));
         }
         async function loadMealPlanForDateFromRealtimeDB(dateString) {
-            const mealListContainer = document.getElementById('schedule-meal-list'); 
-            if (!mealListContainer) return;
+            const mealListContainer = document.getElementById('schedule-meal-list'); if (!mealListContainer) return;
             mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">Loading meals...</p>';
             try {
                 const snapshot = await database.ref(`mealPlan/${dateString}`).once('value');
                 displayPlannedMealsUI(snapshot.exists() ? snapshot.val() : {}, dateString);
-            } catch (error) { 
-                console.error("Error fetching meal plan from RTDB:", error); 
-                mealListContainer.innerHTML = '<p class="text-center text-red-500 py-4">Error loading meals.</p>'; 
-            }
+            } catch (error) { console.error("Error fetching meal plan:", error); mealListContainer.innerHTML = '<p class="text-center text-red-500 py-4">Error loading meals.</p>'; }
         }
         function displayPlannedMealsUI(mealsData, dateString) {
-            const mealListContainer = document.getElementById('schedule-meal-list');
-            if (!mealListContainer) return;
-            mealListContainer.innerHTML = ''; 
-            if (Object.keys(mealsData).length === 0) {
-                mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">No meals planned for this day.</p>';
-                return;
-            }
+            const mealListContainer = document.getElementById('schedule-meal-list'); if (!mealListContainer) return; mealListContainer.innerHTML = ''; 
+            if (Object.keys(mealsData).length === 0) { mealListContainer.innerHTML = '<p class="text-center text-[#cba390] py-4">No meals planned.</p>'; return; }
             Object.entries(mealsData).forEach(([mealPlanEntryId, meal]) => {
-                const recipeDetails = allRecipesCache.find(r => r.id === meal.recipeId);
-                const imageUrl = recipeDetails?.imageURL || 'https://via.placeholder.com/100x100.png?text=No+Img';
-                const cookTime = recipeDetails?.cookTime || 'N/A';
-                const mealDiv = document.createElement('div');
-                mealDiv.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg";
-                mealDiv.dataset.recipeId = meal.recipeId; 
-                mealDiv.dataset.mealPlanEntryId = mealPlanEntryId;
-                mealDiv.innerHTML = `
-                    <div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan">
-                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${imageUrl}");'></div>
-                        <div>
-                            <p class="text-white text-base font-medium">${meal.recipeTitle || 'Unknown Recipe'}</p>
-                            <p class="text-[#cba390] text-sm">Cook time: ${cookTime}</p>
-                        </div>
-                    </div>
-                    <button class="remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove meal">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>
-                    </button>`;
+                const rDetails = allRecipesCache.find(r => r.id === meal.recipeId);
+                const imgUrl = rDetails?.imageURL || 'https://via.placeholder.com/100x100.png?text=No+Img'; const cookTime = rDetails?.cookTime || 'N/A';
+                const mealDiv = document.createElement('div'); mealDiv.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg";
+                mealDiv.dataset.recipeId = meal.recipeId; mealDiv.dataset.mealPlanEntryId = mealPlanEntryId;
+                mealDiv.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${imgUrl}");'></div><div><p class="text-white text-base font-medium">${meal.recipeTitle || 'Unknown'}</p><p class="text-[#cba390] text-sm">Cook: ${cookTime}</p></div></div><button class="remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`;
                 mealListContainer.appendChild(mealDiv);
-                mealDiv.querySelector('.remove-meal-button').addEventListener('click', (e) => {
-                    e.stopPropagation(); handleRemoveMealClick(dateString, mealPlanEntryId);
-                });
-                mealDiv.querySelector('[data-action="view-recipe-from-plan"]').addEventListener('click', () => {
-                    if (mealDiv.dataset.recipeId) loadRecipeDetailFromRealtimeDB(mealDiv.dataset.recipeId);
-                });
+                mealDiv.querySelector('.remove-meal-button').addEventListener('click', (e) => { e.stopPropagation(); handleRemoveMealClick(dateString, mealPlanEntryId); });
+                mealDiv.querySelector('[data-action="view-recipe-from-plan"]').addEventListener('click', () => { if (mealDiv.dataset.recipeId) loadRecipeDetailFromRealtimeDB(mealDiv.dataset.recipeId); });
             });
         }
         async function handleRemoveMealClick(dateString, mealPlanEntryId) {
-            if (!confirm("Are you sure you want to remove this meal from the plan?")) return;
-            try {
-                await database.ref(`mealPlan/${dateString}/${mealPlanEntryId}`).remove();
-                loadMealsForSelectedDate(); 
-            } catch (error) { console.error("Error removing meal from plan:", error); alert("Failed to remove meal.");}
+            if (!confirm("Remove this meal from the plan?")) return;
+            try { await database.ref(`mealPlan/${dateString}/${mealPlanEntryId}`).remove(); loadMealsForSelectedDate(); } 
+            catch (error) { console.error("Error removing meal:", error); alert("Failed to remove meal.");}
         }
 
-        // --- Add Meal Modal Logic ---
-        const addMealModal = document.getElementById('add-meal-modal');
-        const addMealModalRecipeList = document.getElementById('add-meal-modal-recipe-list');
+        // --- Add Meal Modal ---
+        const addMealModal = document.getElementById('add-meal-modal'); const addMealModalRecipeList = document.getElementById('add-meal-modal-recipe-list');
         const addMealModalSearchInput = document.getElementById('add-meal-modal-search');
-
         function openAddMealModal() {
-            if (!addMealModal || !addMealModalSearchInput) return;
-            populateAddMealModalRecipeList(allRecipesCache);
-            addMealModalSearchInput.value = ''; 
-            addMealModal.classList.remove('hidden');
+            if (!addMealModal || !addMealModalSearchInput) return; populateAddMealModalRecipeList(allRecipesCache);
+            addMealModalSearchInput.value = ''; addMealModal.classList.remove('hidden');
         }
-        function closeAddMealModal() {
-            if (!addMealModal) return;
-            addMealModal.classList.add('hidden');
-        }
+        function closeAddMealModal() { if (addMealModal) addMealModal.classList.add('hidden'); }
         function populateAddMealModalRecipeList(recipesToDisplay) {
-            if (!addMealModalRecipeList) return;
-            addMealModalRecipeList.innerHTML = '';
-            if (recipesToDisplay.length === 0) {
-                addMealModalRecipeList.innerHTML = '<p class="text-center text-[#bda89e] py-3">No recipes found.</p>';
-                return;
-            }
+            if (!addMealModalRecipeList) return; addMealModalRecipeList.innerHTML = '';
+            if (recipesToDisplay.length === 0) { addMealModalRecipeList.innerHTML = '<p class="text-center text-[#bda89e] py-3">No recipes.</p>'; return; }
             recipesToDisplay.forEach(recipe => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = "add-meal-recipe-item flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]";
+                const itemDiv = document.createElement('div'); itemDiv.className = "add-meal-recipe-item flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]";
                 itemDiv.dataset.recipeId = recipe.id; itemDiv.dataset.recipeTitle = recipe.title;
-                const imageUrl = recipe.imageURL || 'https://via.placeholder.com/50x50.png?text=No+Img';
-                itemDiv.innerHTML = `
-                    <img src="${imageUrl}" alt="${recipe.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0">
-                    <span class="text-white flex-grow truncate" title="${recipe.title}">${recipe.title || 'Untitled Recipe'}</span>
-                    <button class="add-this-recipe-button bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`;
-                const addThisButton = itemDiv.querySelector('.add-this-recipe-button');
-                if(addThisButton) addThisButton.addEventListener('click', (e) => { e.stopPropagation(); handleAddRecipeToPlan(recipe.id, recipe.title); });
+                const imgUrl = recipe.imageURL || 'https://via.placeholder.com/50x50.png?text=No+Img';
+                itemDiv.innerHTML = `<img src="${imgUrl}" alt="${recipe.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0"><span class="text-white flex-grow truncate" title="${recipe.title}">${recipe.title||'Untitled'}</span><button class="add-this-recipe-button bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`;
+                const addBtn = itemDiv.querySelector('.add-this-recipe-button');
+                if(addBtn) addBtn.addEventListener('click', (e) => { e.stopPropagation(); handleAddRecipeToPlan(recipe.id, recipe.title); });
                 itemDiv.addEventListener('click', () => handleAddRecipeToPlan(recipe.id, recipe.title));
                 addMealModalRecipeList.appendChild(itemDiv);
             });
         }
         function handleAddMealModalSearch() {
-            if (!addMealModalSearchInput) return;
-            const searchTerm = addMealModalSearchInput.value.trim().toLowerCase();
+            if (!addMealModalSearchInput) return; const searchTerm = addMealModalSearchInput.value.trim().toLowerCase();
             if (searchTerm === "") populateAddMealModalRecipeList(allRecipesCache);
-            else {
-                const filtered = allRecipesCache.filter(r => 
-                    (r.title || '').toLowerCase().includes(searchTerm) || (r.description || '').toLowerCase().includes(searchTerm));
-                populateAddMealModalRecipeList(filtered);
-            }
+            else { const filtered = allRecipesCache.filter(r => (r.title||'').toLowerCase().includes(searchTerm) || (r.description||'').toLowerCase().includes(searchTerm)); populateAddMealModalRecipeList(filtered); }
         }
         async function handleAddRecipeToPlan(recipeId, recipeTitle) {
             const dateStr = formatDateForFirebaseKey(currentSelectedDate);
-            try {
-                await database.ref(`mealPlan/${dateStr}`).push({ recipeId, recipeTitle });
-                closeAddMealModal(); loadMealsForSelectedDate(); 
-            } catch (error) { console.error("Error adding to meal plan in RTDB:", error); alert("Failed to add recipe to plan.");}
+            try { await database.ref(`mealPlan/${dateStr}`).push({ recipeId, recipeTitle }); closeAddMealModal(); loadMealsForSelectedDate(); } 
+            catch (error) { console.error("Error adding to meal plan:", error); alert("Failed to add recipe to plan.");}
         }
 
         // --- Event Listeners Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            showPage('page-index'); 
-            loadRecipesFromRealtimeDB(); 
+            showPage('page-index'); loadRecipesFromRealtimeDB(); 
 
-            const searchInput = document.getElementById('search-recipe-input');
-            if (searchInput) searchInput.addEventListener('input', debounce(handleSearch, 300));
-            
-            const searchFavoritesInput = document.getElementById('search-favorites-input');
-            if (searchFavoritesInput) searchFavoritesInput.addEventListener('input', debounce(handleFavoritesSearch, 300));
+            document.getElementById('search-recipe-input')?.addEventListener('input', debounce(handleSearch, 300));
+            document.getElementById('search-favorites-input')?.addEventListener('input', debounce(handleFavoritesSearch, 300));
             
             document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetPageId = item.dataset.target;
+                e.preventDefault(); const targetPageId = item.dataset.target;
                 if (targetPageId === 'page-create-recipe') resetCreateForm(); 
                 showPage(targetPageId);
             }));
 
             document.querySelectorAll('[data-action="back"]').forEach(btn => btn.addEventListener('click', () => {
-                showPage(previousPageId || 'page-index', true); // Go back to the actual previous page
+                let targetBackPage = previousPageId || 'page-index';
+                if (currentPageId === 'page-favorites' || currentPageId === 'page-schedule') {
+                    targetBackPage = 'page-index'; // Always go to index from these pages' main back button
+                }
+                showPage(targetBackPage, true);
             }));
             document.querySelector('[data-action="back-from-create"]')?.addEventListener('click', () => {
-                resetCreateForm();
-                showPage(previousPageId || 'page-index', true);
+                resetCreateForm(); showPage(previousPageId || 'page-index', true);
             });
 
             document.getElementById('save-recipe-button')?.addEventListener('click', saveRecipeData);
@@ -1116,8 +911,7 @@
             document.getElementById('delete-recipe-button')?.addEventListener('click', (e) => { if (e.currentTarget.dataset.recipeId) deleteRecipeFromRealtimeDB(e.currentTarget.dataset.recipeId, e.currentTarget.dataset.imageURL); });
             document.getElementById('recipe-edit-button')?.addEventListener('click', () => {
                 const recipeId = document.getElementById('page-recipe').dataset.currentRecipeId;
-                if (recipeId) prepareEditForm(recipeId);
-                else { console.error("No current recipe ID found to edit."); alert("Could not initiate edit."); }
+                if (recipeId) prepareEditForm(recipeId); else { alert("Could not initiate edit."); }
             });
 
             document.getElementById('schedule-prev-week')?.addEventListener('click', navigateToPreviousWeek);
