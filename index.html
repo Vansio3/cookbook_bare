@@ -190,13 +190,11 @@
                 </div>
             </div>
             <div class="page-content">
-                <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Featured
-                    Recipes</h2>
+                <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Recently Added</h2>
                 <div class="horizontal-scroll-cards flex">
                     <div id="featured-recipes-container" class="flex items-stretch p-4 gap-3"></div>
                 </div>
-                <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Quick &
-                    Easy</h2>
+                <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">All Recipes</h2>
                 <div id="quick-easy-recipes-container"
                     class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4"></div>
             </div>
@@ -495,12 +493,12 @@
         }
 
         function populateRecipeListsUI(recipes) {
-            const featuredContainer = document.getElementById('featured-recipes-container');
-            const quickEasyContainer = document.getElementById('quick-easy-recipes-container');
+            const featuredContainer = document.getElementById('featured-recipes-container'); // "Recently Added"
+            const quickEasyContainer = document.getElementById('quick-easy-recipes-container'); // "All Recipes"
             if (!featuredContainer || !quickEasyContainer) return;
             featuredContainer.innerHTML = ''; quickEasyContainer.innerHTML = '';
             recipes.forEach((recipe, index) => {
-                const isFeatured = index < 3;
+                const isFeatured = index < 3; // This determines if it goes to "Recently Added"
                 const descSnippet = (recipe.description || 'No description.').substring(0, 70) + ((recipe.description || '').length > 70 ? '...' : '');
                 const recipeCardHtml = `
                 <div class="flex ${isFeatured ? 'h-full flex-1 flex-col gap-4 rounded-lg min-w-60' : 'flex-col gap-3 pb-3'} cursor-pointer" data-recipe-id="${recipe.id}">
