@@ -1,6 +1,6 @@
 {
-  "name": "Cookbook Bare",
-  "short_name": "Cookbook",
+  "name": "Opi's Cookbook",
+  "short_name": "Opi's Cookbook",
   "description": "A simple recipe and meal planning app.",
   "start_url": "/cookbook_bare/",
   "display": "standalone",
