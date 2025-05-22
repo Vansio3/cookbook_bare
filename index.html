@@ -85,10 +85,10 @@
         }
 
         #page-shopping-list .page-content {
-            padding-bottom: 140px; /* Increased slightly to ensure space below list if needed */
+            padding-bottom: 140px; 
         }
          #page-shopping-list #shopping-list-items-container {
-            position: relative; /* For absolute positioning of pseudo-elements if needed */
+            position: relative; 
         }
 
         #page-index .page-content,
@@ -134,9 +134,9 @@
         }
 
         input[type="checkbox"].form-checkbox-custom:checked {
-            background-color: #f0560e; /* Orange background when checked */
-            border-color: #f0560e;     /* Orange border when checked */
-            background-image: var(--checkbox-tick-svg); /* Your white SVG tick */
+            background-color: #f0560e; 
+            border-color: #f0560e;     
+            background-image: var(--checkbox-tick-svg); 
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -168,9 +168,9 @@
         }
 
         input[type="checkbox"].shopping-item-checkbox:checked {
-            background-color: #f0560e; /* Orange background when checked */
-            border-color: #f0560e;     /* Orange border when checked */
-            background-image: var(--checkbox-tick-svg); /* Your white SVG tick */
+            background-color: #f0560e; 
+            border-color: #f0560e;     
+            background-image: var(--checkbox-tick-svg); 
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -229,8 +229,11 @@
             color: #857065;
         }
          .shopping-item {
-            position: relative; /* Needed for absolute positioning of pseudo-elements or for z-indexing if swipe reveals content */
-            /* touch-action: pan-y; /* Allow vertical scroll, try to prevent horizontal scroll capture by browser if we handle it */
+            position: relative; 
+        }
+        .shopping-item-location-button {
+            margin-left: auto; /* Push to the right */
+            flex-shrink: 0; /* Prevent shrinking */
         }
 
         .ingredient-item.checked .ingredient-name {
@@ -257,17 +260,17 @@
             animation: pulseOpacity 1.5s infinite ease-in-out;
         }
 
-        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal {
+        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal {
             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div {
+        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div {
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: scale(0.95);
             opacity: 0;
         }
 
-        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div {
+        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div {
             transform: scale(1);
             opacity: 1;
         }
@@ -282,18 +285,6 @@
             transform: translateY(0);
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
         }
-
-        .list-item-leave { /* No longer directly used by deleteShoppingItemFromDB, but kept for other potential uses */
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .list-item-leave-active { /* No longer directly used by deleteShoppingItemFromDB for swiped items */
-            opacity: 0;
-            transform: translateY(-10px); /* This was the old animation, swipe will use translateX */
-            transition: opacity 0.2s ease-in, transform 0.2s ease-in;
-        }
-
 
         #recipe-bookmark-icon {
             transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
@@ -340,7 +331,6 @@
             transform: scale(0.9);
         }
 
-        /* Tailwind custom select arrow color */
         .form-select-custom {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23bda89e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
         }
@@ -814,6 +804,26 @@
         </div>
     </div>
 
+    <!-- Shop Selector Modal -->
+    <div id="shop-selector-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+        <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-xl font-bold">Select Shop</h3>
+                <button id="close-shop-selector-modal-button" class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="shop-selector-options" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <!-- Shop buttons will be populated here by JS -->
+            </div>
+            <button id="clear-shop-selection-button" class="mt-6 w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-gray-600 hover:bg-gray-700 font-medium">
+                Clear Shop Selection
+            </button>
+        </div>
+    </div>
+
 
     <div class="bottom-nav-bar">
         <div class="flex gap-1 px-2 pb-3 pt-2">
@@ -878,6 +888,9 @@
     <script>
         let currentPageId = "page-index", previousPageId = "page-index", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date), isInitialPageLoad = !0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
+        const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish"];
+        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; // Assuming .png, adjust if needed
+
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
 
@@ -901,14 +914,14 @@
         function showCustomConfirm(title, message, confirmButtonText = "Confirm", confirmButtonClasses = "bg-[#f0560e] hover:bg-orange-600") {
             return new Promise((resolve) => {
                 if (!customConfirmModal || !customConfirmTitle || !customConfirmMessage || !customConfirmConfirmButton || !customConfirmCancelButton) {
-                    resolve(false); // Fallback
+                    resolve(false); 
                     return;
                 }
                 customConfirmTitle.textContent = title || "Confirm Action";
                 customConfirmMessage.textContent = message;
                 customConfirmConfirmButton.textContent = confirmButtonText;
                 
-                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; // Base classes
+                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; 
                 confirmButtonClasses.split(' ').forEach(cls => customConfirmConfirmButton.classList.add(cls));
 
                 currentConfirmResolver = resolve;
@@ -932,7 +945,7 @@
             const newPage = document.getElementById(pageId);
             if (!newPage) {
                 console.warn(`Page ${pageId} not found, redirecting to page-index.`);
-                if (pageId === "page-index") { // Avoid infinite loop if page-index itself is missing
+                if (pageId === "page-index") { 
                     document.body.innerHTML = "Critical error: page-index not found. Cannot recover.";
                     return;
                 }
@@ -1574,54 +1587,29 @@
         
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
         
-        // --- Shopping List Swipe Logic ---
         let swipeState = {
-            isSwiping: false,
-            startX: 0,
-            startY: 0,
-            currentX: 0,
-            item: null,
-            itemId: null,
-            swipeThreshold: 80, // pixels to trigger delete
-            maxSwipeDistanceForOpacity: 150, // pixels for item to become fully transparent
-            isVerticalScroll: false,
-            scrollLockThreshold: 10 // pixels to decide if scroll or swipe
+            isSwiping: false, startX: 0, startY: 0, currentX: 0, item: null, itemId: null,
+            swipeThreshold: 80, maxSwipeDistanceForOpacity: 150, isVerticalScroll: false, scrollLockThreshold: 10
         };
 
         const shoppingListSwipeMoveHandler = (event) => {
             if (!swipeState.isSwiping || !swipeState.item) return;
-
             const currentX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
             const currentY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
             const deltaX = currentX - swipeState.startX;
             const deltaY = currentY - swipeState.startY;
 
-            if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) {
-                // Not enough movement to decide axis yet
-                return;
-            }
-            
-            if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) {
-                swipeState.isVerticalScroll = true; // Locked to vertical scroll for this gesture
-            }
-
-            if (swipeState.isVerticalScroll) {
-                // Allow native browser scrolling, do nothing for swipe
-                return;
-            }
-            
-            // If we reach here, it's a horizontal swipe or undecided but primarily horizontal
-            if (event.type === 'touchmove') {
-                event.preventDefault(); // Prevent vertical scroll if we are handling horizontal swipe
-            }
+            if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) return;
+            if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) swipeState.isVerticalScroll = true;
+            if (swipeState.isVerticalScroll) return;
+            if (event.type === 'touchmove') event.preventDefault();
 
             swipeState.currentX = currentX;
-
-            if (deltaX > 0) { // Swiping right
+            if (deltaX > 0) {
                 swipeState.item.style.transform = `translateX(${deltaX}px)`;
-                const opacity = Math.max(0.1, 1 - (deltaX / swipeState.maxSwipeDistanceForOpacity)); // Keep a minimum opacity while dragging
+                const opacity = Math.max(0.1, 1 - (deltaX / swipeState.maxSwipeDistanceForOpacity));
                 swipeState.item.style.opacity = opacity;
-            } else { // Swiping left or not enough right to start visual change
+            } else {
                 swipeState.item.style.transform = 'translateX(0px)';
                 swipeState.item.style.opacity = 1;
             }
@@ -1629,7 +1617,6 @@
 
         const shoppingListSwipeEndHandler = (event, forceReset = false) => {
             if (!swipeState.isSwiping || !swipeState.item) {
-                // Clean up listeners if somehow missed
                 document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
                 document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
                 document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
@@ -1637,21 +1624,12 @@
                 document.removeEventListener('touchend', shoppingListSwipeEndHandler);
                 document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
                 if (swipeState.item) swipeState.item.style.userSelect = '';
-                swipeState.isSwiping = false; // Ensure flag is reset
+                swipeState.isSwiping = false;
                 return;
             }
-
-            const itemToDelete = swipeState.item;
-            const idToDelete = swipeState.itemId;
-            const deltaX = swipeState.currentX - swipeState.startX;
-
-            // Reset item and global swipe state flags first
+            const itemToDelete = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX;
             const wasSwiping = swipeState.isSwiping;
-            swipeState.isSwiping = false; 
-            swipeState.item = null;
-            swipeState.itemId = null;
-            swipeState.isVerticalScroll = false;
-
+            swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false;
 
             document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
             document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
@@ -1661,59 +1639,39 @@
             document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
             itemToDelete.style.userSelect = '';
 
-
-            if (wasSwiping && !forceReset && deltaX > swipeState.swipeThreshold) { // Delete
+            if (wasSwiping && !forceReset && deltaX > swipeState.swipeThreshold) {
                 itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-                itemToDelete.style.transform = `translateX(${window.innerWidth}px)`; // Slide fully off-screen
+                itemToDelete.style.transform = `translateX(${window.innerWidth}px)`;
                 itemToDelete.style.opacity = 0;
                 itemToDelete.dataset.swipedForDelete = "true";
-
                 itemToDelete.addEventListener('transitionend', async () => {
-                    try {
-                        await database.ref(`shoppingList/${idToDelete}`).remove();
-                        loadShoppingListFromDB(); // Re-render list
-                    } catch (error) {
-                        console.error("Error deleting shopping item after swipe:", error);
-                        loadShoppingListFromDB(); 
-                        showCustomAlert("Error", "Could not delete item. It will reappear.");
-                    }
+                    try { await database.ref(`shoppingList/${idToDelete}`).remove(); loadShoppingListFromDB(); } 
+                    catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear.");}
                 }, { once: true });
-            } else if (wasSwiping) { // Reset position (if it was a swipe attempt)
+            } else if (wasSwiping) {
                 itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
                 itemToDelete.style.transform = 'translateX(0px)';
                 itemToDelete.style.opacity = 1;
-                itemToDelete.addEventListener('transitionend', () => {
-                    if (itemToDelete) itemToDelete.style.transition = 'none'; // Check if itemToDelete still exists
-                }, { once: true });
+                itemToDelete.addEventListener('transitionend', () => { if (itemToDelete) itemToDelete.style.transition = 'none'; }, { once: true });
             }
         };
         
-        const shoppingListDocMouseLeaveHandler = (event) => {
-             if (event.relatedTarget === null && swipeState.isSwiping) { // Mouse left the document entirely
-                shoppingListSwipeEndHandler(event, true); // force reset
-            }
-        };
-
+        const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true);};
 
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
-            if (swipeState.isSwiping) return; // Prevent multiple swipes
-            if (event.type === 'touchstart' && event.touches.length > 1) return; // Ignore multi-touch
+            if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return;
+            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return; // Don't swipe if interacting with buttons
 
-            swipeState.isSwiping = true;
-            swipeState.item = itemElement;
-            swipeState.itemId = itemId;
+            swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId;
             swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
             swipeState.startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
-            swipeState.currentX = swipeState.startX;
-            swipeState.isVerticalScroll = false;
+            swipeState.currentX = swipeState.startX; swipeState.isVerticalScroll = false;
             
-            itemElement.style.transition = 'none';
-            itemElement.style.userSelect = 'none';
+            itemElement.style.transition = 'none'; itemElement.style.userSelect = 'none';
             
             document.addEventListener('mousemove', shoppingListSwipeMoveHandler);
             document.addEventListener('mouseup', shoppingListSwipeEndHandler);
             document.addEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
-
             document.addEventListener('touchmove', shoppingListSwipeMoveHandler, { passive: false });
             document.addEventListener('touchend', shoppingListSwipeEndHandler);
             document.addEventListener('touchcancel', shoppingListSwipeEndHandler);
@@ -1733,32 +1691,57 @@
             } 
         }
 
-        function displayShoppingListUI(e) { 
+        function displayShoppingListUI(shoppingItems) { 
             if (!shoppingListItemsContainer) return; 
-            if (shoppingListItemsContainer.innerHTML = "", 0 === e.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); 
+            shoppingListItemsContainer.innerHTML = ""; 
+            if (0 === shoppingItems.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); 
             
-            e.sort((e, t) => e.checked === t.checked ? (e.name || "").localeCompare(t.name || "") : e.checked ? 1 : -1);
+            shoppingItems.sort((a, b) => a.checked === b.checked ? (a.name || "").localeCompare(b.name || "") : a.checked ? 1 : -1);
             
-            e.forEach(itemData => { 
+            shoppingItems.forEach(itemData => { 
                 const itemElement = document.createElement("div"); 
                 itemElement.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`; 
                 itemElement.dataset.itemId = itemData.id; 
-                itemElement.innerHTML = `
-                    <input type="checkbox" class="shopping-item-checkbox" ${itemData.checked ? "checked" : ""}>
-                    <span class="item-name text-white flex-grow">${itemData.name || "Unnamed Item"}</span>
-                `; // Removed delete button SVG
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'shopping-item-checkbox';
+                checkbox.checked = itemData.checked;
+                checkbox.addEventListener("change", e => { 
+                    toggleShoppingItemCheckedInDB(itemData.id, e.target.checked);
+                });
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'item-name text-white flex-grow';
+                nameSpan.textContent = itemData.name || "Unnamed Item";
+
+                const locationButton = document.createElement('button');
+                locationButton.className = "shopping-item-location-button interactive-scale text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/10";
+                locationButton.title = "Set Shop Location";
+                locationButton.dataset.itemId = itemData.id;
+
+                const iconContainer = document.createElement('span');
+                iconContainer.className = 'flex items-center justify-center w-5 h-5';
+
+                if (itemData.shop && SHOPS.includes(itemData.shop)) {
+                    iconContainer.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${itemData.shop}.png" alt="${itemData.shop}" class="w-full h-full object-contain">`;
+                } else {
+                    iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,32.94,18.31,67.88,51.25,100.55a16,16,0,0,0,25.5,0C201.69,204.88,220,170.94,220,112A88.1,88.1,0,0,0,128,16Zm0,194.57c-21.36-23.48-64-71.12-64-106.57a72,72,0,1,1,144,0C208,137.45,165.36,185.09,144,208.89V210.2Z"></path></svg>`; // Default pin
+                }
+                locationButton.appendChild(iconContainer);
+                locationButton.addEventListener('click', () => {
+                    openShopSelectorModal(itemData.id, itemData.shop || null);
+                });
+
+                itemElement.appendChild(checkbox);
+                itemElement.appendChild(nameSpan);
+                itemElement.appendChild(locationButton);
                 
                 shoppingListItemsContainer.appendChild(itemElement);
                 requestAnimationFrame(() => { itemElement.classList.add("list-item-enter-active") }); 
                 
-                itemElement.querySelector(".shopping-item-checkbox").addEventListener("change", t => { 
-                    toggleShoppingItemCheckedInDB(itemData.id, t.target.checked);
-                });
-
-                // Add swipe event listeners
                 itemElement.addEventListener('mousedown', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id));
-                itemElement.addEventListener('touchstart', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id), { passive: true }); // passive:true initially for start
-
+                itemElement.addEventListener('touchstart', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id), { passive: true });
             });
         }
         async function addShoppingItemToDB() { 
@@ -1782,41 +1765,74 @@
             } catch (e) { console.error("Error updating shopping item:", e) } 
         }
         
-        async function deleteShoppingItemFromDB(itemId, itemElement = null) {
-            // itemElement is passed for non-swipe deletions (e.g., if a button was used)
-            // For swipe, itemElement.dataset.swipedForDelete would be true, and visual removal is handled by swipeEndHandler
-            if (itemElement && !itemElement.dataset.swipedForDelete) {
-                // Fallback animation for non-swipe deletes (e.g. if a button was re-added later)
-                itemElement.style.transition = 'opacity 0.2s ease-out';
-                itemElement.style.opacity = 0;
-                await new Promise(resolve => setTimeout(resolve, 200)); // Wait for this simple animation
-            }
-
+        async function deleteShoppingItemFromDB(itemId) { // Removed itemElement as it's handled by swipe logic
             try {
                 await database.ref(`shoppingList/${itemId}`).remove();
-                // loadShoppingListFromDB will be called by the swipeEndHandler's transitionend callback
-                // or here if it's a non-swipe deletion.
-                // To avoid double load if called from swipe, ensure swipeEndHandler is the one calling loadShoppingListFromDB.
-                // For now, let's assume this function is mostly for DB and list refresh, and swipe handles its own visual + DB.
-                // The current swipeEndHandler calls DB remove and then load.
-                // So, this function becomes mostly for OTHER delete paths if any.
-                // If this is *only* called from swipeEndHandler eventually, then loadShoppingListFromDB() call can be removed from here.
-                // For now, it's safer to keep it in case other call paths exist or are added.
-                //
-                // Actually, the swipeEndHandler calls database.ref().remove() itself after animation.
-                // So this function is now simplified to just be the DB op + reload, and the itemElement logic
-                // is for a hypothetical non-swipe scenario.
-                // Let's remove the itemElement handling since swipe is the primary method now.
-                // loadShoppingListFromDB(); // This might be redundant if called from swipeEndHandler context.
-                                         // Swipe end handler will call loadShoppingListFromDB after DB delete.
+                // loadShoppingListFromDB(); // This is called by swipeEndHandler after successful DB operation
             } catch (error) {
                 console.error("Error deleting shopping item from DB:", error);
-                 if (itemElement && !itemElement.dataset.swipedForDelete) { // Revert if non-swipe delete failed
-                     itemElement.style.opacity = 1;
-                 }
                 showCustomAlert("Error", "Failed to delete item from database.");
+                 // If deletion failed, reload list to bring item back if it was visually removed by optimistic swipe
+                loadShoppingListFromDB();
             }
         }
+
+        // --- Shop Selector Modal ---
+        function openShopSelectorModal(itemId, currentShop) {
+            const modal = document.getElementById('shop-selector-modal');
+            const optionsContainer = document.getElementById('shop-selector-options');
+            if (!modal || !optionsContainer) return;
+
+            modal.dataset.currentItemId = itemId;
+            optionsContainer.innerHTML = ''; 
+
+            SHOPS.forEach(shop => {
+                const shopButton = document.createElement('button');
+                shopButton.className = `flex items-center justify-center p-3 rounded-lg text-white font-medium hover:bg-[#5a3a2a] transition-colors duration-150 text-sm`;
+                shopButton.classList.toggle('bg-[#f0560e]', shop === currentShop);
+                shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop);
+                
+                shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`;
+                shopButton.addEventListener('click', () => handleShopSelected(shop));
+                optionsContainer.appendChild(shopButton);
+            });
+            modal.classList.remove('hidden');
+        }
+
+        function closeShopSelectorModal() {
+            const modal = document.getElementById('shop-selector-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function handleShopSelected(shopName) {
+            const modal = document.getElementById('shop-selector-modal');
+            const itemId = modal.dataset.currentItemId;
+            if (!itemId) return;
+
+            try {
+                await database.ref(`shoppingList/${itemId}`).update({ shop: shopName });
+                closeShopSelectorModal();
+                loadShoppingListFromDB(); 
+            } catch (error) {
+                console.error("Error updating shop for item:", error);
+                showCustomAlert("Error", "Could not update shop. Please try again.");
+            }
+        }
+
+        async function handleClearShopSelection() {
+            const modal = document.getElementById('shop-selector-modal');
+            const itemId = modal.dataset.currentItemId;
+            if (!itemId) return;
+            try {
+                await database.ref(`shoppingList/${itemId}/shop`).remove();
+                closeShopSelectorModal();
+                loadShoppingListFromDB();
+            } catch (error) {
+                console.error("Error clearing shop for item:", error);
+                showCustomAlert("Error", "Could not clear shop. Please try again.");
+            }
+        }
+
 
         async function clearCheckedShoppingItemsFromDB() {
             const confirmed = await showCustomConfirm(
@@ -2072,6 +2088,13 @@
             newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), addShoppingItemToDB()) });
             document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", clearCheckedShoppingItemsFromDB);
 
+            // Shop Selector Modal Listeners
+            document.getElementById("close-shop-selector-modal-button")?.addEventListener("click", closeShopSelectorModal);
+            document.getElementById("clear-shop-selection-button")?.addEventListener("click", handleClearShopSelection);
+            const shopSelectorModalElement = document.getElementById("shop-selector-modal");
+            shopSelectorModalElement?.addEventListener("click", (event) => { if (event.target === shopSelectorModalElement) closeShopSelectorModal(); });
+
+
             isInitialPageLoad = false;
         });
         "serviceWorker" in navigator && window.addEventListener("load", () => { navigator.serviceWorker.register("/cookbook_bare/sw.js", { scope: "/cookbook_bare/" }).then(e => console.log("SW registered!", e.scope)).catch(e => console.log("SW registration failed: ", e)) });
@@ -2080,3 +2103,4 @@
 </body>
 
 </html>
+```
