@@ -82,8 +82,6 @@
         .page-content {
             flex-grow: 1;
             overflow-y: auto;
-            /* Allow smooth transition for padding change */
-            transition: padding-bottom 0.2s ease-out;
         }
 
         #page-shopping-list .page-content {
@@ -724,7 +722,7 @@
             <div class="page-content px-4 pt-4">
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
-            <div id="shopping-list-input-bar" 
+            <div
                 class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                 <input type="text" id="new-shopping-item-name" placeholder="Add item..."
                     class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
@@ -940,11 +938,6 @@
         let currentShoppingListSort = 'default'; 
         let currentSelectedRecipeCategory = "Dinner"; 
 
-        // --- Elements for Shopping List Keyboard Adjustment ---
-        let pageShoppingListElem, shoppingListPageContentElem, shoppingListInputBarElem;
-        const ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM = "140px"; // Default from CSS
-        const KEYBOARD_DETECTION_THRESHOLD = 100; // Min height diff (px) to consider keyboard active
-
 
         // --- Custom Alert Modal Elements & Functions ---
         let customAlertModal, customAlertTitle, customAlertMessage, customAlertOkButton;
@@ -1084,49 +1077,20 @@
             const openModalId = getOpenModalId();
             if (openModalId) {
                 closeModalById(openModalId);
-                const currentState = getCurrentPageHistoryState(currentPageId);
-                const currentHash = getCurrentPageFullHash(currentPageId);
-                history.pushState(currentState, `Page ${currentPageId}`, currentHash);
+                // The popstate handler will deal with re-pushing state if native back was used.
+                // For in-app back button, just closing the modal is enough, then the next back
+                // (if it's an in-app button) will call showPage('page-index').
                 return; 
             }
 
             if (currentPageId !== 'page-index') {
-                showPage('page-index'); 
+                showPage('page-index'); // Navigate to home. showPage handles history.
             }
+            // If on page-index and no modal, app back button does nothing (exit is via native back button).
         }
 
 
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
-
-        
-        function adjustShoppingListPaddingForKeyboard() {
-            // Ensure elements are globally available or re-fetch if necessary
-            if (!pageShoppingListElem) pageShoppingListElem = document.getElementById("page-shopping-list");
-            if (pageShoppingListElem && !shoppingListPageContentElem) shoppingListPageContentElem = pageShoppingListElem.querySelector(".page-content");
-            if (pageShoppingListElem && !shoppingListInputBarElem) shoppingListInputBarElem = document.getElementById("shopping-list-input-bar");
-
-            if (currentPageId !== 'page-shopping-list' || !shoppingListPageContentElem || !shoppingListInputBarElem) {
-                if (shoppingListPageContentElem && shoppingListPageContentElem.style.paddingBottom !== ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM) {
-                    shoppingListPageContentElem.style.paddingBottom = ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM;
-                    document.body.classList.remove('keyboard-active-shopping');
-                }
-                return;
-            }
-
-            const visualViewport = window.visualViewport;
-            const layoutViewportHeight = window.innerHeight;
-            const spaceObscuredByOSK = layoutViewportHeight - visualViewport.height;
-
-            if (spaceObscuredByOSK > KEYBOARD_DETECTION_THRESHOLD) {
-                const inputBarHeight = shoppingListInputBarElem.offsetHeight;
-                shoppingListPageContentElem.style.paddingBottom = (inputBarHeight + 8) + 'px'; // 8px for a small margin
-                document.body.classList.add('keyboard-active-shopping');
-            } else {
-                shoppingListPageContentElem.style.paddingBottom = ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM;
-                document.body.classList.remove('keyboard-active-shopping');
-            }
-        }
-
 
         function showPage(pageId, fromHistoryOrInitialLoad = false) {
             const newPage = document.getElementById(pageId);
@@ -1136,28 +1100,14 @@
                     document.body.innerHTML = "Critical error: page-index not found. Cannot recover.";
                     return;
                 }
-                showPage("page-index", fromHistoryOrInitialLoad);
+                showPage("page-index", fromHistoryOrInitialLoad); // Pass along fromHistoryOrInitialLoad
                 return;
             }
             
             const oldPage = document.getElementById(currentPageId);
-
-            // If the page we are LEAVING is page-shopping-list, reset its specific adjustments
-            if (oldPage && oldPage.id === 'page-shopping-list' && currentPageId !== pageId) {
-                if (window.visualViewport && shoppingListPageContentElem) { 
-                    if (shoppingListPageContentElem.style.paddingBottom !== ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM) {
-                        shoppingListPageContentElem.style.paddingBottom = ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM;
-                    }
-                    if (document.body.classList.contains('keyboard-active-shopping')) {
-                        document.body.classList.remove('keyboard-active-shopping');
-                    }
-                }
-            }
-
             if (oldPage && oldPage !== newPage) {
                 oldPage.classList.remove("active");
             }
-
 
             if (!fromHistoryOrInitialLoad) { 
                 if (currentPageId !== pageId) { 
@@ -1165,10 +1115,14 @@
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
                 let urlToPush = getCurrentPageFullHash(pageId);
+                // Only push if the URL or state is actually different to avoid redundant entries
                 if (window.location.hash !== urlToPush || JSON.stringify(history.state) !== JSON.stringify(stateToPush)) {
                     history.pushState(stateToPush, `Page ${pageId}`, urlToPush);
                 }
             } else {
+                // Navigating due to popstate or initial load.
+                // Ensure URL reflects the pageId we are actually showing,
+                // especially if popstate logic forced a different page (e.g., always to index).
                 const targetHash = getCurrentPageFullHash(pageId);
                 if (window.location.hash !== targetHash) {
                     let stateToReplace = getCurrentPageHistoryState(pageId);
@@ -1177,7 +1131,7 @@
             }
 
             currentPageId = pageId;
-            localStorage.setItem("lastActivePageId", pageId); 
+            localStorage.setItem("lastActivePageId", pageId); // Still useful for non-initial loads or if app is killed
 
             requestAnimationFrame(() => {
                 newPage.classList.add("active");
@@ -1186,38 +1140,32 @@
             
             const pageContent = newPage.querySelector(".page-content");
             if (pageContent) {
-                 if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) { 
+                 if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) { // Refined scroll condition
                      pageContent.scrollTo(0,0);
                  }
             }
 
             // Specific page load logic
-            if (pageId === "page-shopping-list") {
-                loadShoppingListFromDB();
-                 if (window.visualViewport) { // Check if API is supported
-                    // Ensure elements are defined before calling
-                    if (!pageShoppingListElem) pageShoppingListElem = document.getElementById("page-shopping-list");
-                    if (pageShoppingListElem && !shoppingListPageContentElem) shoppingListPageContentElem = pageShoppingListElem.querySelector(".page-content");
-                    if (pageShoppingListElem && !shoppingListInputBarElem) shoppingListInputBarElem = document.getElementById("shopping-list-input-bar");
-                    
-                    if (shoppingListPageContentElem && shoppingListInputBarElem) {
-                         adjustShoppingListPaddingForKeyboard();
-                    }
-                }
-            } else if (pageId === "page-index") {
+            if (pageId === "page-index") {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites") {
                 renderFavoritesPage();
             } else if (pageId === "page-schedule") {
+                // State for schedule (currentSelectedDate, currentDisplayedWeekStartDate)
+                // should be managed based on whether it's an initial load with state/localStorage,
+                // or a direct navigation.
                 if (fromHistoryOrInitialLoad) { 
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
                 }
+                // Always ensure local storage is updated when schedule page is shown
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
                 renderWeekView();
+            } else if (pageId === "page-shopping-list") {
+                loadShoppingListFromDB();
             }
         }
 
@@ -1387,7 +1335,7 @@
             let a = allRecipesCache.filter(e => e.isBookmarked); "" !== c && (a = a.filter(e => (e.title || "").toLowerCase().includes(c) || (e.description || "").toLowerCase().includes(c))), populateFavoritesListUI(a, "" !== c)
         }
 
-        function populateFavoritesListUI(e, t = !1) { const c = document.getElementById("favorites-recipes-container"); if(!c) return; c.innerHTML = "", 0 === e.length ? (c.innerHTML = t ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>') : e.forEach(e => c.innerHTML += createRecipeCardHtml(e, !1, !0)); attachRecipeCardListeners(), document.querySelectorAll(".favorite-remove-btn").forEach(e => e.addEventListener("click", t => { t.stopPropagation(); const c = e.dataset.removeFavoriteId; c && toggleBookmarkInRealtimeDB(c) })) }
+        function populateFavoritesListUI(e, t = !1) { const c = document.getElementById("favorites-recipes-container"); if (c.innerHTML = "", 0 === e.length) { const a = t ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>'; c.innerHTML = a } else e.forEach(e => c.innerHTML += createRecipeCardHtml(e, !1, !0)); attachRecipeCardListeners(), document.querySelectorAll(".favorite-remove-btn").forEach(e => e.addEventListener("click", t => { t.stopPropagation(); const c = e.dataset.removeFavoriteId; c && toggleBookmarkInRealtimeDB(c) })) }
 
         function handleFavoritesSearch() { renderFavoritesPage() }
 
@@ -1479,14 +1427,13 @@
             document.getElementById("recipe-image").style.backgroundImage = `url("${e.imageURL || "https://via.placeholder.com/300x200.png?text=No+Image"}")`;
             document.getElementById("recipe-title").textContent = e.title || "Untitled";
             document.getElementById("recipe-description").textContent = e.description || "No description.";
-            const t = document.getElementById("recipe-meta-info"); if(!t) return; t.innerHTML = ""; if (e.prepTime || e.cookTime || e.servings) { let c = ""; e.prepTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`), e.cookTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`), e.servings && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`), t.innerHTML = c }
+            const t = document.getElementById("recipe-meta-info"); if (t.innerHTML = "", (e.prepTime || e.cookTime || e.servings)) { let c = ""; e.prepTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`), e.cookTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`), e.servings && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`), t.innerHTML = c }
 
             currentRecipeIngredientsState = (e.ingredients || []).map(name => ({ name, checked: false }));
             renderRecipeIngredientsUI();
 
-            const n = document.getElementById("recipe-instructions-list"); if(!n) return; n.innerHTML = "", (e.instructions || []).forEach(e => n.innerHTML += `<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);
+            const n = document.getElementById("recipe-instructions-list"); n.innerHTML = "", (e.instructions || []).forEach(e => n.innerHTML += `<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);
             const o = document.getElementById("recipe-bookmark-icon");
-            if (!o) return;
             const filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>';
             const outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
 
@@ -1783,8 +1730,7 @@
         function handleAddMealModalSearch() { if (!addMealModalSearchInput) return; const e = addMealModalSearchInput.value.trim().toLowerCase(); "" === e ? populateAddMealModalRecipeList(allRecipesCache) : populateAddMealModalRecipeList(allRecipesCache.filter(t => (t.title || "").toLowerCase().includes(e) || (t.description || "").toLowerCase().includes(e))) }
         async function handleAddRecipeToPlan(e, t) { const c = formatDateForFirebaseKey(currentSelectedDate); try { await database.ref(`mealPlan/${c}`).push({ recipeId: e, recipeTitle: t }), closeAddMealModal(), loadMealsForSelectedDate() } catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") } }
         
-        const shoppingListItemsContainer = document.getElementById("shopping-list-items-container");
-        // Note: newShoppingItemNameInput is already defined for keyboard adjustment fallback
+        const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
         
         let swipeState = {
             isSwiping: false, startX: 0, startY: 0, currentX: 0, item: null, itemId: null,
@@ -1836,8 +1782,7 @@
             document.removeEventListener('touchmove', shoppingListSwipeMoveHandler);
             document.removeEventListener('touchend', shoppingListSwipeEndHandler);
             document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
-            if(itemToDelete) itemToDelete.style.userSelect = '';
-
+            itemToDelete.style.userSelect = '';
 
             if (wasSwiping && !forceReset && deltaX > swipeState.swipeThreshold) {
                 itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
@@ -1979,7 +1924,6 @@
             });
         }
         async function addShoppingItemToDB() { 
-            const newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
             if (!newShoppingItemNameInput) return; 
             const e = newShoppingItemNameInput.value.trim(); 
             if (!e) return showCustomAlert("Input Error", "Please enter an item name."); 
@@ -2176,55 +2120,28 @@
                 currentShoppingListSort = savedSortPreference;
             }
 
-            // Initialize shopping list specific elements
-            pageShoppingListElem = document.getElementById("page-shopping-list");
-            if (pageShoppingListElem) {
-                shoppingListPageContentElem = pageShoppingListElem.querySelector(".page-content");
-                shoppingListInputBarElem = document.getElementById("shopping-list-input-bar"); // Using ID now
-            }
-
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', adjustShoppingListPaddingForKeyboard);
-            } else {
-                // Fallback for browsers without visualViewport
-                const newShoppingItemNameInputFallback = document.getElementById("new-shopping-item-name");
-                newShoppingItemNameInputFallback?.addEventListener('focus', () => {
-                    if (currentPageId === 'page-shopping-list' && shoppingListPageContentElem && shoppingListInputBarElem) {
-                        const inputBarHeight = shoppingListInputBarElem.offsetHeight;
-                        shoppingListPageContentElem.style.paddingBottom = (inputBarHeight + 8) + 'px';
-                        document.body.classList.add('keyboard-active-shopping');
-                    }
-                });
-                newShoppingItemNameInputFallback?.addEventListener('blur', () => {
-                    if (shoppingListPageContentElem) {
-                        shoppingListPageContentElem.style.paddingBottom = ORIGINAL_SHOPPING_LIST_PAGE_CONTENT_PADDING_BOTTOM;
-                        document.body.classList.remove('keyboard-active-shopping');
-                    }
-                });
-            }
-
-
             isInitialPageLoad = true;
-            let initialPageId = "page-index"; 
+            let initialPageId = "page-index"; // Default for fresh launch (Bug 2)
             let recipeIdForInitialLoad = null;
             let scheduleDateForInitialLoad = null;
             let scheduleWeekStartForInitialLoad = null;
 
             const hash = window.location.hash.substring(1);
-            if (history.state && history.state.page) { 
+            if (history.state && history.state.page) { // If history state exists (e.g., refresh), use it
                 initialPageId = history.state.page;
                 recipeIdForInitialLoad = history.state.recipeId;
                 scheduleDateForInitialLoad = history.state.selectedDate;
                 scheduleWeekStartForInitialLoad = history.state.weekStart;
 
-            } else if (hash) { 
+            } else if (hash) { // If no history state, parse hash (deep link)
                 const parts = hash.split('/');
                 const potentialPageId = parts[0];
+                // Only honor hash if it's a valid page, otherwise default to index
                 if (document.getElementById(potentialPageId)) {
                     initialPageId = potentialPageId;
                     if (initialPageId === "page-recipe" && parts[1]) {
                         recipeIdForInitialLoad = parts[1];
-                    } else if (initialPageId === "page-recipe") { 
+                    } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
                         recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
                     }
                     if (initialPageId === "page-schedule"){
@@ -2233,11 +2150,14 @@
                     }
                 }
             }
-            
-            currentPageId = initialPageId; 
+            // If initialPageId remained "page-index" from default, or was reset due to invalid hash,
+            // this fulfills Bug 2: app opens at page-index on fresh launch.
+            // If history.state or a valid hash was present, it respects that.
+
+            currentPageId = initialPageId; // Set currentPageId before calling helpers
             if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
             if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
-            if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index"; 
+            if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index"; // Fallback if no recipe ID
 
             const initialState = getCurrentPageHistoryState(initialPageId);
             const initialUrl = getCurrentPageFullHash(initialPageId);
@@ -2257,37 +2177,65 @@
                 const openModalId = getOpenModalId();
 
                 if (openModalId) {
+                    // 1. A modal is open. Close it.
                     closeModalById(openModalId);
+                    // 2. "Cancel" the back navigation by re-pushing the current page's state.
+                    // This keeps the user on the current page, with the modal now closed.
+                    // The URL remains the same.
                     const currentState = getCurrentPageHistoryState(currentPageId);
                     const currentHash = getCurrentPageFullHash(currentPageId);
                     history.pushState(currentState, `Page ${currentPageId}`, currentHash);
-                    return; 
+                    return; // Stop further processing of this popstate event.
                 }
 
+                // No modal is open.
+                // `currentPageId` is the page we are *coming from* (before this popstate processed by showPage).
+                // `event.state` is the state the browser has popped TO. The URL has already changed.
+
                 if (currentPageId === 'page-index') {
+                    // 3. If we are currently on page-index and native back is pressed (and no modal was open),
+                    //    the app should exit or navigate to a previous external page.
+                    //    We do nothing here to override the browser's default behavior.
+                    //    This handles Bug 3.
+                    //    If event.state is null, it means we've popped to before our app's managed history for this tab.
                     if (event.state === null || (event.state && event.state.page === 'page-index')) {
+                        // Allow browser to handle exit or navigation to pre-app history.
+                        // Update internal state for consistency if we somehow don't exit.
                         if (event.state && event.state.page) {
-                             currentPageId = event.state.page; 
+                             currentPageId = event.state.page; // Keep internal state aligned
                              updateNavbarUI(currentPageId);
-                        } else { 
-                            currentPageId = 'page-index'; 
+                        } else { // Popped to a state before our app (null state)
+                            currentPageId = 'page-index'; // Assume we're back at "root" of our app's view
                             updateNavbarUI('page-index');
                         }
                         return; 
                     }
+                    // If event.state points to something else *from* page-index (shouldn't happen with this logic
+                    // unless user manually typed URL or used fwd/back extensively), then fall through to go to index.
                 }
+
+                // 4. If current page is NOT page-index (e.g., page-recipe, page-favorites):
+                //    A native back press (with no modal open) should navigate to page-index.
+                //    The browser has already changed the URL. We call showPage to update the UI
+                //    to page-index and ensure the URL is corrected to #page-index if needed.
+                //    This handles Bug 1 (part 2: second back action goes to page-index).
                 
+                // Check if the state we popped to is a specific, valid deep link we want to honor.
                 if (event.state && event.state.page) {
                     const targetPage = event.state.page;
                     if (targetPage === 'page-recipe' && event.state.recipeId) {
                         loadRecipeDetailFromRealtimeDB(event.state.recipeId, true);
                         return;
                     } else if (targetPage === 'page-schedule') {
+                        // currentSelectedDate and currentDisplayedWeekStartDate will be set by showPage
+                        // when called with fromHistoryOrInitialLoad=true and history.state is available.
                         showPage('page-schedule', true); 
                         return;
                     }
+                    // If it's page-favorites or page-create-recipe, etc., we'll default to page-index below.
                 }
                 
+                // Default action for back from a non-index page, or if state is unclear: go to page-index.
                 showPage('page-index', true);
             });
 
@@ -2320,7 +2268,7 @@
             document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
             
             document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => {
-                const newButton = button.cloneNode(true); 
+                const newButton = button.cloneNode(true); // Clone to remove old listeners
                 button.parentNode.replaceChild(newButton, button);
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -2410,9 +2358,7 @@
             document.getElementById("add-meal-modal-close-button")?.addEventListener("click", closeAddMealModal);
             addMealModalSearchInput && addMealModalSearchInput.addEventListener("input", debounce(handleAddMealModalSearch, 300));
             document.getElementById("add-shopping-item-button")?.addEventListener("click", addShoppingItemToDB);
-            
-            const newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
-            newShoppingItemNameInput?.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), addShoppingItemToDB()) });
+            newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), addShoppingItemToDB()) });
             document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", clearCheckedShoppingItemsFromDB);
 
             document.getElementById('sort-shopping-list-button')?.addEventListener('click', openShoppingListSortModal);
