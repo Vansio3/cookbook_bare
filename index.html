@@ -2171,8 +2171,24 @@
 
 
             document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
-            document.querySelectorAll('[data-action="back"]').forEach(e => { e.addEventListener("click", () => history.back()) });
-            document.querySelector('[data-action="back-from-create"]')?.addEventListener("click", () => history.back());
+            
+            // UPDATED Back Button Logic
+            const backButtons = document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]');
+            const pagesForIndexNavigation = ['page-favorites', 'page-create-recipe', 'page-shopping-list', 'page-profile', 'page-schedule'];
+
+            backButtons.forEach(button => {
+                const parentPage = button.closest('.page');
+                if (parentPage) {
+                    const parentPageId = parentPage.id;
+                    if (pagesForIndexNavigation.includes(parentPageId)) {
+                        button.addEventListener("click", () => showPage("page-index"));
+                    } else {
+                        // Default behavior for other pages (e.g., page-recipe)
+                        button.addEventListener("click", () => history.back());
+                    }
+                }
+            });
+            
             document.getElementById("header-profile-button-index")?.addEventListener("click", () => showPage("page-profile"));
             document.getElementById("header-profile-button-favorites")?.addEventListener("click", () => showPage("page-profile"));
             document.getElementById("save-recipe-button")?.addEventListener("click", saveRecipeData);
