@@ -936,7 +936,7 @@
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
         let currentShoppingListSort = 'default'; 
-        let currentSelectedRecipeCategory = "Dinner"; // Default category for new recipes
+        let currentSelectedRecipeCategory = "Dinner"; 
 
 
         // --- Custom Alert Modal Elements & Functions ---
@@ -1019,6 +1019,76 @@
             closeCategorySelectorModal();
         }
 
+        // --- New Navigation Logic Helpers ---
+        const ALL_MODAL_IDS = [
+            'add-meal-modal', 'delete-recipe-confirmation-modal', 'custom-alert-modal',
+            'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal', 'category-selector-modal'
+        ];
+
+        function getOpenModalId() {
+            for (const modalId of ALL_MODAL_IDS) {
+                const modal = document.getElementById(modalId);
+                if (modal && !modal.classList.contains('hidden')) {
+                    return modalId;
+                }
+            }
+            return null;
+        }
+
+        function closeModalById(modalId) {
+            if (!modalId) return;
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            if (modalId === 'add-meal-modal') closeAddMealModal();
+            else if (modalId === 'delete-recipe-confirmation-modal') closeDeleteRecipeModal();
+            else if (modalId === 'custom-alert-modal') closeCustomAlert();
+            else if (modalId === 'custom-confirm-modal') closeCustomConfirm(false); // Resolve with false (cancel)
+            else if (modalId === 'shop-selector-modal') closeShopSelectorModal();
+            else if (modalId === 'shopping-list-sort-modal') closeShoppingListSortModal();
+            else if (modalId === 'category-selector-modal') closeCategorySelectorModal();
+            else { 
+                modal.classList.add('hidden');
+            }
+        }
+
+        function getCurrentPageHistoryState(pageId) {
+            let state = { page: pageId };
+            if (pageId === 'page-recipe') {
+                const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
+                if(recipeId) state.recipeId = recipeId;
+            } else if (pageId === 'page-schedule') {
+                state.selectedDate = currentSelectedDate.toISOString();
+                state.weekStart = currentDisplayedWeekStartDate.toISOString();
+            }
+            return state;
+        }
+
+        function getCurrentPageFullHash(pageId) {
+            let hash = `#${pageId}`;
+            if (pageId === 'page-recipe') {
+                const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
+                if (recipeId) hash += `/${recipeId}`;
+            }
+            return hash;
+        }
+
+        function performBackAction() {
+            const openModalId = getOpenModalId();
+            if (openModalId) {
+                closeModalById(openModalId);
+                // If a modal was closed, we might need to push state to prevent URL change
+                // This is handled by popstate, but for app buttons, we just close.
+                // The history.pushState in popstate handler ensures URL is consistent if native back was used.
+                return; 
+            }
+
+            if (currentPageId !== 'page-index') {
+                showPage('page-index'); // Navigate to home. showPage handles history.
+            }
+            // If on page-index and no modal, app back button does nothing (exit is via native back button).
+        }
+
 
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
 
@@ -1033,9 +1103,8 @@
                 showPage("page-index", fromHistoryOrInitialLoad);
                 return;
             }
-
-            const isSamePageAlreadyActive = (currentPageId === pageId && newPage.classList.contains("active"));
-            const shouldPushHistory = !fromHistoryOrInitialLoad && !isSamePageAlreadyActive;
+            
+            const shouldPushHistory = !fromHistoryOrInitialLoad;
 
             const oldPage = document.getElementById(currentPageId);
             if (oldPage && oldPage !== newPage) {
@@ -1046,28 +1115,9 @@
                 if (currentPageId !== pageId) { 
                     previousPageId = currentPageId;
                 }
-
-                let state = { page: pageId };
-                let url = `#${pageId}`;
-
-                if (pageId === "page-recipe") {
-                    const recipeId = newPage.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
-                    if (recipeId) {
-                        state.recipeId = recipeId;
-                        url += `/${recipeId}`;
-                    }
-                } else if (pageId === "page-schedule") {
-                    if (previousPageId === 'page-recipe' && currentPageId !== 'page-schedule') {
-                        currentSelectedDate = new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
-                        currentDisplayedWeekStartDate = getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
-                    } else if (currentPageId !== 'page-schedule') {
-                        currentSelectedDate = new Date();
-                        currentDisplayedWeekStartDate = getStartOfWeek(new Date());
-                    }
-                    state.selectedDate = currentSelectedDate.toISOString();
-                    state.weekStart = currentDisplayedWeekStartDate.toISOString();
-                }
-                history.pushState(state, `Page ${pageId}`, url);
+                let stateToPush = getCurrentPageHistoryState(pageId);
+                let urlToPush = getCurrentPageFullHash(pageId);
+                history.pushState(stateToPush, `Page ${pageId}`, urlToPush);
             }
 
             currentPageId = pageId;
@@ -1078,30 +1128,30 @@
             });
             updateNavbarUI(pageId);
             
-            if (!isSamePageAlreadyActive || fromHistoryOrInitialLoad) {
-                 newPage.querySelector(".page-content")?.scrollTo(0, 0);
+            const pageContent = newPage.querySelector(".page-content");
+            if (pageContent) { // Only scroll if not the same page or from history/initial load
+                 if (!oldPage || oldPage !== newPage || fromHistoryOrInitialLoad) {
+                     pageContent.scrollTo(0,0);
+                 }
             }
+
 
             if (pageId === "page-index") {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites") {
                 renderFavoritesPage();
             } else if (pageId === "page-schedule") {
-                if (fromHistoryOrInitialLoad) {
+                if (fromHistoryOrInitialLoad) { // Data for schedule page might be in history.state
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
+                } else { // If programmatic nav to schedule, reset or use current dates
+                     // No specific state change needed here if it's a fresh programmatic navigation,
+                     // currentSelectedDate and currentDisplayedWeekStartDate should be up-to-date.
                 }
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
-                if (fromHistoryOrInitialLoad && history.state && (history.state.page === 'page-schedule') && (!history.state.selectedDate || !history.state.weekStart)) {
-                     history.replaceState({
-                        ...history.state,
-                        selectedDate: currentSelectedDate.toISOString(),
-                        weekStart: currentDisplayedWeekStartDate.toISOString()
-                    }, `Page ${pageId}`, location.href);
-                }
                 renderWeekView();
             } else if (pageId === "page-shopping-list") {
                 loadShoppingListFromDB();
@@ -1383,8 +1433,8 @@
 
         function resetCreateForm() {
             document.getElementById("create-recipe-title").value = "";
-            currentSelectedRecipeCategory = "Dinner"; // Reset variable
-            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Update display
+            currentSelectedRecipeCategory = "Dinner"; 
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
             document.getElementById("create-recipe-description").value = "";
             document.getElementById("create-recipe-ingredients").value = "";
             document.getElementById("create-recipe-instructions").value = "";
@@ -1412,8 +1462,8 @@
 
                     document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe";
                     document.getElementById("create-recipe-title").value = recipeData.title || "";
-                    currentSelectedRecipeCategory = recipeData.category || "Dinner"; // Set variable
-                    if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Update display
+                    currentSelectedRecipeCategory = recipeData.category || "Dinner"; 
+                    if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
                     document.getElementById("create-recipe-description").value = recipeData.description || "";
                     document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
                     document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n");
@@ -1451,7 +1501,7 @@
 
         async function saveRecipeData() {
             const title = document.getElementById("create-recipe-title").value.trim();
-            const category = currentSelectedRecipeCategory; // Use the variable
+            const category = currentSelectedRecipeCategory; 
             const description = document.getElementById("create-recipe-description").value.trim();
             const ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim();
             const instructionsRaw = document.getElementById("create-recipe-instructions").value.trim();
@@ -1461,7 +1511,7 @@
             const photoInput = document.getElementById("create-recipe-photoInput");
 
             if (!title) return showCustomAlert("Validation Error", "Recipe title is required.");
-            if (!category) return showCustomAlert("Validation Error", "Category is required."); // Should always have a value due to default
+            if (!category) return showCustomAlert("Validation Error", "Category is required.");
             if (!description) return showCustomAlert("Validation Error", "Description is required.");
             if (!ingredientsRaw) return showCustomAlert("Validation Error", "Ingredients are required (at least one line).");
             const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e);
@@ -1561,7 +1611,7 @@
                     }
                 }
 
-                showPage(previousPageId || "page-index", true); 
+                showPage("page-index", true); 
             } catch (error) {
                 console.error("Error deleting recipe:", error);
                 showCustomAlert("Error", "Failed to delete recipe. Please try again.");
@@ -1743,7 +1793,7 @@
 
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
             if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return;
-            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return; // Don't swipe if interacting with buttons
+            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return; 
 
             swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId;
             swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
@@ -1817,7 +1867,7 @@
 
             shoppingItems.forEach(itemData => {
                 const itemElement = document.createElement("div");
-                itemElement.className = `shopping-item flex items-center gap-3 p-2 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`;
+                itemElement.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`;
                 itemElement.dataset.itemId = itemData.id;
 
                 const checkbox = document.createElement('input');
@@ -1878,18 +1928,16 @@
         async function toggleShoppingItemCheckedInDB(e, t) { 
             try { 
                 await database.ref(`shoppingList/${e}`).update({ checked: t });
-                loadShoppingListFromDB(); // Reload to re-apply sort with new checked state
+                loadShoppingListFromDB(); 
             } catch (e) { console.error("Error updating shopping item:", e) } 
         }
         
-        async function deleteShoppingItemFromDB(itemId) { // Removed itemElement as it's handled by swipe logic
+        async function deleteShoppingItemFromDB(itemId) { 
             try {
                 await database.ref(`shoppingList/${itemId}`).remove();
-                // loadShoppingListFromDB(); // This is called by swipeEndHandler after successful DB operation
             } catch (error) {
                 console.error("Error deleting shopping item from DB:", error);
                 showCustomAlert("Error", "Failed to delete item from database.");
-                 // If deletion failed, reload list to bring item back if it was visually removed by optimistic swipe
                 loadShoppingListFromDB();
             }
         }
@@ -1956,7 +2004,7 @@
                 document.querySelectorAll('.shopping-sort-option-button').forEach(btn => {
                     const isActive = btn.dataset.sortType === currentShoppingListSort;
                     btn.classList.toggle('bg-[#f0560e]', isActive);
-                    btn.classList.toggle('hover:bg-orange-600', isActive); // Persist orange hover if active
+                    btn.classList.toggle('hover:bg-orange-600', isActive); 
                     btn.classList.toggle('bg-[#40322b]', !isActive);
                     btn.classList.toggle('hover:bg-[#5a3a2a]', !isActive);
                 });
@@ -2030,7 +2078,6 @@
             customConfirmConfirmButton?.addEventListener("click", () => closeCustomConfirm(true));
             customConfirmModal?.addEventListener("click", (event) => { if (event.target === customConfirmModal) closeCustomConfirm(false); });
 
-            // Shop Selector Modal Init
             shopSelectorModal = document.getElementById('shop-selector-modal');
             shopSelectorOptionsContainer = document.getElementById('shop-selector-options');
             closeShopSelectorModalButton = document.getElementById('close-shop-selector-modal-button');
@@ -2040,11 +2087,9 @@
             clearShopSelectionButton?.addEventListener("click", handleClearShopSelection);
             shopSelectorModal?.addEventListener("click", (event) => { if (event.target === shopSelectorModal) closeShopSelectorModal(); });
 
-            // Shopping List Sort Modal Init
             shoppingListSortModal = document.getElementById('shopping-list-sort-modal');
             closeShoppingListSortModalButton = document.getElementById('close-shopping-list-sort-modal-button');
 
-            // Category Selector Modal Init
             categorySelectorModal = document.getElementById('category-selector-modal');
             categorySelectorOptionsContainer = document.getElementById('category-selector-options');
             closeCategorySelectorModalButton = document.getElementById('close-category-selector-modal-button');
@@ -2056,94 +2101,110 @@
             categorySelectorModal?.addEventListener('click', (event) => { 
                 if (event.target === categorySelectorModal) closeCategorySelectorModal(); 
             });
-            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Initialize display
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
 
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference');
             if (savedSortPreference) {
                 currentShoppingListSort = savedSortPreference;
             }
 
-
             isInitialPageLoad = true;
             let initialPageId = "page-index";
             let recipeIdForInitialLoad = null;
-            let initialHistoryState = { page: initialPageId };
+            let scheduleDateForInitialLoad = null;
+            let scheduleWeekStartForInitialLoad = null;
 
             const hash = window.location.hash.substring(1);
-            if (history.state && history.state.page) {
+            if (history.state && history.state.page) { // If history state exists, use it
                 initialPageId = history.state.page;
-                initialHistoryState = { ...history.state };
-                if (initialPageId === "page-recipe") {
-                    recipeIdForInitialLoad = history.state.recipeId || localStorage.getItem("currentRecipeDetailId");
-                    initialHistoryState.recipeId = recipeIdForInitialLoad;
-                } else if (initialPageId === "page-schedule") {
-                    initialHistoryState.selectedDate = history.state.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
-                    initialHistoryState.weekStart = history.state.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
-                }
-            } else if (hash) {
+                recipeIdForInitialLoad = history.state.recipeId;
+                scheduleDateForInitialLoad = history.state.selectedDate;
+                scheduleWeekStartForInitialLoad = history.state.weekStart;
+
+            } else if (hash) { // If no history state, parse hash
                 const parts = hash.split('/');
                 initialPageId = parts[0] || "page-index";
-                initialHistoryState.page = initialPageId;
                 if (initialPageId === "page-recipe" && parts[1]) {
                     recipeIdForInitialLoad = parts[1];
-                    initialHistoryState.recipeId = recipeIdForInitialLoad;
-                } else if (initialPageId === "page-recipe") {
+                } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
                     recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
-                    if (recipeIdForInitialLoad) initialHistoryState.recipeId = recipeIdForInitialLoad;
-                } else if (initialPageId === "page-schedule") {
-                    initialHistoryState.selectedDate = localStorage.getItem("scheduleView_currentSelectedDate");
-                    initialHistoryState.weekStart = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                 }
-            } else {
+                // For schedule, rely on localStorage if not in a more complex hash
+                if (initialPageId === "page-schedule"){
+                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
+                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                }
+            } else { // No history state, no hash, use localStorage or default
                 initialPageId = localStorage.getItem("lastActivePageId") || "page-index";
-                initialHistoryState.page = initialPageId;
                 if (initialPageId === "page-recipe") {
                     recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
-                    if (recipeIdForInitialLoad) initialHistoryState.recipeId = recipeIdForInitialLoad;
                 } else if (initialPageId === "page-schedule") {
-                    initialHistoryState.selectedDate = localStorage.getItem("scheduleView_currentSelectedDate");
-                    initialHistoryState.weekStart = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
+                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                 }
             }
 
-            let initialUrl = `#${initialPageId}`;
-            if (initialPageId === "page-recipe" && recipeIdForInitialLoad) {
-                initialUrl += `/${recipeIdForInitialLoad}`;
-            }
-            history.replaceState(initialHistoryState, `Page ${initialPageId}`, initialUrl);
+            currentPageId = initialPageId; // Set currentPageId before calling helpers
+            if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
+            if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
+            if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index"; // Fallback if no recipe ID
 
+            const initialState = getCurrentPageHistoryState(initialPageId);
+            const initialUrl = getCurrentPageFullHash(initialPageId);
+            history.replaceState(initialState, `Page ${initialPageId}`, initialUrl);
+            
             const recipesDataPromise = loadRecipesFromRealtimeDB();
 
             if (initialPageId === "page-recipe") {
-                if (recipeIdForInitialLoad) {
-                    await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
-                } else {
-                    console.warn("Recipe page on initial load, but no recipe ID. Navigating to index.");
-                    showPage("page-index", true);
-                }
+                await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
             } else {
                 showPage(initialPageId, true);
             }
-
+            
             await recipesDataPromise;
 
-            window.addEventListener("popstate", async e => {
-                if (e.state && e.state.page) {
-                    const pageToLoad = e.state.page;
-                    if (pageToLoad === "page-recipe") {
-                        const recipeIdFromState = e.state.recipeId || localStorage.getItem("currentRecipeDetailId");
-                        if (recipeIdFromState) {
-                            await loadRecipeDetailFromRealtimeDB(recipeIdFromState, true);
-                        } else {
-                            showPage("page-index", true);
+            window.addEventListener('popstate', (event) => {
+                const pageIdRecordedBeforePop = currentPageId; 
+                const openModalId = getOpenModalId();
+
+                if (openModalId) {
+                    closeModalById(openModalId);
+                    const previousState = getCurrentPageHistoryState(pageIdRecordedBeforePop);
+                    const previousHash = getCurrentPageFullHash(pageIdRecordedBeforePop);
+                    history.pushState(previousState, `Page ${pageIdRecordedBeforePop}`, previousHash);
+                    return;
+                }
+
+                if (pageIdRecordedBeforePop !== 'page-index') {
+                    showPage('page-index'); 
+                } else {
+                    const newTargetState = event.state;
+                    const newTargetPageIdFromState = newTargetState ? newTargetState.page : null;
+                    const newTargetPageIdFromHash = location.hash.substring(1).split('/')[0] || 'page-index';
+                    const finalTargetPageId = newTargetPageIdFromState || newTargetPageIdFromHash;
+
+                    if (document.getElementById(finalTargetPageId)) {
+                        if (finalTargetPageId === 'page-recipe') {
+                            const recipeId = newTargetState?.recipeId || location.hash.substring(1).split('/')[1];
+                            if (recipeId) {
+                                loadRecipeDetailFromRealtimeDB(recipeId, true); 
+                            } else {
+                                showPage('page-index', true); 
+                            }
+                        } else if (finalTargetPageId === 'page-schedule') {
+                            currentSelectedDate = newTargetState?.selectedDate ? new Date(newTargetState.selectedDate) : new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
+                            currentDisplayedWeekStartDate = newTargetState?.weekStart ? new Date(newTargetState.weekStart) : getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
+                            showPage('page-schedule', true);
+                        }
+                        else {
+                            showPage(finalTargetPageId, true); 
                         }
                     } else {
-                        showPage(pageToLoad, true);
+                        localStorage.setItem("lastActivePageId", "page-index");
                     }
-                } else if (location.hash === "" || location.hash === "#") {
-                    showPage("page-index", true);
                 }
             });
+
 
             const searchRecipeInput = document.getElementById("search-recipe-input");
             const clearSearchRecipeButton = document.getElementById("clear-search-recipe-button");
@@ -2172,21 +2233,13 @@
 
             document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
             
-            // UPDATED Back Button Logic
-            const backButtons = document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]');
-            const pagesForIndexNavigation = ['page-favorites', 'page-create-recipe', 'page-shopping-list', 'page-profile', 'page-schedule'];
-
-            backButtons.forEach(button => {
-                const parentPage = button.closest('.page');
-                if (parentPage) {
-                    const parentPageId = parentPage.id;
-                    if (pagesForIndexNavigation.includes(parentPageId)) {
-                        button.addEventListener("click", () => showPage("page-index"));
-                    } else {
-                        // Default behavior for other pages (e.g., page-recipe)
-                        button.addEventListener("click", () => history.back());
-                    }
-                }
+            document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => {
+                const newButton = button.cloneNode(true); // Clone to remove old listeners
+                button.parentNode.replaceChild(newButton, button);
+                newButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    performBackAction();
+                });
             });
             
             document.getElementById("header-profile-button-index")?.addEventListener("click", () => showPage("page-profile"));
@@ -2274,7 +2327,6 @@
             newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), addShoppingItemToDB()) });
             document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", clearCheckedShoppingItemsFromDB);
 
-            // Shopping List Sort Modal Listeners
             document.getElementById('sort-shopping-list-button')?.addEventListener('click', openShoppingListSortModal);
             closeShoppingListSortModalButton?.addEventListener('click', closeShoppingListSortModal);
             shoppingListSortModal?.addEventListener('click', (event) => {
