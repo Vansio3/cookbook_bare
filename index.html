@@ -330,6 +330,8 @@
         .favorite-remove-btn:active {
             transform: scale(0.9);
         }
+
+        /* Removed .form-select-custom as it's no longer used for category */
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -698,7 +700,7 @@
                             </path>
                         </svg></div>
                     <h2 class="text-white text-lg font-bold flex-1 text-center">Shopping List</h2>
-                    <div class="flex items-center"> 
+                    <div class="flex items-center"> <!-- Container for right-side buttons -->
                         <button id="sort-shopping-list-button" title="Sort Items"
                             class="interactive-scale text-white flex size-12 items-center justify-center rounded-full hover:bg-white/10">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
@@ -1041,7 +1043,7 @@
             if (modalId === 'add-meal-modal') closeAddMealModal();
             else if (modalId === 'delete-recipe-confirmation-modal') closeDeleteRecipeModal();
             else if (modalId === 'custom-alert-modal') closeCustomAlert();
-            else if (modalId === 'custom-confirm-modal') closeCustomConfirm(false);
+            else if (modalId === 'custom-confirm-modal') closeCustomConfirm(false); // Resolve with false (cancel)
             else if (modalId === 'shop-selector-modal') closeShopSelectorModal();
             else if (modalId === 'shopping-list-sort-modal') closeShoppingListSortModal();
             else if (modalId === 'category-selector-modal') closeCategorySelectorModal();
@@ -1075,12 +1077,16 @@
             const openModalId = getOpenModalId();
             if (openModalId) {
                 closeModalById(openModalId);
+                // If a modal was closed, we might need to push state to prevent URL change
+                // This is handled by popstate, but for app buttons, we just close.
+                // The history.pushState in popstate handler ensures URL is consistent if native back was used.
                 return; 
             }
 
             if (currentPageId !== 'page-index') {
-                showPage('page-index'); 
+                showPage('page-index'); // Navigate to home. showPage handles history.
             }
+            // If on page-index and no modal, app back button does nothing (exit is via native back button).
         }
 
 
@@ -1098,23 +1104,24 @@
                 return;
             }
             
+            const shouldPushHistory = !fromHistoryOrInitialLoad;
+
             const oldPage = document.getElementById(currentPageId);
             if (oldPage && oldPage !== newPage) {
                 oldPage.classList.remove("active");
             }
-            
-            const targetUrl = getCurrentPageFullHash(pageId);
-            if (!fromHistoryOrInitialLoad && window.location.hash !== targetUrl) {
-                 if (currentPageId !== pageId) { 
+
+            if (shouldPushHistory) {
+                if (currentPageId !== pageId) { 
                     previousPageId = currentPageId;
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
-                history.pushState(stateToPush, `Page ${pageId}`, targetUrl);
+                let urlToPush = getCurrentPageFullHash(pageId);
+                history.pushState(stateToPush, `Page ${pageId}`, urlToPush);
             }
 
-
             currentPageId = pageId;
-            localStorage.setItem("lastActivePageId", pageId); // Still useful for non-initial forced loads
+            localStorage.setItem("lastActivePageId", pageId);
 
             requestAnimationFrame(() => {
                 newPage.classList.add("active");
@@ -1122,22 +1129,26 @@
             updateNavbarUI(pageId);
             
             const pageContent = newPage.querySelector(".page-content");
-            if (pageContent) { 
+            if (pageContent) { // Only scroll if not the same page or from history/initial load
                  if (!oldPage || oldPage !== newPage || fromHistoryOrInitialLoad) {
                      pageContent.scrollTo(0,0);
                  }
             }
+
 
             if (pageId === "page-index") {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites") {
                 renderFavoritesPage();
             } else if (pageId === "page-schedule") {
-                if (fromHistoryOrInitialLoad) { 
+                if (fromHistoryOrInitialLoad) { // Data for schedule page might be in history.state
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
+                } else { // If programmatic nav to schedule, reset or use current dates
+                     // No specific state change needed here if it's a fresh programmatic navigation,
+                     // currentSelectedDate and currentDisplayedWeekStartDate should be up-to-date.
                 }
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
@@ -1354,12 +1365,12 @@
                     showPage("page-recipe", fromHistoryOrInitialLoad); 
                 } else {
                     showCustomAlert("Error", "Recipe not found.");
-                    showPage("page-index", true); 
+                    showPage(previousPageId || "page-index", true); 
                 }
             } catch (error) {
                 console.error("Error getting recipe:", error);
                 showCustomAlert("Error", "Recipe load failed. Please try again.");
-                showPage("page-index", true); 
+                showPage(previousPageId || "page-index", true); 
             }
         }
 
@@ -1654,15 +1665,12 @@
         function updateScheduleDatesInStorageAndHistory() {
             localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
             localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
-            if (history.state && history.state.page === 'page-schedule') { // Only update if it's already a schedule state
-                const targetUrl = getCurrentPageFullHash('page-schedule'); // Ensure it matches
-                if (window.location.hash === targetUrl) {
-                    history.replaceState({ // Use replaceState to update data for current URL
-                        ...history.state,
-                        selectedDate: currentSelectedDate.toISOString(),
-                        weekStart: currentDisplayedWeekStartDate.toISOString()
-                    }, "Page page-schedule", targetUrl);
-                }
+            if (history.state && history.state.page === 'page-schedule') {
+                history.replaceState({
+                    ...history.state,
+                    selectedDate: currentSelectedDate.toISOString(),
+                    weekStart: currentDisplayedWeekStartDate.toISOString()
+                }, "Page page-schedule", location.href);
             }
         }
         function renderWeekView() { const e = document.getElementById("schedule-week-days"), t = document.getElementById("schedule-week-range"); if (!e || !t) return; e.innerHTML = ""; const c = new Intl.DateTimeFormat("en-US", { weekday: "short" }), a = new Intl.DateTimeFormat("en-US", { day: "numeric" }); let n = new Date(currentDisplayedWeekStartDate); for (let o = 0; o < 7; o++) { const i = document.createElement("button"); i.className = "schedule-day-btn flex flex-col items-center p-1.5 fo w-[calc(100%/7-4px)] mx-0.5", i.dataset.date = n.toISOString(); const r = isToday(n), s = isSameDate(n, currentSelectedDate); i.innerHTML = `<span class="day-name-span text-xs ${r && !s ? "text-[#f0560e]" : "text-gray-400"}">${c.format(n).toUpperCase()}</span><span class="day-number-span text-lg font-bold ${r && !s ? "text-[#f0560e]" : "text-white"}">${a.format(n)}</span>`, s && i.classList.add("selected"), r && i.classList.add("today"), i.addEventListener("click", handleWeekDayClick), e.appendChild(i), n = addDays(n, 1) } t.textContent = `${currentDisplayedWeekStartDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${addDays(currentDisplayedWeekStartDate, 6).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`, loadMealsForSelectedDate() }
@@ -1859,7 +1867,7 @@
 
             shoppingItems.forEach(itemData => {
                 const itemElement = document.createElement("div");
-                itemElement.className = `shopping-item flex items-center gap-3 p-2 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`;
+                itemElement.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`;
                 itemElement.dataset.itemId = itemData.id;
 
                 const checkbox = document.createElement('input');
@@ -2100,22 +2108,60 @@
                 currentShoppingListSort = savedSortPreference;
             }
 
-            // --- INITIAL PAGE LOAD ---
             isInitialPageLoad = true;
-            const initialPageId = "page-index"; // ALWAYS start on page-index
-            currentPageId = initialPageId; // Set immediately for helpers
+            let initialPageId = "page-index";
+            let recipeIdForInitialLoad = null;
+            let scheduleDateForInitialLoad = null;
+            let scheduleWeekStartForInitialLoad = null;
+
+            const hash = window.location.hash.substring(1);
+            if (history.state && history.state.page) { // If history state exists, use it
+                initialPageId = history.state.page;
+                recipeIdForInitialLoad = history.state.recipeId;
+                scheduleDateForInitialLoad = history.state.selectedDate;
+                scheduleWeekStartForInitialLoad = history.state.weekStart;
+
+            } else if (hash) { // If no history state, parse hash
+                const parts = hash.split('/');
+                initialPageId = parts[0] || "page-index";
+                if (initialPageId === "page-recipe" && parts[1]) {
+                    recipeIdForInitialLoad = parts[1];
+                } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
+                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
+                }
+                // For schedule, rely on localStorage if not in a more complex hash
+                if (initialPageId === "page-schedule"){
+                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
+                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                }
+            } else { // No history state, no hash, use localStorage or default
+                initialPageId = localStorage.getItem("lastActivePageId") || "page-index";
+                if (initialPageId === "page-recipe") {
+                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
+                } else if (initialPageId === "page-schedule") {
+                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
+                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                }
+            }
+
+            currentPageId = initialPageId; // Set currentPageId before calling helpers
+            if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
+            if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
+            if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index"; // Fallback if no recipe ID
 
             const initialState = getCurrentPageHistoryState(initialPageId);
             const initialUrl = getCurrentPageFullHash(initialPageId);
             history.replaceState(initialState, `Page ${initialPageId}`, initialUrl);
-
+            
             const recipesDataPromise = loadRecipesFromRealtimeDB();
-            showPage(initialPageId, true); // Show page-index, 'true' because it's initial load
+
+            if (initialPageId === "page-recipe") {
+                await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
+            } else {
+                showPage(initialPageId, true);
+            }
             
             await recipesDataPromise;
-            isInitialPageLoad = false; 
-            // --- END INITIAL PAGE LOAD ---
-
 
             window.addEventListener('popstate', (event) => {
                 const pageIdRecordedBeforePop = currentPageId; 
@@ -2123,27 +2169,39 @@
 
                 if (openModalId) {
                     closeModalById(openModalId);
-                    // After modal is closed, if the URL (due to popstate) implies we are not on page-index,
-                    // or if our app's state (currentPageId) is not page-index, navigate to page-index.
-                    const targetPageIdFromHashAfterPop = location.hash.substring(1).split('/')[0] || 'page-index';
-                    if (targetPageIdFromHashAfterPop !== 'page-index' || pageIdRecordedBeforePop !== 'page-index') {
-                        showPage('page-index', true); 
-                    } else {
-                        // If we closed a modal and hash is already #page-index and app state is page-index,
-                        // ensure UI syncs to page-index if it somehow wasn't.
-                        if(currentPageId !== 'page-index') showPage('page-index', true);
-                    }
+                    const previousState = getCurrentPageHistoryState(pageIdRecordedBeforePop);
+                    const previousHash = getCurrentPageFullHash(pageIdRecordedBeforePop);
+                    history.pushState(previousState, `Page ${pageIdRecordedBeforePop}`, previousHash);
                     return;
                 }
 
-                // No modal was open.
-                // If current app page is not page-index, native back should take us to page-index.
-                if (currentPageId !== 'page-index') {
-                    showPage('page-index', true); 
+                if (pageIdRecordedBeforePop !== 'page-index') {
+                    showPage('page-index'); 
                 } else {
-                    // If on page-index, native back button means "exit".
-                    // The browser handles the actual exit. We just log the last page.
-                    localStorage.setItem("lastActivePageId", "page-index");
+                    const newTargetState = event.state;
+                    const newTargetPageIdFromState = newTargetState ? newTargetState.page : null;
+                    const newTargetPageIdFromHash = location.hash.substring(1).split('/')[0] || 'page-index';
+                    const finalTargetPageId = newTargetPageIdFromState || newTargetPageIdFromHash;
+
+                    if (document.getElementById(finalTargetPageId)) {
+                        if (finalTargetPageId === 'page-recipe') {
+                            const recipeId = newTargetState?.recipeId || location.hash.substring(1).split('/')[1];
+                            if (recipeId) {
+                                loadRecipeDetailFromRealtimeDB(recipeId, true); 
+                            } else {
+                                showPage('page-index', true); 
+                            }
+                        } else if (finalTargetPageId === 'page-schedule') {
+                            currentSelectedDate = newTargetState?.selectedDate ? new Date(newTargetState.selectedDate) : new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
+                            currentDisplayedWeekStartDate = newTargetState?.weekStart ? new Date(newTargetState.weekStart) : getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
+                            showPage('page-schedule', true);
+                        }
+                        else {
+                            showPage(finalTargetPageId, true); 
+                        }
+                    } else {
+                        localStorage.setItem("lastActivePageId", "page-index");
+                    }
                 }
             });
 
@@ -2176,7 +2234,7 @@
             document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
             
             document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => {
-                const newButton = button.cloneNode(true); 
+                const newButton = button.cloneNode(true); // Clone to remove old listeners
                 button.parentNode.replaceChild(newButton, button);
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -2286,6 +2344,8 @@
                 });
             });
 
+
+            isInitialPageLoad = false;
         });
         "serviceWorker" in navigator && window.addEventListener("load", () => { navigator.serviceWorker.register("/cookbook_bare/sw.js", { scope: "/cookbook_bare/" }).then(e => console.log("SW registered!", e.scope)).catch(e => console.log("SW registration failed: ", e)) });
     </script>
