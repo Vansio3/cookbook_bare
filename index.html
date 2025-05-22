@@ -85,7 +85,10 @@
         }
 
         #page-shopping-list .page-content {
-            padding-bottom: 140px;
+            padding-bottom: 140px; /* Increased slightly to ensure space below list if needed */
+        }
+         #page-shopping-list #shopping-list-items-container {
+            position: relative; /* For absolute positioning of pseudo-elements if needed */
         }
 
         #page-index .page-content,
@@ -225,6 +228,10 @@
             text-decoration: line-through;
             color: #857065;
         }
+         .shopping-item {
+            position: relative; /* Needed for absolute positioning of pseudo-elements or for z-indexing if swipe reveals content */
+            /* touch-action: pan-y; /* Allow vertical scroll, try to prevent horizontal scroll capture by browser if we handle it */
+        }
 
         .ingredient-item.checked .ingredient-name {
             text-decoration: line-through;
@@ -276,16 +283,17 @@
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
         }
 
-        .list-item-leave {
+        .list-item-leave { /* No longer directly used by deleteShoppingItemFromDB, but kept for other potential uses */
             opacity: 1;
             transform: translateY(0);
         }
 
-        .list-item-leave-active {
+        .list-item-leave-active { /* No longer directly used by deleteShoppingItemFromDB for swiped items */
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-10px); /* This was the old animation, swipe will use translateX */
             transition: opacity 0.2s ease-in, transform 0.2s ease-in;
         }
+
 
         #recipe-bookmark-icon {
             transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
@@ -932,8 +940,6 @@
                 return;
             }
 
-            // Determine if we are trying to show the same page that's already active,
-            // and it's not a history navigation (popstate or initial load).
             const isSamePageAlreadyActive = (currentPageId === pageId && newPage.classList.contains("active"));
             const shouldPushHistory = !fromHistoryOrInitialLoad && !isSamePageAlreadyActive;
 
@@ -943,7 +949,7 @@
             }
 
             if (shouldPushHistory) {
-                if (currentPageId !== pageId) { // Update previousPageId only if changing pages
+                if (currentPageId !== pageId) { 
                     previousPageId = currentPageId;
                 }
 
@@ -978,13 +984,10 @@
             });
             updateNavbarUI(pageId);
             
-            // Only scroll to top if it's a genuinely new page activation or a history navigation.
-            // Not if it's just a "refresh" of the same active page.
             if (!isSamePageAlreadyActive || fromHistoryOrInitialLoad) {
                  newPage.querySelector(".page-content")?.scrollTo(0, 0);
             }
 
-            // Page-specific loading/rendering logic
             if (pageId === "page-index") {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites") {
@@ -1009,8 +1012,6 @@
             } else if (pageId === "page-shopping-list") {
                 loadShoppingListFromDB();
             }
-            // Note: page-recipe loading is typically handled by loadRecipeDetailFromRealtimeDB, which then calls showPage.
-            // The `fromHistoryOrInitialLoad` flag passed to showPage from there is critical.
         }
 
         function updateNavbarUI(e) { document.querySelectorAll(".nav-item").forEach(t => { t.classList.remove("nav-active"); const c = t.dataset.target; let a = "page-recipe" === e ? c === previousPageId && ("page-index" === previousPageId || "page-favorites" === previousPageId) ? !0 : "page-index" === c && "page-favorites" !== previousPageId ? !0 : !1 : c === e; const n = a ? "text-white" : "text-[#bda89e]", o = t.querySelector(".nav-icon-container"), i = t.querySelector(".nav-text");["text-white", "text-[#bda89e]"].forEach(e => { t.classList.remove(e), i?.classList.remove(e), o?.classList.remove(e) }), t.classList.add(n), i?.classList.add(n), o?.classList.add(n), a && t.classList.add("nav-active"), "page-favorites" === c && o && o.querySelector("svg") && (o.querySelector("svg").innerHTML = a ? '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>' : '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>') }) }
@@ -1190,7 +1191,7 @@
 
             if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                 displayRecipeDetailsUI(recipeData);
-                showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
+                showPage("page-recipe", fromHistoryOrInitialLoad); 
                 return;
             }
 
@@ -1203,7 +1204,7 @@
                 recipeData = allRecipesCache.find(r => r.id === recipeId);
                 if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                     displayRecipeDetailsUI(recipeData);
-                    showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
+                    showPage("page-recipe", fromHistoryOrInitialLoad); 
                     return;
                 }
             }
@@ -1217,15 +1218,15 @@
                     else allRecipesCache.push(fetchedRecipe);
 
                     displayRecipeDetailsUI(fetchedRecipe);
-                    showPage("page-recipe", fromHistoryOrInitialLoad); // Pass flag
+                    showPage("page-recipe", fromHistoryOrInitialLoad); 
                 } else {
                     showCustomAlert("Error", "Recipe not found.");
-                    showPage(previousPageId || "page-index", true); // true because this is like a history fallback
+                    showPage(previousPageId || "page-index", true); 
                 }
             } catch (error) {
                 console.error("Error getting recipe:", error);
                 showCustomAlert("Error", "Recipe load failed. Please try again.");
-                showPage(previousPageId || "page-index", true); // true for fallback
+                showPage(previousPageId || "page-index", true); 
             }
         }
 
@@ -1399,7 +1400,7 @@
 
                 if (!imageToSaveURL && !editingRecipeId) { 
                      if (!currentRecipeImageURL) { 
-                        saveButton.textContent = "Save Recipe"; // Reset button text before showing alert
+                        saveButton.textContent = "Save Recipe"; 
                         saveButton.disabled = false;
                         return showCustomAlert("Validation Error", "A recipe photo is required.");
                      }
@@ -1572,12 +1573,251 @@
         async function handleAddRecipeToPlan(e, t) { const c = formatDateForFirebaseKey(currentSelectedDate); try { await database.ref(`mealPlan/${c}`).push({ recipeId: e, recipeTitle: t }), closeAddMealModal(), loadMealsForSelectedDate() } catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") } }
         
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
-        async function loadShoppingListFromDB() { if (!shoppingListItemsContainer) return; shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>'; try { const e = await database.ref("shoppingList").orderByChild("createdAt").once("value"), t = []; e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) }), displayShoppingListUI(t) } catch (e) { console.error("Error loading shopping list:", e), shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>' } }
-        function displayShoppingListUI(e) { if (!shoppingListItemsContainer) return; if (shoppingListItemsContainer.innerHTML = "", 0 === e.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); e.sort((e, t) => e.checked === t.checked ? (e.name || "").localeCompare(t.name || "") : e.checked ? 1 : -1), e.forEach(e => { const t = document.createElement("div"); t.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${e.checked ? "checked" : ""}`, t.dataset.itemId = e.id, t.innerHTML = `\n                    <input type="checkbox" class="shopping-item-checkbox" ${e.checked ? "checked" : ""}>\n                    <span class="item-name text-white flex-grow">${e.name || "Unnamed Item"}</span>\n                    <button class="delete-shopping-item-button interactive-scale text-gray-500 hover:text-red-500 p-1 rounded-full hover:bg-white/10">\n                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg>\n                    </button>\n                `, shoppingListItemsContainer.appendChild(t), requestAnimationFrame(() => { t.classList.add("list-item-enter-active") }), t.querySelector(".shopping-item-checkbox").addEventListener("change", t => { toggleShoppingItemCheckedInDB(e.id, t.target.checked) }), t.querySelector(".delete-shopping-item-button").addEventListener("click", () => { deleteShoppingItemFromDB(e.id, t) }) }) }
-        async function addShoppingItemToDB() { if (!newShoppingItemNameInput) return; const e = newShoppingItemNameInput.value.trim(); if (!e) return showCustomAlert("Input Error", "Please enter an item name."); try { await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp }), newShoppingItemNameInput.value = "", newShoppingItemNameInput.focus(), loadShoppingListFromDB() } catch (e) { console.error("Error adding shopping item:", e), showCustomAlert("Error", "Failed to add item to shopping list.") } }
-        async function toggleShoppingItemCheckedInDB(e, t) { try { await database.ref(`shoppingList/${e}`).update({ checked: t }), loadShoppingListFromDB() } catch (e) { console.error("Error updating shopping item:", e) } }
-        async function deleteShoppingItemFromDB(e, t) { t.classList.remove("list-item-enter-active"), t.classList.add("list-item-leave-active"), setTimeout(async () => { try { await database.ref(`shoppingList/${e}`).remove(), loadShoppingListFromDB() } catch (e) { console.error("Error deleting shopping item:", e), t.classList.remove("list-item-leave-active"), t.classList.add("list-item-enter-active") } }, 200) }
         
+        // --- Shopping List Swipe Logic ---
+        let swipeState = {
+            isSwiping: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            item: null,
+            itemId: null,
+            swipeThreshold: 80, // pixels to trigger delete
+            maxSwipeDistanceForOpacity: 150, // pixels for item to become fully transparent
+            isVerticalScroll: false,
+            scrollLockThreshold: 10 // pixels to decide if scroll or swipe
+        };
+
+        const shoppingListSwipeMoveHandler = (event) => {
+            if (!swipeState.isSwiping || !swipeState.item) return;
+
+            const currentX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
+            const currentY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
+            const deltaX = currentX - swipeState.startX;
+            const deltaY = currentY - swipeState.startY;
+
+            if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) {
+                // Not enough movement to decide axis yet
+                return;
+            }
+            
+            if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) {
+                swipeState.isVerticalScroll = true; // Locked to vertical scroll for this gesture
+            }
+
+            if (swipeState.isVerticalScroll) {
+                // Allow native browser scrolling, do nothing for swipe
+                return;
+            }
+            
+            // If we reach here, it's a horizontal swipe or undecided but primarily horizontal
+            if (event.type === 'touchmove') {
+                event.preventDefault(); // Prevent vertical scroll if we are handling horizontal swipe
+            }
+
+            swipeState.currentX = currentX;
+
+            if (deltaX > 0) { // Swiping right
+                swipeState.item.style.transform = `translateX(${deltaX}px)`;
+                const opacity = Math.max(0.1, 1 - (deltaX / swipeState.maxSwipeDistanceForOpacity)); // Keep a minimum opacity while dragging
+                swipeState.item.style.opacity = opacity;
+            } else { // Swiping left or not enough right to start visual change
+                swipeState.item.style.transform = 'translateX(0px)';
+                swipeState.item.style.opacity = 1;
+            }
+        };
+
+        const shoppingListSwipeEndHandler = (event, forceReset = false) => {
+            if (!swipeState.isSwiping || !swipeState.item) {
+                // Clean up listeners if somehow missed
+                document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
+                document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
+                document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
+                document.removeEventListener('touchmove', shoppingListSwipeMoveHandler);
+                document.removeEventListener('touchend', shoppingListSwipeEndHandler);
+                document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
+                if (swipeState.item) swipeState.item.style.userSelect = '';
+                swipeState.isSwiping = false; // Ensure flag is reset
+                return;
+            }
+
+            const itemToDelete = swipeState.item;
+            const idToDelete = swipeState.itemId;
+            const deltaX = swipeState.currentX - swipeState.startX;
+
+            // Reset item and global swipe state flags first
+            const wasSwiping = swipeState.isSwiping;
+            swipeState.isSwiping = false; 
+            swipeState.item = null;
+            swipeState.itemId = null;
+            swipeState.isVerticalScroll = false;
+
+
+            document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
+            document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
+            document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
+            document.removeEventListener('touchmove', shoppingListSwipeMoveHandler);
+            document.removeEventListener('touchend', shoppingListSwipeEndHandler);
+            document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
+            itemToDelete.style.userSelect = '';
+
+
+            if (wasSwiping && !forceReset && deltaX > swipeState.swipeThreshold) { // Delete
+                itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                itemToDelete.style.transform = `translateX(${window.innerWidth}px)`; // Slide fully off-screen
+                itemToDelete.style.opacity = 0;
+                itemToDelete.dataset.swipedForDelete = "true";
+
+                itemToDelete.addEventListener('transitionend', async () => {
+                    try {
+                        await database.ref(`shoppingList/${idToDelete}`).remove();
+                        loadShoppingListFromDB(); // Re-render list
+                    } catch (error) {
+                        console.error("Error deleting shopping item after swipe:", error);
+                        loadShoppingListFromDB(); 
+                        showCustomAlert("Error", "Could not delete item. It will reappear.");
+                    }
+                }, { once: true });
+            } else if (wasSwiping) { // Reset position (if it was a swipe attempt)
+                itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                itemToDelete.style.transform = 'translateX(0px)';
+                itemToDelete.style.opacity = 1;
+                itemToDelete.addEventListener('transitionend', () => {
+                    if (itemToDelete) itemToDelete.style.transition = 'none'; // Check if itemToDelete still exists
+                }, { once: true });
+            }
+        };
+        
+        const shoppingListDocMouseLeaveHandler = (event) => {
+             if (event.relatedTarget === null && swipeState.isSwiping) { // Mouse left the document entirely
+                shoppingListSwipeEndHandler(event, true); // force reset
+            }
+        };
+
+
+        const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
+            if (swipeState.isSwiping) return; // Prevent multiple swipes
+            if (event.type === 'touchstart' && event.touches.length > 1) return; // Ignore multi-touch
+
+            swipeState.isSwiping = true;
+            swipeState.item = itemElement;
+            swipeState.itemId = itemId;
+            swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+            swipeState.startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+            swipeState.currentX = swipeState.startX;
+            swipeState.isVerticalScroll = false;
+            
+            itemElement.style.transition = 'none';
+            itemElement.style.userSelect = 'none';
+            
+            document.addEventListener('mousemove', shoppingListSwipeMoveHandler);
+            document.addEventListener('mouseup', shoppingListSwipeEndHandler);
+            document.addEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
+
+            document.addEventListener('touchmove', shoppingListSwipeMoveHandler, { passive: false });
+            document.addEventListener('touchend', shoppingListSwipeEndHandler);
+            document.addEventListener('touchcancel', shoppingListSwipeEndHandler);
+        };
+
+        async function loadShoppingListFromDB() { 
+            if (!shoppingListItemsContainer) return; 
+            shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>'; 
+            try { 
+                const e = await database.ref("shoppingList").orderByChild("createdAt").once("value");
+                const t = []; 
+                e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) });
+                displayShoppingListUI(t);
+            } catch (e) { 
+                console.error("Error loading shopping list:", e);
+                shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>';
+            } 
+        }
+
+        function displayShoppingListUI(e) { 
+            if (!shoppingListItemsContainer) return; 
+            if (shoppingListItemsContainer.innerHTML = "", 0 === e.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); 
+            
+            e.sort((e, t) => e.checked === t.checked ? (e.name || "").localeCompare(t.name || "") : e.checked ? 1 : -1);
+            
+            e.forEach(itemData => { 
+                const itemElement = document.createElement("div"); 
+                itemElement.className = `shopping-item flex items-center gap-3 p-3 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`; 
+                itemElement.dataset.itemId = itemData.id; 
+                itemElement.innerHTML = `
+                    <input type="checkbox" class="shopping-item-checkbox" ${itemData.checked ? "checked" : ""}>
+                    <span class="item-name text-white flex-grow">${itemData.name || "Unnamed Item"}</span>
+                `; // Removed delete button SVG
+                
+                shoppingListItemsContainer.appendChild(itemElement);
+                requestAnimationFrame(() => { itemElement.classList.add("list-item-enter-active") }); 
+                
+                itemElement.querySelector(".shopping-item-checkbox").addEventListener("change", t => { 
+                    toggleShoppingItemCheckedInDB(itemData.id, t.target.checked);
+                });
+
+                // Add swipe event listeners
+                itemElement.addEventListener('mousedown', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id));
+                itemElement.addEventListener('touchstart', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id), { passive: true }); // passive:true initially for start
+
+            });
+        }
+        async function addShoppingItemToDB() { 
+            if (!newShoppingItemNameInput) return; 
+            const e = newShoppingItemNameInput.value.trim(); 
+            if (!e) return showCustomAlert("Input Error", "Please enter an item name."); 
+            try { 
+                await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp });
+                newShoppingItemNameInput.value = ""; 
+                newShoppingItemNameInput.focus();
+                loadShoppingListFromDB();
+            } catch (e) { 
+                console.error("Error adding shopping item:", e);
+                showCustomAlert("Error", "Failed to add item to shopping list.");
+            } 
+        }
+        async function toggleShoppingItemCheckedInDB(e, t) { 
+            try { 
+                await database.ref(`shoppingList/${e}`).update({ checked: t });
+                loadShoppingListFromDB();
+            } catch (e) { console.error("Error updating shopping item:", e) } 
+        }
+        
+        async function deleteShoppingItemFromDB(itemId, itemElement = null) {
+            // itemElement is passed for non-swipe deletions (e.g., if a button was used)
+            // For swipe, itemElement.dataset.swipedForDelete would be true, and visual removal is handled by swipeEndHandler
+            if (itemElement && !itemElement.dataset.swipedForDelete) {
+                // Fallback animation for non-swipe deletes (e.g. if a button was re-added later)
+                itemElement.style.transition = 'opacity 0.2s ease-out';
+                itemElement.style.opacity = 0;
+                await new Promise(resolve => setTimeout(resolve, 200)); // Wait for this simple animation
+            }
+
+            try {
+                await database.ref(`shoppingList/${itemId}`).remove();
+                // loadShoppingListFromDB will be called by the swipeEndHandler's transitionend callback
+                // or here if it's a non-swipe deletion.
+                // To avoid double load if called from swipe, ensure swipeEndHandler is the one calling loadShoppingListFromDB.
+                // For now, let's assume this function is mostly for DB and list refresh, and swipe handles its own visual + DB.
+                // The current swipeEndHandler calls DB remove and then load.
+                // So, this function becomes mostly for OTHER delete paths if any.
+                // If this is *only* called from swipeEndHandler eventually, then loadShoppingListFromDB() call can be removed from here.
+                // For now, it's safer to keep it in case other call paths exist or are added.
+                //
+                // Actually, the swipeEndHandler calls database.ref().remove() itself after animation.
+                // So this function is now simplified to just be the DB op + reload, and the itemElement logic
+                // is for a hypothetical non-swipe scenario.
+                // Let's remove the itemElement handling since swipe is the primary method now.
+                // loadShoppingListFromDB(); // This might be redundant if called from swipeEndHandler context.
+                                         // Swipe end handler will call loadShoppingListFromDB after DB delete.
+            } catch (error) {
+                console.error("Error deleting shopping item from DB:", error);
+                 if (itemElement && !itemElement.dataset.swipedForDelete) { // Revert if non-swipe delete failed
+                     itemElement.style.opacity = 1;
+                 }
+                showCustomAlert("Error", "Failed to delete item from database.");
+            }
+        }
+
         async function clearCheckedShoppingItemsFromDB() {
             const confirmed = await showCustomConfirm(
                 "Clear Checked Items", 
