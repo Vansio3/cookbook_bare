@@ -260,17 +260,17 @@
             animation: pulseOpacity 1.5s infinite ease-in-out;
         }
 
-        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal, #shopping-list-sort-modal {
+        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal, #shopping-list-sort-modal, #category-selector-modal {
             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div, #shopping-list-sort-modal>div {
+        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div, #shopping-list-sort-modal>div, #category-selector-modal>div {
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: scale(0.95);
             opacity: 0;
         }
 
-        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div, #shopping-list-sort-modal:not(.hidden)>div {
+        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div, #shopping-list-sort-modal:not(.hidden)>div, #category-selector-modal:not(.hidden)>div {
             transform: scale(1);
             opacity: 1;
         }
@@ -331,9 +331,7 @@
             transform: scale(0.9);
         }
 
-        .form-select-custom {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23bda89e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        }
+        /* Removed .form-select-custom as it's no longer used for category */
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -562,15 +560,13 @@
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Category</p>
-                        <select id="create-recipe-category"
-                            class="form-select-custom form-select w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
-                            <option value="Dinner">Dinner</option>
-                            <option value="Breakfast">Breakfast</option>
-                            <option value="Lunch">Lunch</option>
-                            <option value="Appetizers & Snacks">Appetizers & Snacks</option>
-                            <option value="Desserts">Desserts</option>
-                            <option value="Drinks">Drinks</option>
-                        </select>
+                        <button type="button" id="create-recipe-category-button"
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e] text-left flex justify-between items-center">
+                            <span id="create-recipe-category-display">Select Category</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#bda89e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Description</p><textarea
@@ -853,6 +849,23 @@
         </div>
     </div>
 
+    <!-- Category Selector Modal -->
+    <div id="category-selector-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+        <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-xl font-bold">Select Category</h3>
+                <button id="close-category-selector-modal-button" class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="category-selector-options" class="space-y-3">
+                <!-- Category buttons will be populated here by JS -->
+            </div>
+        </div>
+    </div>
+
 
     <div class="bottom-nav-bar">
         <div class="flex gap-1 px-2 pb-3 pt-2">
@@ -918,11 +931,12 @@
         let currentPageId = "page-index", previousPageId = "page-index", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date), isInitialPageLoad = !0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish", "DM"];
-        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; // Assuming .png, adjust if needed
+        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; 
 
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
-        let currentShoppingListSort = 'default'; // 'default', 'createdAt_desc', 'createdAt_asc', 'shop'
+        let currentShoppingListSort = 'default'; 
+        let currentSelectedRecipeCategory = "Dinner"; // Default category for new recipes
 
 
         // --- Custom Alert Modal Elements & Functions ---
@@ -967,6 +981,42 @@
                 currentConfirmResolver(result);
                 currentConfirmResolver = null;
             }
+        }
+
+        // --- Category Selector Modal Elements & Functions ---
+        let categorySelectorModal, categorySelectorOptionsContainer, closeCategorySelectorModalButton;
+        let createRecipeCategoryButton, createRecipeCategoryDisplay; 
+
+        function openCategorySelectorModal() {
+            if (!categorySelectorModal || !categorySelectorOptionsContainer) return;
+
+            categorySelectorOptionsContainer.innerHTML = ''; 
+            RECIPE_CATEGORIES.forEach(category => {
+                const categoryButton = document.createElement('button');
+                categoryButton.className = `w-full interactive-scale px-4 py-2.5 rounded-lg text-white font-medium text-left`;
+                categoryButton.classList.toggle('bg-[#f0560e]', category === currentSelectedRecipeCategory);
+                categoryButton.classList.toggle('hover:bg-orange-600', category === currentSelectedRecipeCategory);
+                categoryButton.classList.toggle('bg-[#40322b]', category !== currentSelectedRecipeCategory);
+                categoryButton.classList.toggle('hover:bg-[#5a3a2a]', category !== currentSelectedRecipeCategory);
+                
+                categoryButton.textContent = category;
+                categoryButton.dataset.category = category;
+                categoryButton.addEventListener('click', () => handleCategorySelected(category));
+                categorySelectorOptionsContainer.appendChild(categoryButton);
+            });
+            categorySelectorModal.classList.remove('hidden');
+        }
+
+        function closeCategorySelectorModal() {
+            if (categorySelectorModal) categorySelectorModal.classList.add('hidden');
+        }
+
+        function handleCategorySelected(categoryName) {
+            currentSelectedRecipeCategory = categoryName;
+            if (createRecipeCategoryDisplay) {
+                createRecipeCategoryDisplay.textContent = categoryName;
+            }
+            closeCategorySelectorModal();
         }
 
 
@@ -1333,7 +1383,8 @@
 
         function resetCreateForm() {
             document.getElementById("create-recipe-title").value = "";
-            document.getElementById("create-recipe-category").value = "Dinner";
+            currentSelectedRecipeCategory = "Dinner"; // Reset variable
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Update display
             document.getElementById("create-recipe-description").value = "";
             document.getElementById("create-recipe-ingredients").value = "";
             document.getElementById("create-recipe-instructions").value = "";
@@ -1361,7 +1412,8 @@
 
                     document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe";
                     document.getElementById("create-recipe-title").value = recipeData.title || "";
-                    document.getElementById("create-recipe-category").value = recipeData.category || "Dinner";
+                    currentSelectedRecipeCategory = recipeData.category || "Dinner"; // Set variable
+                    if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Update display
                     document.getElementById("create-recipe-description").value = recipeData.description || "";
                     document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
                     document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n");
@@ -1399,7 +1451,7 @@
 
         async function saveRecipeData() {
             const title = document.getElementById("create-recipe-title").value.trim();
-            const category = document.getElementById("create-recipe-category").value;
+            const category = currentSelectedRecipeCategory; // Use the variable
             const description = document.getElementById("create-recipe-description").value.trim();
             const ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim();
             const instructionsRaw = document.getElementById("create-recipe-instructions").value.trim();
@@ -1409,7 +1461,7 @@
             const photoInput = document.getElementById("create-recipe-photoInput");
 
             if (!title) return showCustomAlert("Validation Error", "Recipe title is required.");
-            if (!category) return showCustomAlert("Validation Error", "Category is required.");
+            if (!category) return showCustomAlert("Validation Error", "Category is required."); // Should always have a value due to default
             if (!description) return showCustomAlert("Validation Error", "Description is required.");
             if (!ingredientsRaw) return showCustomAlert("Validation Error", "Ingredients are required (at least one line).");
             const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e);
@@ -1991,6 +2043,20 @@
             // Shopping List Sort Modal Init
             shoppingListSortModal = document.getElementById('shopping-list-sort-modal');
             closeShoppingListSortModalButton = document.getElementById('close-shopping-list-sort-modal-button');
+
+            // Category Selector Modal Init
+            categorySelectorModal = document.getElementById('category-selector-modal');
+            categorySelectorOptionsContainer = document.getElementById('category-selector-options');
+            closeCategorySelectorModalButton = document.getElementById('close-category-selector-modal-button');
+            createRecipeCategoryButton = document.getElementById('create-recipe-category-button');
+            createRecipeCategoryDisplay = document.getElementById('create-recipe-category-display');
+            
+            createRecipeCategoryButton?.addEventListener('click', openCategorySelectorModal);
+            closeCategorySelectorModalButton?.addEventListener('click', closeCategorySelectorModal);
+            categorySelectorModal?.addEventListener('click', (event) => { 
+                if (event.target === categorySelectorModal) closeCategorySelectorModal(); 
+            });
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; // Initialize display
 
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference');
             if (savedSortPreference) {
