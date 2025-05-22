@@ -1077,9 +1077,9 @@
             const openModalId = getOpenModalId();
             if (openModalId) {
                 closeModalById(openModalId);
-                // If a modal was closed, we might need to push state to prevent URL change
-                // This is handled by popstate, but for app buttons, we just close.
-                // The history.pushState in popstate handler ensures URL is consistent if native back was used.
+                // The popstate handler will deal with re-pushing state if native back was used.
+                // For in-app back button, just closing the modal is enough, then the next back
+                // (if it's an in-app button) will call showPage('page-index').
                 return; 
             }
 
@@ -1100,28 +1100,38 @@
                     document.body.innerHTML = "Critical error: page-index not found. Cannot recover.";
                     return;
                 }
-                showPage("page-index", fromHistoryOrInitialLoad);
+                showPage("page-index", fromHistoryOrInitialLoad); // Pass along fromHistoryOrInitialLoad
                 return;
             }
             
-            const shouldPushHistory = !fromHistoryOrInitialLoad;
-
             const oldPage = document.getElementById(currentPageId);
             if (oldPage && oldPage !== newPage) {
                 oldPage.classList.remove("active");
             }
 
-            if (shouldPushHistory) {
+            if (!fromHistoryOrInitialLoad) { 
                 if (currentPageId !== pageId) { 
                     previousPageId = currentPageId;
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
                 let urlToPush = getCurrentPageFullHash(pageId);
-                history.pushState(stateToPush, `Page ${pageId}`, urlToPush);
+                // Only push if the URL or state is actually different to avoid redundant entries
+                if (window.location.hash !== urlToPush || JSON.stringify(history.state) !== JSON.stringify(stateToPush)) {
+                    history.pushState(stateToPush, `Page ${pageId}`, urlToPush);
+                }
+            } else {
+                // Navigating due to popstate or initial load.
+                // Ensure URL reflects the pageId we are actually showing,
+                // especially if popstate logic forced a different page (e.g., always to index).
+                const targetHash = getCurrentPageFullHash(pageId);
+                if (window.location.hash !== targetHash) {
+                    let stateToReplace = getCurrentPageHistoryState(pageId);
+                    history.replaceState(stateToReplace, `Page ${pageId}`, targetHash);
+                }
             }
 
             currentPageId = pageId;
-            localStorage.setItem("lastActivePageId", pageId);
+            localStorage.setItem("lastActivePageId", pageId); // Still useful for non-initial loads or if app is killed
 
             requestAnimationFrame(() => {
                 newPage.classList.add("active");
@@ -1129,27 +1139,28 @@
             updateNavbarUI(pageId);
             
             const pageContent = newPage.querySelector(".page-content");
-            if (pageContent) { // Only scroll if not the same page or from history/initial load
-                 if (!oldPage || oldPage !== newPage || fromHistoryOrInitialLoad) {
+            if (pageContent) {
+                 if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) { // Refined scroll condition
                      pageContent.scrollTo(0,0);
                  }
             }
 
-
+            // Specific page load logic
             if (pageId === "page-index") {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites") {
                 renderFavoritesPage();
             } else if (pageId === "page-schedule") {
-                if (fromHistoryOrInitialLoad) { // Data for schedule page might be in history.state
+                // State for schedule (currentSelectedDate, currentDisplayedWeekStartDate)
+                // should be managed based on whether it's an initial load with state/localStorage,
+                // or a direct navigation.
+                if (fromHistoryOrInitialLoad) { 
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate);
-                } else { // If programmatic nav to schedule, reset or use current dates
-                     // No specific state change needed here if it's a fresh programmatic navigation,
-                     // currentSelectedDate and currentDisplayedWeekStartDate should be up-to-date.
                 }
+                // Always ensure local storage is updated when schedule page is shown
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
                 renderWeekView();
@@ -1157,6 +1168,7 @@
                 loadShoppingListFromDB();
             }
         }
+
 
         function updateNavbarUI(e) { document.querySelectorAll(".nav-item").forEach(t => { t.classList.remove("nav-active"); const c = t.dataset.target; let a = "page-recipe" === e ? c === previousPageId && ("page-index" === previousPageId || "page-favorites" === previousPageId) ? !0 : "page-index" === c && "page-favorites" !== previousPageId ? !0 : !1 : c === e; const n = a ? "text-white" : "text-[#bda89e]", o = t.querySelector(".nav-icon-container"), i = t.querySelector(".nav-text");["text-white", "text-[#bda89e]"].forEach(e => { t.classList.remove(e), i?.classList.remove(e), o?.classList.remove(e) }), t.classList.add(n), i?.classList.add(n), o?.classList.add(n), a && t.classList.add("nav-active"), "page-favorites" === c && o && o.querySelector("svg") && (o.querySelector("svg").innerHTML = a ? '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>' : '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>') }) }
 
@@ -2109,40 +2121,38 @@
             }
 
             isInitialPageLoad = true;
-            let initialPageId = "page-index";
+            let initialPageId = "page-index"; // Default for fresh launch (Bug 2)
             let recipeIdForInitialLoad = null;
             let scheduleDateForInitialLoad = null;
             let scheduleWeekStartForInitialLoad = null;
 
             const hash = window.location.hash.substring(1);
-            if (history.state && history.state.page) { // If history state exists, use it
+            if (history.state && history.state.page) { // If history state exists (e.g., refresh), use it
                 initialPageId = history.state.page;
                 recipeIdForInitialLoad = history.state.recipeId;
                 scheduleDateForInitialLoad = history.state.selectedDate;
                 scheduleWeekStartForInitialLoad = history.state.weekStart;
 
-            } else if (hash) { // If no history state, parse hash
+            } else if (hash) { // If no history state, parse hash (deep link)
                 const parts = hash.split('/');
-                initialPageId = parts[0] || "page-index";
-                if (initialPageId === "page-recipe" && parts[1]) {
-                    recipeIdForInitialLoad = parts[1];
-                } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
-                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
-                }
-                // For schedule, rely on localStorage if not in a more complex hash
-                if (initialPageId === "page-schedule"){
-                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
-                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
-                }
-            } else { // No history state, no hash, use localStorage or default
-                initialPageId = localStorage.getItem("lastActivePageId") || "page-index";
-                if (initialPageId === "page-recipe") {
-                    recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
-                } else if (initialPageId === "page-schedule") {
-                    scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
-                    scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                const potentialPageId = parts[0];
+                // Only honor hash if it's a valid page, otherwise default to index
+                if (document.getElementById(potentialPageId)) {
+                    initialPageId = potentialPageId;
+                    if (initialPageId === "page-recipe" && parts[1]) {
+                        recipeIdForInitialLoad = parts[1];
+                    } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
+                        recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
+                    }
+                    if (initialPageId === "page-schedule"){
+                        scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
+                        scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
+                    }
                 }
             }
+            // If initialPageId remained "page-index" from default, or was reset due to invalid hash,
+            // this fulfills Bug 2: app opens at page-index on fresh launch.
+            // If history.state or a valid hash was present, it respects that.
 
             currentPageId = initialPageId; // Set currentPageId before calling helpers
             if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
@@ -2164,45 +2174,69 @@
             await recipesDataPromise;
 
             window.addEventListener('popstate', (event) => {
-                const pageIdRecordedBeforePop = currentPageId; 
                 const openModalId = getOpenModalId();
 
                 if (openModalId) {
+                    // 1. A modal is open. Close it.
                     closeModalById(openModalId);
-                    const previousState = getCurrentPageHistoryState(pageIdRecordedBeforePop);
-                    const previousHash = getCurrentPageFullHash(pageIdRecordedBeforePop);
-                    history.pushState(previousState, `Page ${pageIdRecordedBeforePop}`, previousHash);
-                    return;
+                    // 2. "Cancel" the back navigation by re-pushing the current page's state.
+                    // This keeps the user on the current page, with the modal now closed.
+                    // The URL remains the same.
+                    const currentState = getCurrentPageHistoryState(currentPageId);
+                    const currentHash = getCurrentPageFullHash(currentPageId);
+                    history.pushState(currentState, `Page ${currentPageId}`, currentHash);
+                    return; // Stop further processing of this popstate event.
                 }
 
-                if (pageIdRecordedBeforePop !== 'page-index') {
-                    showPage('page-index'); 
-                } else {
-                    const newTargetState = event.state;
-                    const newTargetPageIdFromState = newTargetState ? newTargetState.page : null;
-                    const newTargetPageIdFromHash = location.hash.substring(1).split('/')[0] || 'page-index';
-                    const finalTargetPageId = newTargetPageIdFromState || newTargetPageIdFromHash;
+                // No modal is open.
+                // `currentPageId` is the page we are *coming from* (before this popstate processed by showPage).
+                // `event.state` is the state the browser has popped TO. The URL has already changed.
 
-                    if (document.getElementById(finalTargetPageId)) {
-                        if (finalTargetPageId === 'page-recipe') {
-                            const recipeId = newTargetState?.recipeId || location.hash.substring(1).split('/')[1];
-                            if (recipeId) {
-                                loadRecipeDetailFromRealtimeDB(recipeId, true); 
-                            } else {
-                                showPage('page-index', true); 
-                            }
-                        } else if (finalTargetPageId === 'page-schedule') {
-                            currentSelectedDate = newTargetState?.selectedDate ? new Date(newTargetState.selectedDate) : new Date(localStorage.getItem("scheduleView_currentSelectedDate") || new Date());
-                            currentDisplayedWeekStartDate = newTargetState?.weekStart ? new Date(newTargetState.weekStart) : getStartOfWeek(new Date(localStorage.getItem("scheduleView_currentDisplayedWeekStartDate") || currentSelectedDate));
-                            showPage('page-schedule', true);
+                if (currentPageId === 'page-index') {
+                    // 3. If we are currently on page-index and native back is pressed (and no modal was open),
+                    //    the app should exit or navigate to a previous external page.
+                    //    We do nothing here to override the browser's default behavior.
+                    //    This handles Bug 3.
+                    //    If event.state is null, it means we've popped to before our app's managed history for this tab.
+                    if (event.state === null || (event.state && event.state.page === 'page-index')) {
+                        // Allow browser to handle exit or navigation to pre-app history.
+                        // Update internal state for consistency if we somehow don't exit.
+                        if (event.state && event.state.page) {
+                             currentPageId = event.state.page; // Keep internal state aligned
+                             updateNavbarUI(currentPageId);
+                        } else { // Popped to a state before our app (null state)
+                            currentPageId = 'page-index'; // Assume we're back at "root" of our app's view
+                            updateNavbarUI('page-index');
                         }
-                        else {
-                            showPage(finalTargetPageId, true); 
-                        }
-                    } else {
-                        localStorage.setItem("lastActivePageId", "page-index");
+                        return; 
                     }
+                    // If event.state points to something else *from* page-index (shouldn't happen with this logic
+                    // unless user manually typed URL or used fwd/back extensively), then fall through to go to index.
                 }
+
+                // 4. If current page is NOT page-index (e.g., page-recipe, page-favorites):
+                //    A native back press (with no modal open) should navigate to page-index.
+                //    The browser has already changed the URL. We call showPage to update the UI
+                //    to page-index and ensure the URL is corrected to #page-index if needed.
+                //    This handles Bug 1 (part 2: second back action goes to page-index).
+                
+                // Check if the state we popped to is a specific, valid deep link we want to honor.
+                if (event.state && event.state.page) {
+                    const targetPage = event.state.page;
+                    if (targetPage === 'page-recipe' && event.state.recipeId) {
+                        loadRecipeDetailFromRealtimeDB(event.state.recipeId, true);
+                        return;
+                    } else if (targetPage === 'page-schedule') {
+                        // currentSelectedDate and currentDisplayedWeekStartDate will be set by showPage
+                        // when called with fromHistoryOrInitialLoad=true and history.state is available.
+                        showPage('page-schedule', true); 
+                        return;
+                    }
+                    // If it's page-favorites or page-create-recipe, etc., we'll default to page-index below.
+                }
+                
+                // Default action for back from a non-index page, or if state is unclear: go to page-index.
+                showPage('page-index', true);
             });
 
 
