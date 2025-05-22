@@ -232,8 +232,8 @@
             position: relative; 
         }
         .shopping-item-location-button {
-            margin-left: auto; /* Push to the right */
-            flex-shrink: 0; /* Prevent shrinking */
+            margin-left: auto; 
+            flex-shrink: 0; 
         }
 
         .ingredient-item.checked .ingredient-name {
@@ -713,8 +713,15 @@
                         </svg>
                     </button>
                 </div>
+                <div class="px-4 pb-3 pt-1">
+                    <label for="shopping-list-sort" class="sr-only">Sort by</label>
+                    <select id="shopping-list-sort" class="form-select-custom form-select w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
+                        <option value="dateCreated">Sort: Date Created (Newest)</option>
+                        <option value="shop">Sort: Shop</option>
+                    </select>
+                </div>
             </div>
-            <div class="page-content px-4 pt-4">
+            <div class="page-content px-4 pt-2"> <!-- Adjusted pt from pt-4 -->
                 <div id="shopping-list-items-container" class="space-y-2"></div>
             </div>
             <div
@@ -888,8 +895,9 @@
     <script>
         let currentPageId = "page-index", previousPageId = "page-index", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date), isInitialPageLoad = !0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
-        const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish", "DM"];
-        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; // Assuming .png, adjust if needed
+        const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish"];
+        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; 
+        let currentShoppingListSort = 'dateCreated'; // Default sort
 
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
@@ -1660,7 +1668,7 @@
 
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
             if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return;
-            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return; // Don't swipe if interacting with buttons
+            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return;
 
             swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId;
             swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
@@ -1681,7 +1689,7 @@
             if (!shoppingListItemsContainer) return; 
             shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>'; 
             try { 
-                const e = await database.ref("shoppingList").orderByChild("createdAt").once("value");
+                const e = await database.ref("shoppingList").once("value"); // Removed orderByChild for client-side sort
                 const t = []; 
                 e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) });
                 displayShoppingListUI(t);
@@ -1696,7 +1704,31 @@
             shoppingListItemsContainer.innerHTML = ""; 
             if (0 === shoppingItems.length) return void (shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'); 
             
-            shoppingItems.sort((a, b) => a.checked === b.checked ? (a.name || "").localeCompare(b.name || "") : a.checked ? 1 : -1);
+            // Apply sorting based on currentShoppingListSort
+            if (currentShoppingListSort === 'dateCreated') {
+                shoppingItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Newest first
+            } else if (currentShoppingListSort === 'shop') {
+                const shopOrder = [...SHOPS, undefined]; // undefined for items without a shop, to sort them last in their own group
+                shoppingItems.sort((a, b) => {
+                    const shopA = a.shop || undefined; // Normalize missing shop to undefined
+                    const shopB = b.shop || undefined;
+
+                    const shopAIndex = shopOrder.indexOf(shopA);
+                    const shopBIndex = shopOrder.indexOf(shopB);
+
+                    // If a shop isn't in SHOPS, treat it as "other" and group those together after known shops.
+                    // A shop not in SHOPS will have indexOf === -1.
+                    // An item with no shop (undefined) will have its index from shopOrder.indexOf(undefined).
+                    const effectiveShopAIndex = shopAIndex === -1 ? SHOPS.length : shopAIndex;
+                    const effectiveShopBIndex = shopBIndex === -1 ? SHOPS.length : shopBIndex;
+
+                    if (effectiveShopAIndex !== effectiveShopBIndex) {
+                        return effectiveShopAIndex - effectiveShopBIndex;
+                    }
+                    // If shops are the same category (both known, both unknown, or both undefined), sort by creation date (newest first)
+                    return (b.createdAt || 0) - (a.createdAt || 0);
+                });
+            }
             
             shoppingItems.forEach(itemData => { 
                 const itemElement = document.createElement("div"); 
@@ -1749,7 +1781,7 @@
             const e = newShoppingItemNameInput.value.trim(); 
             if (!e) return showCustomAlert("Input Error", "Please enter an item name."); 
             try { 
-                await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp });
+                await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp, shop: null }); // Added shop: null
                 newShoppingItemNameInput.value = ""; 
                 newShoppingItemNameInput.focus();
                 loadShoppingListFromDB();
@@ -1765,19 +1797,16 @@
             } catch (e) { console.error("Error updating shopping item:", e) } 
         }
         
-        async function deleteShoppingItemFromDB(itemId) { // Removed itemElement as it's handled by swipe logic
+        async function deleteShoppingItemFromDB(itemId) {
             try {
                 await database.ref(`shoppingList/${itemId}`).remove();
-                // loadShoppingListFromDB(); // This is called by swipeEndHandler after successful DB operation
             } catch (error) {
                 console.error("Error deleting shopping item from DB:", error);
                 showCustomAlert("Error", "Failed to delete item from database.");
-                 // If deletion failed, reload list to bring item back if it was visually removed by optimistic swipe
                 loadShoppingListFromDB();
             }
         }
 
-        // --- Shop Selector Modal ---
         function openShopSelectorModal(itemId, currentShop) {
             const modal = document.getElementById('shop-selector-modal');
             const optionsContainer = document.getElementById('shop-selector-options');
@@ -1865,7 +1894,7 @@
             if (0 === ingredientsToAdd.length) return showCustomAlert("Info", "No unchecked ingredients to add, or no ingredients are listed for this recipe.");
             try {
                 const c = {};
-                ingredientsToAdd.forEach(e => { const t = database.ref("shoppingList").push().key; c[t] = { name: e, checked: !1, createdAt: serverTimestamp } });
+                ingredientsToAdd.forEach(e => { const t = database.ref("shoppingList").push().key; c[t] = { name: e, checked: !1, createdAt: serverTimestamp, shop: null } }); // Added shop: null
                 await database.ref("shoppingList").update(c);
                 showCustomAlert("Success", `${ingredientsToAdd.length} ingredient${1 === ingredientsToAdd.length ? "" : "s"} added to shopping list!`);
             } catch (e) {
@@ -2088,11 +2117,23 @@
             newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), addShoppingItemToDB()) });
             document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", clearCheckedShoppingItemsFromDB);
 
-            // Shop Selector Modal Listeners
             document.getElementById("close-shop-selector-modal-button")?.addEventListener("click", closeShopSelectorModal);
             document.getElementById("clear-shop-selection-button")?.addEventListener("click", handleClearShopSelection);
             const shopSelectorModalElement = document.getElementById("shop-selector-modal");
             shopSelectorModalElement?.addEventListener("click", (event) => { if (event.target === shopSelectorModalElement) closeShopSelectorModal(); });
+            
+            document.getElementById("shopping-list-sort")?.addEventListener("change", (event) => {
+                currentShoppingListSort = event.target.value;
+                localStorage.setItem('shoppingListSortPreference', currentShoppingListSort);
+                loadShoppingListFromDB();
+            });
+
+            const savedSortPreference = localStorage.getItem('shoppingListSortPreference');
+            if (savedSortPreference) {
+                currentShoppingListSort = savedSortPreference;
+                const sortSelect = document.getElementById("shopping-list-sort");
+                if(sortSelect) sortSelect.value = currentShoppingListSort;
+            }
 
 
             isInitialPageLoad = false;
@@ -2103,3 +2144,4 @@
 </body>
 
 </html>
+```
