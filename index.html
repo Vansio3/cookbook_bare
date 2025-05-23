@@ -2360,92 +2360,74 @@
             // --- Auth State Listener ---
             auth.onAuthStateChanged(async user => {
                 authInitialized = true; // Mark auth as initialized
-                                if (user) {
+                if (user) {
                     currentUserId = user.uid;
                     console.log("User signed in:", currentUserId);
                     const userEmailDisplay = document.getElementById("user-email-display");
                     if(userEmailDisplay) userEmailDisplay.textContent = user.email;
 
-                    let initialPageId;
+                    isInitialPageLoad = true;
+                    let initialPageId = localStorage.getItem(`lastActivePageId_${currentUserId}`) || "page-index"; // User-specific last page
+                    if (initialPageId === 'page-login' || initialPageId === 'page-register') initialPageId = 'page-index';
+                    
                     let recipeIdForInitialLoad = null;
                     let scheduleDateForInitialLoad = null;
                     let scheduleWeekStartForInitialLoad = null;
 
-                    // --- START MODIFICATION for initialPageId determination ---
-                    let pageFromHistory = history.state ? history.state.page : null;
-                    let pageFromHash = window.location.hash.substring(1).split('/')[0];
-
-                    if (pageFromHistory && pageFromHistory !== 'page-login' && pageFromHistory !== 'page-register' && document.getElementById(pageFromHistory)) {
-                        // App likely started/refreshed on a specific page while user was already logged in (deep link via history state)
-                        initialPageId = pageFromHistory;
+                    const hash = window.location.hash.substring(1);
+                    if (history.state && history.state.page && history.state.page !== 'page-login' && history.state.page !== 'page-register') {
+                        initialPageId = history.state.page;
                         recipeIdForInitialLoad = history.state.recipeId;
                         scheduleDateForInitialLoad = history.state.selectedDate;
                         scheduleWeekStartForInitialLoad = history.state.weekStart;
-                        console.log("Resuming from history.state:", initialPageId);
-                    } else if (pageFromHash && pageFromHash !== 'page-login' && pageFromHash !== 'page-register' && document.getElementById(pageFromHash)) {
-                        // App likely started/refreshed with a hash URL while user was already logged in (deep link via URL hash)
-                        initialPageId = pageFromHash;
-                        const parts = window.location.hash.substring(1).split('/');
-                        if (initialPageId === "page-recipe" && parts[1]) recipeIdForInitialLoad = parts[1];
-                        console.log("Resuming from hash:", initialPageId);
-                    } else {
-                        // This block is reached for a fresh login or if no valid deep link was found.
-                        // Default to last active page from localStorage, BUT specifically exclude 'page-profile'
-                        // from being the landing page right after login, defaulting to 'page-index' instead in that case.
-                        initialPageId = localStorage.getItem(`lastActivePageId_${currentUserId}`);
-                        
-                        if (!initialPageId || 
-                            initialPageId === 'page-login' || 
-                            initialPageId === 'page-register' || 
-                            !document.getElementById(initialPageId) ||
-                            initialPageId === 'page-profile' // If last active was profile, go to index after login
-                           ) {
-                            initialPageId = 'page-index';
-                        }
-                        console.log("Defaulting after login/no deep link. Initial page:", initialPageId);
-                    }
-                    // --- END MODIFICATION ---
-                    
-                    // Final validation for recipe page (if it was somehow selected)
-                    if (initialPageId === "page-recipe") {
-                        if (!recipeIdForInitialLoad) recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
-                        if (!recipeIdForInitialLoad) { // Still no ID for recipe page
-                            console.warn("page-recipe targeted without valid ID, falling back to page-index.");
-                            initialPageId = "page-index";
+                    } else if (hash) {
+                        const parts = hash.split('/');
+                        const potentialPageId = parts[0];
+                        if (document.getElementById(potentialPageId) && potentialPageId !== 'page-login' && potentialPageId !== 'page-register') {
+                            initialPageId = potentialPageId;
+                            if (initialPageId === "page-recipe" && parts[1]) recipeIdForInitialLoad = parts[1];
+                            else if (initialPageId === "page-recipe") recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
                         }
                     }
                     
-                    currentPageId = initialPageId; // Set global currentPageId *before* calling showPage or history.replaceState
-
+                    currentPageId = initialPageId; // Set before showPage
                     if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
                     if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
-                    
-                    const initialStateHistory = getCurrentPageHistoryState(initialPageId);
-                    const initialUrl = getCurrentPageFullHash(initialPageId);
-                    history.replaceState(initialStateHistory, `Page ${initialPageId}`, initialUrl);
+                    if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index";
 
-                    await loadRecipesFromRealtimeDB(); 
+                    const initialState = getCurrentPageHistoryState(initialPageId);
+                    const initialUrl = getCurrentPageFullHash(initialPageId);
+                    history.replaceState(initialState, `Page ${initialPageId}`, initialUrl);
+
+                    await loadRecipesFromRealtimeDB(); // Load data for the signed-in user
 
                     if (initialPageId === "page-recipe") {
                         await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
                     } else {
                         showPage(initialPageId, true);
                     }
-                    isInitialPageLoad = false; // Reset the flag, as the initial authenticated page has been loaded.
-                } else { 
-                    // User is signed out or not yet signed in
+                    isInitialPageLoad = false;
+                                } else { // User is signed out or not yet signed in
                     currentUserId = null;
                     console.log("User signed out or not signed in.");
+                    
+                    // IMPORTANT: Call clearUserSpecificDataAndUI AFTER currentUserId is null,
+                    // but ensure global currentPageId still reflects the page the user WAS on.
+                    // clearUserSpecificDataAndUI should not modify navigation state like currentPageId.
                     clearUserSpecificDataAndUI(); 
 
                     const loginState = getCurrentPageHistoryState("page-login");
                     const loginUrl = getCurrentPageFullHash("page-login");
                     history.replaceState(loginState, `Page page-login`, loginUrl);
                     
+                    // At this point, global `currentPageId` is still the ID of the page the user was on (e.g., 'page-profile').
+                    // `showPage` will use this to correctly identify and deactivate the old page.
+                    // `showPage` will then update the global `currentPageId` to 'page-login'.
                     showPage("page-login", true); 
                     isInitialPageLoad = false; // Reset for any subsequent login session
                 }
-                // setupCommonEventListeners(); // This should already be in your DOMContentLoaded
+                // Setup event listeners that might depend on auth state or initial page rendering
+                setupCommonEventListeners();
             });
 
             function setupCommonEventListeners() {
