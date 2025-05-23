@@ -1142,7 +1142,7 @@
             try {
                 const snapshot = await limitRef.once('value');
                 const currentCount = snapshot.exists() ? snapshot.val() : 0;
-                
+
                 if (currentCount >= MAX_REGISTRATIONS_PER_DAY) {
                     console.warn(`Registration limit reached for ${dateKey}. Count: ${currentCount}`);
                     return false; // Limit reached
@@ -2003,7 +2003,7 @@
                     const email = emailElement ? emailElement.value : "";
                     const password = passwordElement ? passwordElement.value : "";
                     const confirmPassword = confirmPasswordElement ? confirmPasswordElement.value : "";
-                    
+
                     if (!email || !password || !confirmPassword) {
                         return showCustomAlert("Registration Error", "All fields are required.");
                     }
@@ -2025,7 +2025,7 @@
                     try {
                         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                         if (userCredential && userCredential.user) {
-                           await incrementRegistrationCount();
+                            await incrementRegistrationCount();
                         }
                     } catch (error) {
                         showCustomAlert("Registration Failed", error.message);
