@@ -104,7 +104,7 @@
         #page-register .page-content {
             padding-bottom: 90px;
         }
-        
+
         .bottom-nav-bar {
             position: sticky;
             bottom: 0;
@@ -448,7 +448,8 @@
                     <div>
                         <label for="register-password"
                             class="text-white text-base font-medium pb-2 block">Password</label>
-                        <input type="password" id="register-password" placeholder="Choose a password (min. 6 characters)"
+                        <input type="password" id="register-password"
+                            placeholder="Choose a password (min. 6 characters)"
                             class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
                             autocomplete="new-password" />
                     </div>
@@ -497,7 +498,8 @@
                                 </svg>
                             </div>
                             <input type="search" placeholder="Search recipes" id="search-recipe-input"
-                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" autocomplete="off"/>
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10"
+                                autocomplete="off" />
                             <button id="clear-search-recipe-button"
                                 class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden"
                                 title="Clear search">
@@ -571,7 +573,8 @@
                                 </svg>
                             </div>
                             <input type="search" placeholder="Search favorite recipes" id="search-favorites-input"
-                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" autocomplete="off" />
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10"
+                                autocomplete="off" />
                             <button id="clear-search-favorites-button"
                                 class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden"
                                 title="Clear search">
@@ -672,9 +675,10 @@
             <div class="page-content">
                 <div class="flex max-w-[480px] flex-col gap-4 px-4 py-3 mx-auto w-full">
                     <label class="flex flex-col w-full">
-                        <p class="text-white text-base font-medium pb-2">Recipe Title</p><input type="search" id="create-recipe-title"
-                            placeholder="Enter recipe title"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
+                        <p class="text-white text-base font-medium pb-2">Recipe Title</p><input type="search"
+                            id="create-recipe-title" placeholder="Enter recipe title"
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
+                            autocomplete="off" />
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Category</p>
@@ -706,18 +710,21 @@
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Prep Time</p><input type="search"
                                 id="create-recipe-prepTime" placeholder="e.g., 15 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
+                                autocomplete="off" />
                         </label>
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Cook Time</p><input type="search"
                                 id="create-recipe-cookTime" placeholder="e.g., 30 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
+                                autocomplete="off" />
                         </label>
                     </div>
                     <label class="flex flex-col w-full">
-                        <p class="text-white text-base font-medium pb-2">Servings</p><input type="search" id="create-recipe-servings"
-                            placeholder="e.g., 4"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
+                        <p class="text-white text-base font-medium pb-2">Servings</p><input type="search"
+                            id="create-recipe-servings" placeholder="e.g., 4"
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
+                            autocomplete="off" />
                     </label>
                     <div
                         class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-[#684231]">
@@ -801,7 +808,8 @@
                             </svg></button>
                     </div>
                     <div class="mb-3"><input type="search" id="add-meal-modal-search" placeholder="Search recipes..."
-                            class="form-input w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-12 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]" autocomplete="off">
+                            class="form-input w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-12 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]"
+                            autocomplete="off">
                     </div>
                     <div id="add-meal-modal-recipe-list" class="overflow-y-auto flex-grow space-y-2 pr-1"></div>
                 </div>
@@ -864,9 +872,13 @@
         <div id="page-profile" class="page bg-[#1e1815] dark group/design-root">
             <div class="page-header">
                 <div class="flex items-center p-4 pb-2 justify-between">
-                    <div class="interactive-scale text-white flex size-12 shrink-0 items-center cursor-pointer" data-action="back">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+                    <div class="interactive-scale text-white flex size-12 shrink-0 items-center cursor-pointer"
+                        data-action="back">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                            viewBox="0 0 256 256">
+                            <path
+                                d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z">
+                            </path>
                         </svg>
                     </div>
                     <h2 class="text-white text-lg font-bold flex-1 text-center pr-12">Profile</h2>
@@ -876,8 +888,10 @@
                 <div id="user-info-container" class="text-center">
                     <p id="user-email-display" class="text-white text-lg mb-4">Loading user info...</p>
                 </div>
-                <button id="logout-button" class="interactive-scale w-full max-w-xs cursor-pointer flex items-center justify-center rounded-xl h-12 px-5 bg-red-600 hover:bg-red-700 text-white text-base font-bold">Logout</button>
-                 <p class="text-[#bda89e] mt-4 text-center text-sm">All your recipes, meal plans, and shopping lists are saved to your account.</p>
+                <button id="logout-button"
+                    class="interactive-scale w-full max-w-xs cursor-pointer flex items-center justify-center rounded-xl h-12 px-5 bg-red-600 hover:bg-red-700 text-white text-base font-bold">Logout</button>
+                <p class="text-[#bda89e] mt-4 text-center text-sm">All your recipes, meal plans, and shopping lists are
+                    saved to your account.</p>
             </div>
         </div>
     </div>
@@ -1017,7 +1031,8 @@
             <label class="flex flex-col w-full mb-6">
                 <p class="text-white text-base font-medium pb-1">Item Name</p>
                 <input type="search" id="edit-shopping-item-name-input" placeholder="Enter item name"
-                    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
+                    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"
+                    autocomplete="off" />
             </label>
             <div class="flex justify-end gap-3">
                 <button id="cancel-edit-shopping-item-button"
@@ -1132,7 +1147,7 @@
 
             // Clear UI elements
             const uiContainersToClear = [
-                'featured-recipes-container', 'categorized-recipes-container', 
+                'featured-recipes-container', 'categorized-recipes-container',
                 'search-results-container', 'favorites-recipes-container',
                 'schedule-meal-list', 'shopping-list-items-container',
                 'recipe-image', 'recipe-title', 'recipe-description', 'recipe-meta-info',
@@ -1146,14 +1161,14 @@
                     else el.innerHTML = '';
                 }
             });
-            
+
             resetCreateForm(); // Clears create recipe form
             const searchRecipeInput = document.getElementById("search-recipe-input");
-            if(searchRecipeInput) searchRecipeInput.value = "";
+            if (searchRecipeInput) searchRecipeInput.value = "";
             const searchFavoritesInput = document.getElementById("search-favorites-input");
-            if(searchFavoritesInput) searchFavoritesInput.value = "";
+            if (searchFavoritesInput) searchFavoritesInput.value = "";
             const newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
-            if(newShoppingItemNameInput) newShoppingItemNameInput.value = "";
+            if (newShoppingItemNameInput) newShoppingItemNameInput.value = "";
 
             // Reset local storage items
             localStorage.removeItem("currentRecipeDetailId");
@@ -1215,7 +1230,7 @@
                 currentConfirmResolver = null;
             }
         }
-        
+
         // --- Category Selector Modal Elements & Functions --- (no change)
         let categorySelectorModal, categorySelectorOptionsContainer, closeCategorySelectorModalButton;
         let createRecipeCategoryButton, createRecipeCategoryDisplay;
@@ -1251,7 +1266,7 @@
             }
             closeCategorySelectorModal();
         }
-        
+
         // --- Edit Shopping Item Modal Elements & Functions --- (no change to modal functions, but DB ops need update)
         let editShoppingItemModal, editShoppingItemNameInput, cancelEditShoppingItemButton, saveEditShoppingItemButton;
         let currentEditingShoppingItemId = null;
@@ -1319,7 +1334,7 @@
             if (modalId === 'add-meal-modal') closeAddMealModal();
             else if (modalId === 'delete-recipe-confirmation-modal') closeDeleteRecipeModal();
             else if (modalId === 'custom-alert-modal') closeCustomAlert();
-            else if (modalId === 'custom-confirm-modal') closeCustomConfirm(false); 
+            else if (modalId === 'custom-confirm-modal') closeCustomConfirm(false);
             else if (modalId === 'shop-selector-modal') closeShopSelectorModal();
             else if (modalId === 'shopping-list-sort-modal') closeShoppingListSortModal();
             else if (modalId === 'category-selector-modal') closeCategorySelectorModal();
@@ -1345,7 +1360,7 @@
 
         function getCurrentPageFullHash(pageId) {
             let hash = `#${pageId}`;
-             if (currentUserId) { // Only add user-specific details if logged in
+            if (currentUserId) { // Only add user-specific details if logged in
                 if (pageId === 'page-recipe') {
                     const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
                     if (recipeId) hash += `/${recipeId}`;
@@ -1367,9 +1382,9 @@
             // If not logged in, back from profile/etc should go to login.
             // If logged in, back from profile/recipe/etc should go to index.
             const targetFallbackPage = currentUserId ? 'page-index' : 'page-login';
-            
+
             if (currentPageId !== targetFallbackPage) {
-                showPage(targetFallbackPage); 
+                showPage(targetFallbackPage);
             }
             // If on targetFallbackPage and no modal, app back button does nothing (native back handles it)
         }
@@ -1378,7 +1393,7 @@
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
 
 
-                function showPage(pageId, fromHistoryOrInitialLoad = false) {
+        function showPage(pageId, fromHistoryOrInitialLoad = false) {
             const newPage = document.getElementById(pageId);
 
             if (!newPage) {
@@ -1392,7 +1407,7 @@
                     if (anyActivePage) anyActivePage.classList.remove("active");
                     return;
                 }
-                
+
                 showPage(fallbackPageId, true); // Redirect, ensuring it's treated like a history/initial load
                 return;
             }
@@ -1415,7 +1430,7 @@
 
 
             if (!fromHistoryOrInitialLoad) {
-                if (pageActuallyChanging) { 
+                if (pageActuallyChanging) {
                     previousPageId = currentPageId;
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
@@ -1434,9 +1449,9 @@
             currentPageId = pageId; // Update global currentPageId to the new page
 
             if (currentUserId) {
-                 if (pageId !== 'page-login' && pageId !== 'page-register') {
+                if (pageId !== 'page-login' && pageId !== 'page-register') {
                     localStorage.setItem(`lastActivePageId_${currentUserId}`, pageId); // User-specific key
-                 }
+                }
             }
 
             requestAnimationFrame(() => {
@@ -1444,17 +1459,17 @@
                     newPage.classList.add("active");
                 }
             });
-            
+
             updateNavbarUI(pageId);
 
             const pageContent = newPage.querySelector(".page-content");
             if (pageContent) {
                 // Scroll to top if the page actually changed or if it's the initial page load.
-                if (pageActuallyChanging || (isInitialPageLoad && pageId === currentPageId) ) {
+                if (pageActuallyChanging || (isInitialPageLoad && pageId === currentPageId)) {
                     pageContent.scrollTo(0, 0);
                 }
             }
-            
+
             // Specific page load logic (this part remains the same)
             if (pageId === "page-index" && currentUserId) {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
@@ -1528,7 +1543,7 @@
             if (searchResultsContainer && !searchResultsContainer.classList.contains('hidden') && searchResultsContainer.querySelector('.loading-placeholder')) {
                 searchResultsContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading search results...</p>';
             }
-            
+
             const userRecipesRef = getUserDataRef("recipes");
             if (!userRecipesRef) { // Should not happen if currentUserId is checked
                 allRecipesCache = []; populateRecipeListsUI([]); return Promise.resolve();
@@ -1582,9 +1597,9 @@
                 if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
                 return;
             }
-            
+
             // ... (rest of the function, largely unchanged logic, but relies on `recipes` which is now user-specific)
-             if (isSearchMode) {
+            if (isSearchMode) {
                 if (defaultRecipesView) defaultRecipesView.style.display = 'none';
                 if (searchResultsContainer) {
                     searchResultsContainer.innerHTML = '';
@@ -1637,7 +1652,7 @@
                     } else if (recipes.length === 0 && !isInitialPageLoad && currentUserId) {
                         categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes added yet. Create one!</p>';
                     } else if (!currentUserId && recipes.length === 0) { // Explicitly handle no user for categorized view
-                         categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your recipes.</p>';
+                        categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your recipes.</p>';
                     }
                 }
 
@@ -1661,7 +1676,7 @@
             }
             attachRecipeCardListeners();
         }
-        
+
         // --- Create Recipe Card HTML (no change needed in this function itself) ---
         function attachCategoryShortcutListeners() {
             document.querySelectorAll('.category-shortcut-btn').forEach(button => {
@@ -1685,9 +1700,9 @@
         function handleSearch() {
             const e = document.getElementById("search-recipe-input");
             if (!e || !currentUserId) { // Added currentUserId check
-                 populateRecipeListsUI([], true); // Show empty search or "login required"
-                 document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e?.value);
-                 return;
+                populateRecipeListsUI([], true); // Show empty search or "login required"
+                document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e?.value);
+                return;
             }
             const t = e.value.trim().toLowerCase();
             document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e.value);
@@ -1709,8 +1724,8 @@
         function populateFavoritesListUI(e, t = !1) {
             const c = document.getElementById("favorites-recipes-container");
             if (!currentUserId) { // Added check
-                 c.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>';
-                 return;
+                c.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>';
+                return;
             }
             // ... rest of function is fine as it depends on `e` (recipes)
             if (c.innerHTML = "", 0 === e.length) { const a = t ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>'; c.innerHTML = a } else e.forEach(e => c.innerHTML += createRecipeCardHtml(e, !1, !0)); attachRecipeCardListeners(), document.querySelectorAll(".favorite-remove-btn").forEach(e => e.addEventListener("click", t => { t.stopPropagation(); const c = e.dataset.removeFavoriteId; if (c && currentUserId) toggleBookmarkInRealtimeDB(c) }))
@@ -1744,7 +1759,7 @@
             if (allRecipesCache.length === 0 || !recipeData) {
                 if (recipesLoadingPromise) await recipesLoadingPromise;
                 else await loadRecipesFromRealtimeDB(); // This will load user-specific recipes
-                
+
                 recipeData = allRecipesCache.find(r => r.id === recipeId);
                 if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                     displayRecipeDetailsUI(recipeData);
@@ -1752,11 +1767,11 @@
                     return;
                 }
             }
-            
+
             // If still not found, try fetching specific recipe (might be redundant if loadRecipesFromRealtimeDB worked)
             try {
                 const recipeRef = getUserDataRef(`recipes/${recipeId}`); // MODIFIED
-                if(!recipeRef) throw new Error("User not authenticated for DB operation.");
+                if (!recipeRef) throw new Error("User not authenticated for DB operation.");
                 const snapshot = await recipeRef.once("value");
 
                 if (snapshot.exists()) {
@@ -1942,8 +1957,8 @@
                     }
                 }
                 if (!imageToSaveURL && !editingRecipeId && !currentRecipeImageURL) {
-                     saveButton.textContent = "Save Recipe"; saveButton.disabled = false;
-                     return showCustomAlert("Validation Error", "A recipe photo is required.");
+                    saveButton.textContent = "Save Recipe"; saveButton.disabled = false;
+                    return showCustomAlert("Validation Error", "A recipe photo is required.");
                 }
 
                 const recipeData = { /* ... (unchanged structure) ... */
@@ -1952,7 +1967,7 @@
                     prepTime: prepTime, cookTime: cookTime, servings: servings,
                     imageURL: imageToSaveURL,
                     isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false
-                 };
+                };
 
                 const userRecipesRef = getUserDataRef("recipes"); // Get base ref for user's recipes
                 if (!userRecipesRef) throw new Error("User not authenticated for DB operation.");
@@ -1996,7 +2011,7 @@
                 allRecipesCache = allRecipesCache.filter(recipe => recipe.id !== recipeId);
 
                 if (currentPageId === "page-favorites") renderFavoritesPage();
-                
+
                 // Remove from meal plan if it exists there
                 const mealPlanBaseRef = getUserDataRef('mealPlan'); // MODIFIED
                 if (!mealPlanBaseRef) throw new Error("User not authenticated for DB operation.");
@@ -2101,9 +2116,9 @@
         function loadMealsForSelectedDate() {
             if (!currentUserId) { // ADDED check
                 const mealListContainer = document.getElementById("schedule-meal-list");
-                if(mealListContainer) mealListContainer.innerHTML = '<p class="loading-placeholder">Please login to view meal plan.</p>';
+                if (mealListContainer) mealListContainer.innerHTML = '<p class="loading-placeholder">Please login to view meal plan.</p>';
                 const dayTitle = document.getElementById("schedule-selected-day-title");
-                if(dayTitle) dayTitle.textContent = "Meal Planner"
+                if (dayTitle) dayTitle.textContent = "Meal Planner"
                 return;
             }
             const e = document.getElementById("schedule-selected-day-title"); e && (e.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`, loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate)))
@@ -2122,7 +2137,7 @@
             } catch (e) { console.error("Error fetching meal plan:", e), t.innerHTML = '<p class="loading-placeholder text-red-500">Error loading meals.</p>' }
         }
         // displayPlannedMealsUI relies on `allRecipesCache` (now user-specific) and data passed. No direct DB.
-        function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>', void 0) : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(); handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { if(!currentUserId) {showCustomAlert("Login Required", "Please login."); return;} s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
+        function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>', void 0) : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(); handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login."); return; } s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
 
         async function handleRemoveMealClick(dateKey, mealEntryId) { // MODIFIED
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
@@ -2141,7 +2156,7 @@
                 showCustomAlert("Error", "Failed to remove meal. Please try again.");
             }
         }
-        
+
         // Add Meal Modal: openAddMealModal, closeAddMealModal, populateAddMealModalRecipeList, handleAddMealModalSearch
         // These are mostly UI, but populateAddMealModalRecipeList uses `allRecipesCache` (now user-specific).
         const addMealModal = document.getElementById("add-meal-modal"), addMealModalRecipeList = document.getElementById("add-meal-modal-recipe-list"), addMealModalSearchInput = document.getElementById("add-meal-modal-search"); function openAddMealModal() { addMealModal && addMealModalSearchInput && (populateAddMealModalRecipeList(allRecipesCache), addMealModalSearchInput.value = "", addMealModal.classList.remove("hidden")) } function closeAddMealModal() { addMealModal && addMealModal.classList.add("hidden") }
@@ -2166,7 +2181,7 @@
         const LONG_PRESS_DURATION = 700; const MAX_MOVE_FOR_LONG_PRESS = 10; let longPressTimerId = null; let longPressActionTaken = false; let pressEventStartX, pressEventStartY;
         let swipeState = { isSwiping: false, startX: 0, startY: 0, currentX: 0, item: null, itemId: null, swipeThreshold: 80, maxSwipeDistanceForOpacity: 150, isVerticalScroll: false, scrollLockThreshold: 10 };
         const shoppingListSwipeMoveHandler = (event) => { if (!swipeState.isSwiping || !swipeState.item) return; const currentX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX; const currentY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY; const deltaX = currentX - swipeState.startX; const deltaY = currentY - swipeState.startY; if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) return; if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) swipeState.isVerticalScroll = true; if (swipeState.isVerticalScroll) return; if (event.type === 'touchmove' && event.cancelable) event.preventDefault(); swipeState.currentX = currentX; if (deltaX > 0) { swipeState.item.style.transform = `translateX(${deltaX}px)`; const opacity = Math.max(0.1, 1 - (deltaX / swipeState.maxSwipeDistanceForOpacity)); swipeState.item.style.opacity = opacity; } else { swipeState.item.style.transform = 'translateX(0px)'; swipeState.item.style.opacity = 1; } };
-        const shoppingListSwipeEndHandler = (event, forceReset = false) => { if (!swipeState.isSwiping || !swipeState.item) { document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (swipeState.item) swipeState.item.style.userSelect = ''; swipeState.isSwiping = false; return; } const itemToProcess = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX; const wasSwipingState = swipeState.isSwiping; swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false; document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (itemToProcess) itemToProcess.style.userSelect = ''; if (longPressActionTaken && !forceReset) { if (itemToProcess) { itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } return; } if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = `translateX(${window.innerWidth}px)`; itemToProcess.style.opacity = 0; itemToProcess.dataset.swipedForDelete = "true"; itemToProcess.addEventListener('transitionend', async () => { try { if (!currentUserId) { /* Handle no user */ return; } const itemRef = getUserDataRef(`shoppingList/${idToDelete}`); if(!itemRef) throw new Error("No ref for delete"); await itemRef.remove(); loadShoppingListFromDB(); } catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear."); } }, { once: true }); } else if (wasSwipingState && itemToProcess) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } };
+        const shoppingListSwipeEndHandler = (event, forceReset = false) => { if (!swipeState.isSwiping || !swipeState.item) { document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (swipeState.item) swipeState.item.style.userSelect = ''; swipeState.isSwiping = false; return; } const itemToProcess = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX; const wasSwipingState = swipeState.isSwiping; swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false; document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (itemToProcess) itemToProcess.style.userSelect = ''; if (longPressActionTaken && !forceReset) { if (itemToProcess) { itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } return; } if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = `translateX(${window.innerWidth}px)`; itemToProcess.style.opacity = 0; itemToProcess.dataset.swipedForDelete = "true"; itemToProcess.addEventListener('transitionend', async () => { try { if (!currentUserId) { /* Handle no user */ return; } const itemRef = getUserDataRef(`shoppingList/${idToDelete}`); if (!itemRef) throw new Error("No ref for delete"); await itemRef.remove(); loadShoppingListFromDB(); } catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear."); } }, { once: true }); } else if (wasSwipingState && itemToProcess) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } };
         const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true); };
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => { if (longPressActionTaken) return; if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return; if (event.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return; swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId; swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX; swipeState.startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY; swipeState.currentX = swipeState.startX; swipeState.isVerticalScroll = false; itemElement.style.transition = 'none'; itemElement.style.userSelect = 'none'; document.addEventListener('mousemove', shoppingListSwipeMoveHandler); document.addEventListener('mouseup', shoppingListSwipeEndHandler); document.addEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.addEventListener('touchmove', shoppingListSwipeMoveHandler, { passive: false }); document.addEventListener('touchend', shoppingListSwipeEndHandler); document.addEventListener('touchcancel', shoppingListSwipeEndHandler); };
 
@@ -2195,8 +2210,8 @@
             if (!shoppingListItemsContainer) return;
             shoppingListItemsContainer.innerHTML = "";
             if (!currentUserId && shoppingItems.length === 0) { // Check for no user and empty items
-                 shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>';
-                 return;
+                shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>';
+                return;
             }
             if (shoppingItems.length === 0) {
                 shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>';
@@ -2218,7 +2233,7 @@
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox'; checkbox.className = 'shopping-item-checkbox'; checkbox.checked = itemData.checked;
-                checkbox.addEventListener("change", e => { if(currentUserId) toggleShoppingItemCheckedInDB(itemData.id, e.target.checked); });
+                checkbox.addEventListener("change", e => { if (currentUserId) toggleShoppingItemCheckedInDB(itemData.id, e.target.checked); });
 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'item-name text-white flex-grow'; nameSpan.textContent = itemData.name || "Unnamed Item";
@@ -2231,7 +2246,7 @@
                 if (itemData.shop && SHOPS.includes(itemData.shop)) iconContainer.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${itemData.shop}.png" alt="${itemData.shop}" class="w-full h-full object-contain">`;
                 else iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,120a32,32,0,1,1,32-32A32,32,0,0,1,128,136Z"></path></svg>`;
                 locationButton.appendChild(iconContainer);
-                locationButton.addEventListener('click', () => { if(currentUserId) openShopSelectorModal(itemData.id, itemData.shop || null); });
+                locationButton.addEventListener('click', () => { if (currentUserId) openShopSelectorModal(itemData.id, itemData.shop || null); });
 
                 itemElement.appendChild(checkbox); itemElement.appendChild(nameSpan); itemElement.appendChild(locationButton);
                 shoppingListItemsContainer.appendChild(itemElement);
@@ -2242,7 +2257,7 @@
                 const temporaryItemListeners = new Map();
                 function addItemEventListener(type, listener) { itemElement.addEventListener(type, listener); temporaryItemListeners.set(type, listener); }
                 function removeItemEventListeners() { temporaryItemListeners.forEach((listener, type) => itemElement.removeEventListener(type, listener)); temporaryItemListeners.clear(); }
-                function handleItemPressStart(e) { itemLongPressActionTaken = false; if (e.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return; itemPressStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX; itemPressStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY; shoppingListSwipeStartHandler(e, itemElement, itemData.id); clearTimeout(itemLongPressTimerId); itemLongPressTimerId = setTimeout(() => { if (swipeState.isSwiping && swipeState.item === itemElement) { const currentSwipeDeltaX = swipeState.currentX - swipeState.startX; if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) { clearTimeout(itemLongPressTimerId); removeItemEventListeners(); return; } } itemLongPressActionTaken = true; if (swipeState.isSwiping && swipeState.item === itemElement) shoppingListSwipeEndHandler(e, true); if(currentUserId) openEditShoppingItemModal(itemData.id, itemData.name); removeItemEventListeners(); }, LONG_PRESS_DURATION); addItemEventListener('mousemove', handleItemPressMove); addItemEventListener('touchmove', handleItemPressMove); addItemEventListener('mouseup', handleItemPressEnd); addItemEventListener('mouseleave', handleItemPressEnd); addItemEventListener('touchend', handleItemPressEnd); addItemEventListener('touchcancel', handleItemPressEnd); }
+                function handleItemPressStart(e) { itemLongPressActionTaken = false; if (e.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return; itemPressStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX; itemPressStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY; shoppingListSwipeStartHandler(e, itemElement, itemData.id); clearTimeout(itemLongPressTimerId); itemLongPressTimerId = setTimeout(() => { if (swipeState.isSwiping && swipeState.item === itemElement) { const currentSwipeDeltaX = swipeState.currentX - swipeState.startX; if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) { clearTimeout(itemLongPressTimerId); removeItemEventListeners(); return; } } itemLongPressActionTaken = true; if (swipeState.isSwiping && swipeState.item === itemElement) shoppingListSwipeEndHandler(e, true); if (currentUserId) openEditShoppingItemModal(itemData.id, itemData.name); removeItemEventListeners(); }, LONG_PRESS_DURATION); addItemEventListener('mousemove', handleItemPressMove); addItemEventListener('touchmove', handleItemPressMove); addItemEventListener('mouseup', handleItemPressEnd); addItemEventListener('mouseleave', handleItemPressEnd); addItemEventListener('touchend', handleItemPressEnd); addItemEventListener('touchcancel', handleItemPressEnd); }
                 function handleItemPressMove(e) { if (itemLongPressActionTaken) return; const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX; const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY; if (Math.abs(currentX - itemPressStartX) > MAX_MOVE_FOR_LONG_PRESS || Math.abs(currentY - itemPressStartY) > MAX_MOVE_FOR_LONG_PRESS) { clearTimeout(itemLongPressTimerId); removeItemEventListeners(); } }
                 function handleItemPressEnd() { clearTimeout(itemLongPressTimerId); removeItemEventListeners(); }
                 itemElement.addEventListener('mousedown', handleItemPressStart); itemElement.addEventListener('touchstart', handleItemPressStart, { passive: true });
@@ -2266,7 +2281,7 @@
             }
         }
         async function toggleShoppingItemCheckedInDB(e, t) { // itemId `e`, checkedState `t`. MODIFIED
-             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
+            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
             try {
                 const itemRef = getUserDataRef(`shoppingList/${e}`); // MODIFIED
                 if (!itemRef) throw new Error("User not authenticated for DB operation.");
@@ -2275,11 +2290,11 @@
             } catch (e) { console.error("Error updating shopping item:", e) }
         }
         async function deleteShoppingItemFromDB(itemId) { /* This specific one is used by swipe, updated there */ }
-        
+
         // Shop Selector Modal (open, close, handleSelected, handleClear)
         // DB ops (handleShopSelected, handleClearShopSelection) need currentUserId and user-specific paths.
         let shopSelectorModal, shopSelectorOptionsContainer, closeShopSelectorModalButton, clearShopSelectionButton;
-        function openShopSelectorModal(itemId, currentShop) { /* UI only, fine */ if (!shopSelectorModal || !shopSelectorOptionsContainer) return; shopSelectorModal.dataset.currentItemId = itemId; shopSelectorOptionsContainer.innerHTML = ''; SHOPS.forEach(shop => { const shopButton = document.createElement('button'); shopButton.className = `flex items-center justify-center p-3 rounded-lg text-white font-medium hover:bg-[#5a3a2a] transition-colors duration-150 text-sm`; shopButton.classList.toggle('bg-[#f0560e]', shop === currentShop); shopButton.classList.toggle('hover:bg-orange-600', shop === currentShop); shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop); shopButton.classList.toggle('hover:bg-[#5a3a2a]', shop !== currentShop); shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`; shopButton.addEventListener('click', () => handleShopSelected(shop)); shopSelectorOptionsContainer.appendChild(shopButton); }); shopSelectorModal.classList.remove('hidden');}
+        function openShopSelectorModal(itemId, currentShop) { /* UI only, fine */ if (!shopSelectorModal || !shopSelectorOptionsContainer) return; shopSelectorModal.dataset.currentItemId = itemId; shopSelectorOptionsContainer.innerHTML = ''; SHOPS.forEach(shop => { const shopButton = document.createElement('button'); shopButton.className = `flex items-center justify-center p-3 rounded-lg text-white font-medium hover:bg-[#5a3a2a] transition-colors duration-150 text-sm`; shopButton.classList.toggle('bg-[#f0560e]', shop === currentShop); shopButton.classList.toggle('hover:bg-orange-600', shop === currentShop); shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop); shopButton.classList.toggle('hover:bg-[#5a3a2a]', shop !== currentShop); shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`; shopButton.addEventListener('click', () => handleShopSelected(shop)); shopSelectorOptionsContainer.appendChild(shopButton); }); shopSelectorModal.classList.remove('hidden'); }
         function closeShopSelectorModal() { /* UI only, fine */ if (shopSelectorModal) shopSelectorModal.classList.add('hidden'); }
         async function handleShopSelected(shopName) { // MODIFIED
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
@@ -2360,7 +2375,7 @@
             editShoppingItemNameInput?.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), handleSaveShoppingItemChanges()) });
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference'); if (savedSortPreference) currentShoppingListSort = savedSortPreference;
 
-                        // --- Auth State Listener ---
+            // --- Auth State Listener ---
             auth.onAuthStateChanged(async user => {
                 authInitialized = true; // Mark auth as initialized
 
@@ -2371,10 +2386,10 @@
                     currentUserId = user.uid;
                     console.log("User signed in:", currentUserId);
                     const userEmailDisplay = document.getElementById("user-email-display");
-                    if(userEmailDisplay) userEmailDisplay.textContent = user.email;
+                    if (userEmailDisplay) userEmailDisplay.textContent = user.email;
 
                     isInitialPageLoad = true; // Reset for data loading and page setup
-                    
+
                     let targetPageIdAfterAuth = "page-index"; // Default to page-index
                     let recipeIdForInitialLoad = null;
                     let scheduleDateForInitialLoad = null;
@@ -2394,7 +2409,7 @@
                         if (targetPageIdAfterAuth === 'page-login' || targetPageIdAfterAuth === 'page-register') {
                             targetPageIdAfterAuth = 'page-index';
                         }
-                        
+
                         const hash = window.location.hash.substring(1);
                         if (history.state && history.state.page && history.state.page !== 'page-login' && history.state.page !== 'page-register') {
                             targetPageIdAfterAuth = history.state.page;
@@ -2414,17 +2429,17 @@
                                 }
                             }
                         }
-                         // Fallback if page-recipe is targeted but no ID is found
+                        // Fallback if page-recipe is targeted but no ID is found
                         if (targetPageIdAfterAuth === "page-recipe" && !recipeIdForInitialLoad) {
                             targetPageIdAfterAuth = "page-index";
                         }
                     }
-                    
+
                     currentPageId = targetPageIdAfterAuth; // Set global currentPageId before showPage
 
                     if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
                     if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
-                    
+
                     const initialState = getCurrentPageHistoryState(targetPageIdAfterAuth);
                     const initialUrl = getCurrentPageFullHash(targetPageIdAfterAuth);
                     history.replaceState(initialState, `Page ${targetPageIdAfterAuth}`, initialUrl);
@@ -2440,13 +2455,13 @@
                 } else { // User is signed out or not yet signed in
                     currentUserId = null;
                     console.log("User signed out or not signed in.");
-                    clearUserSpecificDataAndUI(); 
+                    clearUserSpecificDataAndUI();
 
                     const loginState = getCurrentPageHistoryState("page-login");
                     const loginUrl = getCurrentPageFullHash("page-login");
                     history.replaceState(loginState, `Page page-login`, loginUrl);
-                    
-                    showPage("page-login", true); 
+
+                    showPage("page-login", true);
                     isInitialPageLoad = false; // Reset for any subsequent login session
                 }
 
@@ -2472,8 +2487,8 @@
                         // onAuthStateChanged handles the rest
                     } catch (error) { showCustomAlert("Login Failed", error.message); console.error("Login error:", error); }
                 });
-                document.getElementById("login-email")?.addEventListener("keypress", e => { if(e.key === "Enter") document.getElementById("login-password")?.focus(); });
-                document.getElementById("login-password")?.addEventListener("keypress", e => { if(e.key === "Enter") document.getElementById("login-button")?.click(); });
+                document.getElementById("login-email")?.addEventListener("keypress", e => { if (e.key === "Enter") document.getElementById("login-password")?.focus(); });
+                document.getElementById("login-password")?.addEventListener("keypress", e => { if (e.key === "Enter") document.getElementById("login-button")?.click(); });
 
 
                 document.getElementById("register-button")?.addEventListener("click", async () => {
@@ -2496,10 +2511,10 @@
                     try { await auth.signOut(); /* onAuthStateChanged handles UI */ }
                     catch (error) { showCustomAlert("Logout Failed", error.message); console.error("Logout error:", error); }
                 });
-                
+
                 // --- General App Event Listeners (add currentUserId checks where necessary) ---
                 window.addEventListener('popstate', (event) => {
-                    if (!authInitialized) return; 
+                    if (!authInitialized) return;
                     const openModalId = getOpenModalId();
                     if (openModalId) {
                         closeModalById(openModalId);
@@ -2551,28 +2566,28 @@
                 document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => { const newButton = button.cloneNode(true); button.parentNode.replaceChild(newButton, button); newButton.addEventListener('click', (e) => { e.preventDefault(); performBackAction(); }); });
                 document.getElementById("header-profile-button-index")?.addEventListener("click", () => { if (!currentUserId) showPage("page-login"); else showPage("page-profile"); });
                 document.getElementById("header-profile-button-favorites")?.addEventListener("click", () => { if (!currentUserId) showPage("page-login"); else showPage("page-profile"); });
-                
-                document.getElementById("save-recipe-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to save recipes."); return;} saveRecipeData(); });
-                document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to bookmark recipes."); return;} const recipeId = e.currentTarget.dataset.recipeId; if (recipeId) toggleBookmarkInRealtimeDB(recipeId); });
-                document.getElementById("recipe-delete-header-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to delete recipes."); return;} const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; const recipeData = allRecipesCache.find(r => r.id === recipeId); const imageURL = recipeData ? recipeData.imageURL : ""; if (recipeId) { openDeleteRecipeModal(recipeId, imageURL); } else { showCustomAlert("Error", "Cannot delete: Recipe ID not found."); } });
-                confirmDeleteRecipeButton?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Error", "Not logged in."); closeDeleteRecipeModal(); return;} const recipeId = confirmDeleteRecipeButton.dataset.recipeId; const imageURL = confirmDeleteRecipeButton.dataset.imageURL; if (recipeId) deleteRecipeFromRealtimeDB(recipeId, imageURL); closeDeleteRecipeModal(); });
+
+                document.getElementById("save-recipe-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to save recipes."); return; } saveRecipeData(); });
+                document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to bookmark recipes."); return; } const recipeId = e.currentTarget.dataset.recipeId; if (recipeId) toggleBookmarkInRealtimeDB(recipeId); });
+                document.getElementById("recipe-delete-header-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to delete recipes."); return; } const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; const recipeData = allRecipesCache.find(r => r.id === recipeId); const imageURL = recipeData ? recipeData.imageURL : ""; if (recipeId) { openDeleteRecipeModal(recipeId, imageURL); } else { showCustomAlert("Error", "Cannot delete: Recipe ID not found."); } });
+                confirmDeleteRecipeButton?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Error", "Not logged in."); closeDeleteRecipeModal(); return; } const recipeId = confirmDeleteRecipeButton.dataset.recipeId; const imageURL = confirmDeleteRecipeButton.dataset.imageURL; if (recipeId) deleteRecipeFromRealtimeDB(recipeId, imageURL); closeDeleteRecipeModal(); });
                 cancelDeleteRecipeButton?.addEventListener("click", closeDeleteRecipeModal);
                 deleteRecipeConfirmationModal?.addEventListener("click", (event) => { if (event.target === deleteRecipeConfirmationModal) closeDeleteRecipeModal(); });
-                document.getElementById("recipe-edit-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to edit recipes."); return;} const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; if (recipeId) prepareEditForm(recipeId); else showCustomAlert("Error", "Could not initiate edit: Recipe ID not found."); });
+                document.getElementById("recipe-edit-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to edit recipes."); return; } const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; if (recipeId) prepareEditForm(recipeId); else showCustomAlert("Error", "Could not initiate edit: Recipe ID not found."); });
                 document.getElementById("remove-current-image-button")?.addEventListener("click", () => { currentRecipeImageURL = null; document.getElementById("current-image-display").classList.add("hidden"); document.getElementById("current-image-filename").textContent = ""; document.getElementById("create-recipe-photo-label").textContent = "Upload Photo"; const photoInput = document.getElementById("create-recipe-photoInput"); if (photoInput) photoInput.value = ""; });
                 document.getElementById("create-recipe-photoInput")?.addEventListener("change", function () { const photoLabel = document.getElementById("create-recipe-photo-label"); const currentImageDisplay = document.getElementById("current-image-display"); const currentImageFilenameSpan = document.getElementById("current-image-filename"); if (this.files && this.files.length > 0) { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Photo Selected"; } else { if (editingRecipeId && currentRecipeImageURL) { currentImageFilenameSpan.textContent = currentRecipeImageURL.substring(currentRecipeImageURL.lastIndexOf('/') + 1); currentImageDisplay.classList.remove("hidden"); photoLabel.textContent = "Change Photo"; } else { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Upload Photo"; } } });
-                document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to manage shopping list."); return;} addUncheckedIngredientsToShoppingList(); });
+                document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } addUncheckedIngredientsToShoppingList(); });
                 document.getElementById("schedule-prev-week")?.addEventListener("click", navigateToPreviousWeek); document.getElementById("schedule-next-week")?.addEventListener("click", navigateToNextWeek);
-                document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to plan meals."); return;} openAddMealModal(); });
+                document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to plan meals."); return; } openAddMealModal(); });
                 document.getElementById("add-meal-modal-close-button")?.addEventListener("click", closeAddMealModal);
                 addMealModalSearchInput && addMealModalSearchInput.addEventListener("input", debounce(handleAddMealModalSearch, 300));
-                document.getElementById("add-shopping-item-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to manage shopping list."); return;} addShoppingItemToDB(); });
-                newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), (()=>{if (!currentUserId) {showCustomAlert("Login Required", "Please login to manage shopping list."); return;} addShoppingItemToDB();})() )});
-                document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", () => { if (!currentUserId) {showCustomAlert("Login Required", "Please login to manage shopping list."); return;} clearCheckedShoppingItemsFromDB(); });
+                document.getElementById("add-shopping-item-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } addShoppingItemToDB(); });
+                newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), (() => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } addShoppingItemToDB(); })()) });
+                document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } clearCheckedShoppingItemsFromDB(); });
                 document.getElementById('sort-shopping-list-button')?.addEventListener('click', openShoppingListSortModal);
                 closeShoppingListSortModalButton?.addEventListener('click', closeShoppingListSortModal);
                 shoppingListSortModal?.addEventListener('click', (event) => { if (event.target === shoppingListSortModal) closeShoppingListSortModal(); });
-                document.querySelectorAll('.shopping-sort-option-button').forEach(button => { button.addEventListener('click', (event) => { const sortType = event.currentTarget.dataset.sortType; if (sortType) { currentShoppingListSort = sortType; localStorage.setItem('shoppingListSortPreference', currentShoppingListSort); closeShoppingListSortModal(); if(currentUserId) loadShoppingListFromDB(); } }); });
+                document.querySelectorAll('.shopping-sort-option-button').forEach(button => { button.addEventListener('click', (event) => { const sortType = event.currentTarget.dataset.sortType; if (sortType) { currentShoppingListSort = sortType; localStorage.setItem('shoppingListSortPreference', currentShoppingListSort); closeShoppingListSortModal(); if (currentUserId) loadShoppingListFromDB(); } }); });
             } // End setupCommonEventListeners
 
             // Service worker registration
@@ -2581,4 +2596,5 @@
     </script>
 
 </body>
+
 </html>
