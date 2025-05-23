@@ -260,17 +260,17 @@
             animation: pulseOpacity 1.5s infinite ease-in-out;
         }
 
-        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal, #shopping-list-sort-modal, #category-selector-modal {
+        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal, #shopping-list-sort-modal, #category-selector-modal, #edit-shopping-item-modal {
             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div, #shopping-list-sort-modal>div, #category-selector-modal>div {
+        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div, #shopping-list-sort-modal>div, #category-selector-modal>div, #edit-shopping-item-modal>div {
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: scale(0.95);
             opacity: 0;
         }
 
-        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div, #shopping-list-sort-modal:not(.hidden)>div, #category-selector-modal:not(.hidden)>div {
+        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div, #shopping-list-sort-modal:not(.hidden)>div, #category-selector-modal:not(.hidden)>div, #edit-shopping-item-modal:not(.hidden)>div {
             transform: scale(1);
             opacity: 1;
         }
@@ -866,6 +866,29 @@
         </div>
     </div>
 
+    <!-- Edit Shopping Item Modal -->
+    <div id="edit-shopping-item-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+        <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
+            <h3 class="text-white text-xl font-bold mb-4">Edit Shopping Item</h3>
+            <label class="flex flex-col w-full mb-6"> <!-- Increased bottom margin -->
+                <p class="text-white text-base font-medium pb-1">Item Name</p>
+                <input id="edit-shopping-item-name-input"
+                    placeholder="Enter item name"
+                    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+            </label>
+            <div class="flex justify-end gap-3">
+                <button id="cancel-edit-shopping-item-button"
+                    class="interactive-scale px-4 py-2 rounded-md text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">
+                    Cancel
+                </button>
+                <button id="save-edit-shopping-item-button"
+                    class="interactive-scale px-4 py-2 rounded-md text-white bg-[#f0560e] hover:bg-orange-600 font-bold">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="bottom-nav-bar">
         <div class="flex gap-1 px-2 pb-3 pt-2">
@@ -1019,10 +1042,50 @@
             closeCategorySelectorModal();
         }
 
+        // --- Edit Shopping Item Modal Elements & Functions ---
+        let editShoppingItemModal, editShoppingItemNameInput, cancelEditShoppingItemButton, saveEditShoppingItemButton;
+        let currentEditingShoppingItemId = null;
+
+        function openEditShoppingItemModal(itemId, currentName) {
+            if (!editShoppingItemModal || !editShoppingItemNameInput) return;
+            currentEditingShoppingItemId = itemId;
+            editShoppingItemNameInput.value = currentName;
+            editShoppingItemModal.classList.remove("hidden");
+            editShoppingItemNameInput.focus();
+            editShoppingItemNameInput.select();
+        }
+
+        function closeEditShoppingItemModal() {
+            if (!editShoppingItemModal) return;
+            editShoppingItemModal.classList.add("hidden");
+            currentEditingShoppingItemId = null;
+            if(editShoppingItemNameInput) editShoppingItemNameInput.value = "";
+        }
+
+        async function handleSaveShoppingItemChanges() {
+            if (!currentEditingShoppingItemId || !editShoppingItemNameInput) return;
+            const newName = editShoppingItemNameInput.value.trim();
+            if (!newName) {
+                showCustomAlert("Validation Error", "Item name cannot be empty.");
+                return;
+            }
+            try {
+                await database.ref(`shoppingList/${currentEditingShoppingItemId}`).update({ name: newName });
+                // showCustomAlert("Success", "Item updated!"); // Can be a bit noisy, consider removing
+                closeEditShoppingItemModal();
+                loadShoppingListFromDB(); 
+            } catch (error) {
+                console.error("Error updating shopping item:", error);
+                showCustomAlert("Error", "Failed to update item. Please try again.");
+            }
+        }
+
+
         // --- New Navigation Logic Helpers ---
         const ALL_MODAL_IDS = [
             'add-meal-modal', 'delete-recipe-confirmation-modal', 'custom-alert-modal',
-            'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal', 'category-selector-modal'
+            'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal', 
+            'category-selector-modal', 'edit-shopping-item-modal'
         ];
 
         function getOpenModalId() {
@@ -1047,6 +1110,7 @@
             else if (modalId === 'shop-selector-modal') closeShopSelectorModal();
             else if (modalId === 'shopping-list-sort-modal') closeShoppingListSortModal();
             else if (modalId === 'category-selector-modal') closeCategorySelectorModal();
+            else if (modalId === 'edit-shopping-item-modal') closeEditShoppingItemModal();
             else { 
                 modal.classList.add('hidden');
             }
@@ -1732,6 +1796,13 @@
         
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
         
+        // --- Long Press & Swipe Logic for Shopping List ---
+        const LONG_PRESS_DURATION = 700; // milliseconds
+        const MAX_MOVE_FOR_LONG_PRESS = 10; // pixels
+        let longPressTimerId = null; // Use a specific variable for long press timer
+        let longPressActionTaken = false; // Flag per interaction
+        let pressEventStartX, pressEventStartY; // Store initial press coords for long press check
+
         let swipeState = {
             isSwiping: false, startX: 0, startY: 0, currentX: 0, item: null, itemId: null,
             swipeThreshold: 80, maxSwipeDistanceForOpacity: 150, isVerticalScroll: false, scrollLockThreshold: 10
@@ -1747,7 +1818,7 @@
             if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) return;
             if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) swipeState.isVerticalScroll = true;
             if (swipeState.isVerticalScroll) return;
-            if (event.type === 'touchmove') event.preventDefault();
+            if (event.type === 'touchmove' && event.cancelable) event.preventDefault();
 
             swipeState.currentX = currentX;
             if (deltaX > 0) {
@@ -1761,7 +1832,7 @@
         };
 
         const shoppingListSwipeEndHandler = (event, forceReset = false) => {
-            if (!swipeState.isSwiping || !swipeState.item) {
+            if (!swipeState.isSwiping || !swipeState.item) { // Ensure cleanup if swipe wasn't fully active
                 document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
                 document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
                 document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
@@ -1769,12 +1840,20 @@
                 document.removeEventListener('touchend', shoppingListSwipeEndHandler);
                 document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
                 if (swipeState.item) swipeState.item.style.userSelect = '';
-                swipeState.isSwiping = false;
+                swipeState.isSwiping = false; // Explicitly set here
                 return;
             }
-            const itemToDelete = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX;
-            const wasSwiping = swipeState.isSwiping;
-            swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false;
+            
+            const itemToProcess = swipeState.item; 
+            const idToDelete = swipeState.itemId; 
+            const deltaX = swipeState.currentX - swipeState.startX;
+            const wasSwipingState = swipeState.isSwiping; // Capture before reset
+
+            // Reset swipe state immediately
+            swipeState.isSwiping = false; 
+            swipeState.item = null; 
+            swipeState.itemId = null; 
+            swipeState.isVerticalScroll = false;
 
             document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
             document.removeEventListener('mouseup', shoppingListSwipeEndHandler);
@@ -1782,30 +1861,44 @@
             document.removeEventListener('touchmove', shoppingListSwipeMoveHandler);
             document.removeEventListener('touchend', shoppingListSwipeEndHandler);
             document.removeEventListener('touchcancel', shoppingListSwipeEndHandler);
-            itemToDelete.style.userSelect = '';
+            if (itemToProcess) itemToProcess.style.userSelect = '';
 
-            if (wasSwiping && !forceReset && deltaX > swipeState.swipeThreshold) {
-                itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-                itemToDelete.style.transform = `translateX(${window.innerWidth}px)`;
-                itemToDelete.style.opacity = 0;
-                itemToDelete.dataset.swipedForDelete = "true";
-                itemToDelete.addEventListener('transitionend', async () => {
+            // If long press took action, swipe should already be visually reset or ignored.
+            if (longPressActionTaken && !forceReset) { 
+                // Ensure item is visually reset if long press interrupted mid-swipe anim
+                if(itemToProcess) {
+                    itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out';
+                    itemToProcess.style.transform = 'translateX(0px)';
+                    itemToProcess.style.opacity = 1;
+                    itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true });
+                }
+                return; 
+            }
+
+            if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) {
+                itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                itemToProcess.style.transform = `translateX(${window.innerWidth}px)`;
+                itemToProcess.style.opacity = 0;
+                itemToProcess.dataset.swipedForDelete = "true";
+                itemToProcess.addEventListener('transitionend', async () => {
                     try { await database.ref(`shoppingList/${idToDelete}`).remove(); loadShoppingListFromDB(); } 
                     catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear.");}
                 }, { once: true });
-            } else if (wasSwiping) {
-                itemToDelete.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
-                itemToDelete.style.transform = 'translateX(0px)';
-                itemToDelete.style.opacity = 1;
-                itemToDelete.addEventListener('transitionend', () => { if (itemToDelete) itemToDelete.style.transition = 'none'; }, { once: true });
+            } else if (wasSwipingState && itemToProcess) { // Check itemToProcess if it might be null
+                itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+                itemToProcess.style.transform = 'translateX(0px)';
+                itemToProcess.style.opacity = 1;
+                itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true });
             }
         };
         
         const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true);};
 
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
+            if (longPressActionTaken) return; // If long press just handled this item, don't start swipe.
             if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return;
-            if (event.target.closest('.shopping-item-location-button') || event.target.closest('.shopping-item-checkbox')) return; 
+            // Check again for clicks on interactive elements as this might be called before long press timer logic
+            if (event.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return;
 
             swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId;
             swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
@@ -1821,6 +1914,7 @@
             document.addEventListener('touchend', shoppingListSwipeEndHandler);
             document.addEventListener('touchcancel', shoppingListSwipeEndHandler);
         };
+
 
         async function loadShoppingListFromDB() { 
             if (!shoppingListItemsContainer) return; 
@@ -1919,8 +2013,82 @@
                 shoppingListItemsContainer.appendChild(itemElement);
                 requestAnimationFrame(() => { itemElement.classList.add("list-item-enter-active") });
 
-                itemElement.addEventListener('mousedown', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id));
-                itemElement.addEventListener('touchstart', (event) => shoppingListSwipeStartHandler(event, itemElement, itemData.id), { passive: true });
+                // --- Attach Long Press & Swipe Handlers ---
+                let itemLongPressTimerId; // Specific to this item's interaction cycle
+                let itemPressStartX, itemPressStartY;
+                let itemLongPressActionTaken = false;
+
+                const temporaryItemListeners = new Map();
+
+                function addItemEventListener(type, listener) {
+                    itemElement.addEventListener(type, listener);
+                    temporaryItemListeners.set(type, listener);
+                }
+                function removeItemEventListeners() {
+                    temporaryItemListeners.forEach((listener, type) => {
+                        itemElement.removeEventListener(type, listener);
+                    });
+                    temporaryItemListeners.clear();
+                }
+
+                function handleItemPressStart(e) {
+                    itemLongPressActionTaken = false;
+                    if (e.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) {
+                        return;
+                    }
+                    itemPressStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                    itemPressStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                    
+                    shoppingListSwipeStartHandler(e, itemElement, itemData.id); // Initiate swipe detection
+
+                    clearTimeout(itemLongPressTimerId);
+                    itemLongPressTimerId = setTimeout(() => {
+                        // Check if swipe has moved significantly or if vertical scroll
+                        if (swipeState.isSwiping && swipeState.item === itemElement) {
+                            const currentSwipeDeltaX = swipeState.currentX - swipeState.startX;
+                             if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) {
+                                clearTimeout(itemLongPressTimerId); // Ensure timer is cleared
+                                removeItemEventListeners(); // Clean up item-specific listeners
+                                return; // Swipe is dominant or scrolling
+                            }
+                        }
+                        itemLongPressActionTaken = true;
+                        if (swipeState.isSwiping && swipeState.item === itemElement) {
+                            shoppingListSwipeEndHandler(e, true); // Force reset swipe
+                        }
+                        openEditShoppingItemModal(itemData.id, itemData.name);
+                        removeItemEventListeners(); // Clean up after long press activation
+
+                    }, LONG_PRESS_DURATION);
+
+                    addItemEventListener('mousemove', handleItemPressMove);
+                    addItemEventListener('touchmove', handleItemPressMove);
+                    addItemEventListener('mouseup', handleItemPressEnd);
+                    addItemEventListener('mouseleave', handleItemPressEnd); // Could also be specific for mouseleave
+                    addItemEventListener('touchend', handleItemPressEnd);
+                    addItemEventListener('touchcancel', handleItemPressEnd);
+                }
+
+                function handleItemPressMove(e) {
+                    if (itemLongPressActionTaken) return;
+
+                    const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+                    if (Math.abs(currentX - itemPressStartX) > MAX_MOVE_FOR_LONG_PRESS ||
+                        Math.abs(currentY - itemPressStartY) > MAX_MOVE_FOR_LONG_PRESS) {
+                        clearTimeout(itemLongPressTimerId);
+                        removeItemEventListeners();
+                    }
+                }
+
+                function handleItemPressEnd() {
+                    clearTimeout(itemLongPressTimerId);
+                    removeItemEventListeners();
+                }
+                
+                itemElement.addEventListener('mousedown', handleItemPressStart);
+                itemElement.addEventListener('touchstart', handleItemPressStart, { passive: true });
             });
         }
         async function addShoppingItemToDB() { 
@@ -2114,6 +2282,19 @@
                 if (event.target === categorySelectorModal) closeCategorySelectorModal(); 
             });
             if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
+
+            editShoppingItemModal = document.getElementById("edit-shopping-item-modal");
+            editShoppingItemNameInput = document.getElementById("edit-shopping-item-name-input");
+            cancelEditShoppingItemButton = document.getElementById("cancel-edit-shopping-item-button");
+            saveEditShoppingItemButton = document.getElementById("save-edit-shopping-item-button");
+
+            cancelEditShoppingItemButton?.addEventListener("click", closeEditShoppingItemModal);
+            saveEditShoppingItemButton?.addEventListener("click", handleSaveShoppingItemChanges);
+            editShoppingItemModal?.addEventListener("click", (event) => {
+                if (event.target === editShoppingItemModal) closeEditShoppingItemModal();
+            });
+            editShoppingItemNameInput?.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), handleSaveShoppingItemChanges()) });
+
 
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference');
             if (savedSortPreference) {
