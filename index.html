@@ -375,24 +375,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> <!-- ADDED Firebase Auth -->
 
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "%%FIREBASE_API_KEY%%", authDomain: "%%FIREBASE_AUTH_DOMAIN%%",
-            projectId: "%%FIREBASE_PROJECT_ID%%", databaseURL: "%%FIREBASE_DATABASE_URL%%",
-            storageBucket: "%%FIREBASE_STORAGE_BUCKET%%", messagingSenderId: "%%FIREBASE_MESSAGING_SENDER_ID%%",
-            appId: "%%FIREBASE_APP_ID%%", measurementId: "%%FIREBASE_MEASUREMENT_ID%%"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database(); const serverTimestamp = firebase.database.ServerValue.TIMESTAMP;
-        const auth = firebase.auth(); // ADDED Auth instance
-        let currentUserId = null; // ADDED to store current user's ID
-        let authInitialized = false; // ADDED to track auth state initialization
-
-        const CLOUDINARY_CLOUD_NAME = "%%CLOUDINARY_CLOUD_NAME%%";
-        const CLOUDINARY_UPLOAD_PRESET = "%%CLOUDINARY_UPLOAD_PRESET%%";
-        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
-    </script>
 </head>
 
 <body>
@@ -1110,12 +1092,27 @@
     </div>
 
     <script>
-        // Keep existing global vars like currentPageId, previousPageId, etc.
-        // Add: currentUserId, authInitialized (done in <head> script)
+        // Firebase and Cloudinary Config (as provided in original)
+        const firebaseConfig = {
+            apiKey: "%%FIREBASE_API_KEY%%", authDomain: "%%FIREBASE_AUTH_DOMAIN%%",
+            projectId: "%%FIREBASE_PROJECT_ID%%", databaseURL: "%%FIREBASE_DATABASE_URL%%",
+            storageBucket: "%%FIREBASE_STORAGE_BUCKET%%", messagingSenderId: "%%FIREBASE_MESSAGING_SENDER_ID%%",
+            appId: "%%FIREBASE_APP_ID%%", measurementId: "%%FIREBASE_MEASUREMENT_ID%%"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database(); const serverTimestamp = firebase.database.ServerValue.TIMESTAMP;
+        const auth = firebase.auth();
+        let currentUserId = null;
+        let authInitialized = false;
 
-        let currentPageId = "page-login", previousPageId = "page-login", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date, 1), isInitialPageLoad = true; // Changed !0 to true for clarity
-        let previousAuthUserId = null; // To detect a fresh login event
-        let commonListenersAreSetup = false; // To ensure listeners are set up only once
+        const CLOUDINARY_CLOUD_NAME = "%%CLOUDINARY_CLOUD_NAME%%";
+        const CLOUDINARY_UPLOAD_PRESET = "%%CLOUDINARY_UPLOAD_PRESET%%";
+        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+        // Global State Variables (as provided in original)
+        let currentPageId = "page-login", previousPageId = "page-login", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date, 1), isInitialPageLoad = true;
+        let previousAuthUserId = null;
+        let commonListenersAreSetup = false;
 
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish", "DM"];
@@ -1126,14 +1123,68 @@
         let currentShoppingListSort = 'default';
         let currentSelectedRecipeCategory = "Dinner";
 
+        // --- START: New Global Functions for Daily Registration Limit ---
+        const MAX_REGISTRATIONS_PER_DAY = 3;
+
+        function getTodaysDateKey() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        async function checkRegistrationLimit() {
+            const dateKey = getTodaysDateKey();
+            // This path is global, not user-specific
+            const limitRef = database.ref(`registrationLimits/${dateKey}/count`);
+
+            try {
+                const snapshot = await limitRef.once('value');
+                const currentCount = snapshot.exists() ? snapshot.val() : 0;
+                
+                if (currentCount >= MAX_REGISTRATIONS_PER_DAY) {
+                    console.warn(`Registration limit reached for ${dateKey}. Count: ${currentCount}`);
+                    return false; // Limit reached
+                }
+                return true; // Limit not reached
+            } catch (error) {
+                console.error("Error checking registration limit:", error);
+                // To be safe, if we can't check the limit, deny registration.
+                showCustomAlert("Registration Error", "Could not verify registration availability at this moment. Please try again later.");
+                return false;
+            }
+        }
+
+        async function incrementRegistrationCount() {
+            const dateKey = getTodaysDateKey();
+            const countRef = database.ref(`registrationLimits/${dateKey}/count`);
+
+            try {
+                // Using a transaction to safely increment the count
+                const { committed, snapshot } = await countRef.transaction(currentCount => {
+                    if (currentCount === null) {
+                        return 1; // First registration for the day
+                    }
+                    return currentCount + 1;
+                });
+
+                if (committed) {
+                    console.log("Registration count incremented for", dateKey, "New count:", snapshot.val());
+                } else {
+                    console.warn("Registration count transaction not committed for", dateKey);
+                }
+            } catch (error) {
+                console.error("Error incrementing registration count:", error);
+                showCustomAlert("Notice", "Account created. There was a minor issue updating daily statistics, this should not affect your account.");
+            }
+        }
+        // --- END: New Global Functions for Daily Registration Limit ---
 
         // --- Helper to get user-specific database path ---
         function getUserDataRef(path) {
             if (!currentUserId) {
                 console.error("User not logged in. Cannot get data reference for path:", path);
-                // Consider redirecting to login or showing a blocking error.
-                // For now, returning null will cause subsequent DB ops to fail,
-                // which should be caught by try/catch blocks in calling functions.
                 return null;
             }
             return database.ref(`users/${currentUserId}/${path}`);
@@ -1145,7 +1196,6 @@
             currentRecipeIngredientsState = [];
             // currentShoppingListSort = 'default'; // Keep or make user-specific in DB
 
-            // Clear UI elements
             const uiContainersToClear = [
                 'featured-recipes-container', 'categorized-recipes-container',
                 'search-results-container', 'favorites-recipes-container',
@@ -1162,7 +1212,7 @@
                 }
             });
 
-            resetCreateForm(); // Clears create recipe form
+            resetCreateForm();
             const searchRecipeInput = document.getElementById("search-recipe-input");
             if (searchRecipeInput) searchRecipeInput.value = "";
             const searchFavoritesInput = document.getElementById("search-favorites-input");
@@ -1170,24 +1220,20 @@
             const newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
             if (newShoppingItemNameInput) newShoppingItemNameInput.value = "";
 
-            // Reset local storage items
             localStorage.removeItem("currentRecipeDetailId");
             localStorage.removeItem("scheduleView_currentSelectedDate");
             localStorage.removeItem("scheduleView_currentDisplayedWeekStartDate");
-            localStorage.removeItem("lastActivePageId"); // Clear last page on logout
+            localStorage.removeItem("lastActivePageId");
 
-            // Reset other state variables
             editingRecipeId = null;
             currentRecipeImageURL = null;
             currentSelectedDate = new Date();
             currentDisplayedWeekStartDate = getStartOfWeek(new Date(), 1);
-            previousPageId = 'page-login'; // Default after logout
-            // Ensure bottom nav bar reflects a logged-out state if necessary, or hide it.
-            // For now, `updateNavbarUI` will handle setting 'page-login' as active (which won't highlight any nav item).
+            previousPageId = 'page-login';
         }
 
 
-        // --- Custom Alert Modal Elements & Functions --- (no change)
+        // --- Custom Alert Modal Elements & Functions ---
         let customAlertModal, customAlertTitle, customAlertMessage, customAlertOkButton;
         function showCustomAlert(title, message) {
             if (!customAlertModal || !customAlertTitle || !customAlertMessage) return;
@@ -1200,7 +1246,7 @@
             customAlertModal.classList.add("hidden");
         }
 
-        // --- Custom Confirm Modal Elements & Functions --- (no change)
+        // --- Custom Confirm Modal Elements & Functions ---
         let customConfirmModal, customConfirmTitle, customConfirmMessage, customConfirmCancelButton, customConfirmConfirmButton;
         let currentConfirmResolver = null;
 
@@ -1231,7 +1277,7 @@
             }
         }
 
-        // --- Category Selector Modal Elements & Functions --- (no change)
+        // --- Category Selector Modal Elements & Functions ---
         let categorySelectorModal, categorySelectorOptionsContainer, closeCategorySelectorModalButton;
         let createRecipeCategoryButton, createRecipeCategoryDisplay;
 
@@ -1267,7 +1313,7 @@
             closeCategorySelectorModal();
         }
 
-        // --- Edit Shopping Item Modal Elements & Functions --- (no change to modal functions, but DB ops need update)
+        // --- Edit Shopping Item Modal Elements & Functions ---
         let editShoppingItemModal, editShoppingItemNameInput, cancelEditShoppingItemButton, saveEditShoppingItemButton;
         let currentEditingShoppingItemId = null;
 
@@ -1288,7 +1334,7 @@
         }
 
         async function handleSaveShoppingItemChanges() {
-            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; } // ADDED
+            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
             if (!currentEditingShoppingItemId || !editShoppingItemNameInput) return;
             const newName = editShoppingItemNameInput.value.trim();
             if (!newName) {
@@ -1296,11 +1342,11 @@
                 return;
             }
             try {
-                const itemRef = getUserDataRef(`shoppingList/${currentEditingShoppingItemId}`); // MODIFIED
+                const itemRef = getUserDataRef(`shoppingList/${currentEditingShoppingItemId}`);
                 if (!itemRef) throw new Error("User not authenticated for DB operation.");
                 await itemRef.update({ name: newName });
                 closeEditShoppingItemModal();
-                loadShoppingListFromDB(); // This will re-render with user's data
+                loadShoppingListFromDB();
             } catch (error) {
                 console.error("Error updating shopping item:", error);
                 showCustomAlert("Error", "Failed to update item. Please try again.");
@@ -1308,12 +1354,11 @@
         }
 
 
-        // --- New Navigation Logic Helpers --- (no change)
+        // --- New Navigation Logic Helpers ---
         const ALL_MODAL_IDS = [
             'add-meal-modal', 'delete-recipe-confirmation-modal', 'custom-alert-modal',
             'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal',
             'category-selector-modal', 'edit-shopping-item-modal'
-            // Note: page-login and page-register are full pages, not modals here.
         ];
 
         function getOpenModalId() {
@@ -1346,7 +1391,7 @@
 
         function getCurrentPageHistoryState(pageId) {
             let state = { page: pageId };
-            if (currentUserId) { // Only add user-specific details if logged in
+            if (currentUserId) {
                 if (pageId === 'page-recipe') {
                     const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
                     if (recipeId) state.recipeId = recipeId;
@@ -1360,7 +1405,7 @@
 
         function getCurrentPageFullHash(pageId) {
             let hash = `#${pageId}`;
-            if (currentUserId) { // Only add user-specific details if logged in
+            if (currentUserId) {
                 if (pageId === 'page-recipe') {
                     const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
                     if (recipeId) hash += `/${recipeId}`;
@@ -1375,21 +1420,16 @@
                 closeModalById(openModalId);
                 const currentState = getCurrentPageHistoryState(currentPageId);
                 const currentHash = getCurrentPageFullHash(currentPageId);
-                history.pushState(currentState, `Page ${currentPageId}`, currentHash); // Re-push to prevent actual back
+                history.pushState(currentState, `Page ${currentPageId}`, currentHash);
                 return;
             }
-
-            // If not logged in, back from profile/etc should go to login.
-            // If logged in, back from profile/recipe/etc should go to index.
             const targetFallbackPage = currentUserId ? 'page-index' : 'page-login';
-
             if (currentPageId !== targetFallbackPage) {
                 showPage(targetFallbackPage);
             }
-            // If on targetFallbackPage and no modal, app back button does nothing (native back handles it)
         }
 
-        // --- Date Helpers & Debounce --- (no change)
+        // --- Date Helpers & Debounce ---
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
 
 
@@ -1399,40 +1439,20 @@
             if (!newPage) {
                 console.warn(`Page ${pageId} not found. Current auth state: ${currentUserId ? 'logged in' : 'logged out'}. Attempting to redirect.`);
                 const fallbackPageId = currentUserId ? "page-index" : "page-login";
-
-                if (pageId === fallbackPageId) { // Avoid infinite loop if fallback itself is missing
+                if (pageId === fallbackPageId) {
                     document.body.innerHTML = `Critical error: Fallback page ${fallbackPageId} (which was also target ${pageId}) is missing. App cannot recover.`;
-                    // Attempt to hide any active page to prevent unresponsive UI
                     const anyActivePage = document.querySelector(".page.active");
                     if (anyActivePage) anyActivePage.classList.remove("active");
                     return;
                 }
-
-                showPage(fallbackPageId, true); // Redirect, ensuring it's treated like a history/initial load
+                showPage(fallbackPageId, true);
                 return;
             }
-
             const pageActuallyChanging = currentPageId !== pageId;
-
-            // Deactivate ALL currently active pages EXCEPT the new one (if it happened to be already active, though unlikely).
-            // This ensures a clean slate and prevents multiple pages from being active.
-            document.querySelectorAll(".page.active").forEach(p => {
-                if (p.id !== pageId) {
-                    p.classList.remove("active");
-                }
-            });
-            // If newPage was not among active pages, the old `currentPageId` based removal would also work,
-            // but this is more explicit if there was any state inconsistency.
-            // const oldPage = document.getElementById(currentPageId);
-            // if (oldPage && oldPage !== newPage) {
-            //     oldPage.classList.remove("active");
-            // }
-
+            document.querySelectorAll(".page.active").forEach(p => { if (p.id !== pageId) p.classList.remove("active"); });
 
             if (!fromHistoryOrInitialLoad) {
-                if (pageActuallyChanging) {
-                    previousPageId = currentPageId;
-                }
+                if (pageActuallyChanging) previousPageId = currentPageId;
                 let stateToPush = getCurrentPageHistoryState(pageId);
                 let urlToPush = getCurrentPageFullHash(pageId);
                 if (window.location.hash !== urlToPush || JSON.stringify(history.state) !== JSON.stringify(stateToPush)) {
@@ -1445,141 +1465,78 @@
                     history.replaceState(stateToReplace, `Page ${pageId}`, targetHash);
                 }
             }
-
-            currentPageId = pageId; // Update global currentPageId to the new page
-
+            currentPageId = pageId;
             if (currentUserId) {
                 if (pageId !== 'page-login' && pageId !== 'page-register') {
-                    localStorage.setItem(`lastActivePageId_${currentUserId}`, pageId); // User-specific key
+                    localStorage.setItem(`lastActivePageId_${currentUserId}`, pageId);
                 }
             }
-
-            requestAnimationFrame(() => {
-                if (!newPage.classList.contains('active')) { // Add active class if not already (e.g. from the loop above)
-                    newPage.classList.add("active");
-                }
-            });
-
+            requestAnimationFrame(() => { if (!newPage.classList.contains('active')) newPage.classList.add("active"); });
             updateNavbarUI(pageId);
-
             const pageContent = newPage.querySelector(".page-content");
-            if (pageContent) {
-                // Scroll to top if the page actually changed or if it's the initial page load.
-                if (pageActuallyChanging || (isInitialPageLoad && pageId === currentPageId)) {
-                    pageContent.scrollTo(0, 0);
-                }
-            }
+            if (pageContent && (pageActuallyChanging || (isInitialPageLoad && pageId === currentPageId))) pageContent.scrollTo(0, 0);
 
-            // Specific page load logic (this part remains the same)
-            if (pageId === "page-index" && currentUserId) {
-                document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
-            } else if (pageId === "page-favorites" && currentUserId) {
-                renderFavoritesPage();
-            } else if (pageId === "page-schedule" && currentUserId) {
+            if (pageId === "page-index" && currentUserId) document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
+            else if (pageId === "page-favorites" && currentUserId) renderFavoritesPage();
+            else if (pageId === "page-schedule" && currentUserId) {
                 if (fromHistoryOrInitialLoad) {
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate, 1);
                 }
-                // Ensure these are always stored (even if not fromHistoryOrInitialLoad, for consistency if user refreshes)
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
                 renderWeekView();
-            } else if (pageId === "page-shopping-list" && currentUserId) {
-                loadShoppingListFromDB();
-            } else if (pageId === 'page-profile' && currentUserId) {
+            } else if (pageId === "page-shopping-list" && currentUserId) loadShoppingListFromDB();
+            else if (pageId === 'page-profile' && currentUserId) {
                 const userEmailDisplay = document.getElementById('user-email-display');
-                if (userEmailDisplay && auth.currentUser) {
-                    userEmailDisplay.textContent = auth.currentUser.email;
-                }
+                if (userEmailDisplay && auth.currentUser) userEmailDisplay.textContent = auth.currentUser.email;
             }
         }
 
         function updateNavbarUI(e) {
             const bottomNavBar = document.querySelector(".bottom-nav-bar");
             if (!bottomNavBar) return;
-
-            // Hide nav bar on login/register pages
-            if (e === 'page-login' || e === 'page-register') {
-                bottomNavBar.style.display = 'none';
-                return;
-            }
-            bottomNavBar.style.display = 'block'; // Ensure it's visible for other pages
-
+            if (e === 'page-login' || e === 'page-register') { bottomNavBar.style.display = 'none'; return; }
+            bottomNavBar.style.display = 'block';
             document.querySelectorAll(".nav-item").forEach(t => {
                 t.classList.remove("nav-active");
                 const c = t.dataset.target;
                 let a = "page-recipe" === e ? c === previousPageId && ("page-index" === previousPageId || "page-favorites" === previousPageId) ? !0 : "page-index" === c && "page-favorites" !== previousPageId ? !0 : !1 : c === e;
-                const n = a ? "text-white" : "text-[#bda89e]",
-                    o = t.querySelector(".nav-icon-container"),
-                    i = t.querySelector(".nav-text");
+                const n = a ? "text-white" : "text-[#bda89e]", o = t.querySelector(".nav-icon-container"), i = t.querySelector(".nav-text");
                 ["text-white", "text-[#bda89e]"].forEach(e => { t.classList.remove(e), i?.classList.remove(e), o?.classList.remove(e) }), t.classList.add(n), i?.classList.add(n), o?.classList.add(n), a && t.classList.add("nav-active"), "page-favorites" === c && o && o.querySelector("svg") && (o.querySelector("svg").innerHTML = a ? '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>' : '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>')
             })
         }
 
-        // --- Data Loading Functions (Recipes) ---
-        // MODIFIED to use user-specific paths and handle no user
         async function loadRecipesFromRealtimeDB() {
-            if (!currentUserId) {
-                console.log("No user signed in. Skipping recipe load.");
-                allRecipesCache = [];
-                populateRecipeListsUI([]); // Show empty/login state on index page
-                if (recipesLoadingPromise) { // Clear any pending promise from a previous session
-                    recipesLoadingPromise = null;
-                }
-                return Promise.resolve();
-            }
-
+            if (!currentUserId) { allRecipesCache = []; populateRecipeListsUI([]); if (recipesLoadingPromise) recipesLoadingPromise = null; return Promise.resolve(); }
             if (allRecipesCache.length > 0 && !recipesLoadingPromise) return Promise.resolve();
             if (recipesLoadingPromise) return recipesLoadingPromise;
-
             const featuredContainer = document.getElementById("featured-recipes-container");
             const categorizedContainer = document.getElementById("categorized-recipes-container");
             const searchResultsContainer = document.getElementById("search-results-container");
-
             if (featuredContainer && featuredContainer.querySelector('.loading-placeholder')) featuredContainer.innerHTML = '<p class="loading-placeholder w-full">Loading recent recipes...</p>';
             if (categorizedContainer && categorizedContainer.querySelector('.loading-placeholder')) categorizedContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading all recipes...</p>';
-            if (searchResultsContainer && !searchResultsContainer.classList.contains('hidden') && searchResultsContainer.querySelector('.loading-placeholder')) {
-                searchResultsContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading search results...</p>';
-            }
-
+            if (searchResultsContainer && !searchResultsContainer.classList.contains('hidden') && searchResultsContainer.querySelector('.loading-placeholder')) searchResultsContainer.innerHTML = '<p class="loading-placeholder col-span-full">Loading search results...</p>';
             const userRecipesRef = getUserDataRef("recipes");
-            if (!userRecipesRef) { // Should not happen if currentUserId is checked
-                allRecipesCache = []; populateRecipeListsUI([]); return Promise.resolve();
-            }
-
+            if (!userRecipesRef) { allRecipesCache = []; populateRecipeListsUI([]); return Promise.resolve(); }
             recipesLoadingPromise = (async () => {
                 try {
                     const snapshot = await userRecipesRef.orderByChild("createdAt").once("value");
                     allRecipesCache = [];
-                    if (snapshot.exists()) {
-                        allRecipesCache = Object.keys(snapshot.val()).map(id => ({ id, ...snapshot.val()[id] })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                    }
-
-                    const activePageIndex = document.getElementById("page-index");
-                    const activePageFavorites = document.getElementById("page-favorites");
-
-                    if (currentPageId === "page-index" && activePageIndex && activePageIndex.classList.contains("active")) {
-                        document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
-                    } else if (currentPageId === "page-favorites" && activePageFavorites && activePageFavorites.classList.contains("active")) {
-                        renderFavoritesPage();
-                    }
+                    if (snapshot.exists()) allRecipesCache = Object.keys(snapshot.val()).map(id => ({ id, ...snapshot.val()[id] })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    if (currentPageId === "page-index" && document.getElementById("page-index")?.classList.contains("active")) document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
+                    else if (currentPageId === "page-favorites" && document.getElementById("page-favorites")?.classList.contains("active")) renderFavoritesPage();
                 } catch (error) {
-                    console.error("Error loading recipes:", error);
-                    showCustomAlert("Error", "Could not load recipes. Please check your connection and try again.");
-                    if (featuredContainer) featuredContainer.innerHTML = "";
-                    if (categorizedContainer) categorizedContainer.innerHTML = "";
-                    if (searchResultsContainer) searchResultsContainer.innerHTML = "";
-                    throw error; // Rethrow to be caught by caller if needed
-                } finally {
-                    recipesLoadingPromise = null;
-                }
+                    console.error("Error loading recipes:", error); showCustomAlert("Error", "Could not load recipes. Please check your connection and try again.");
+                    if (featuredContainer) featuredContainer.innerHTML = ""; if (categorizedContainer) categorizedContainer.innerHTML = ""; if (searchResultsContainer) searchResultsContainer.innerHTML = "";
+                    throw error;
+                } finally { recipesLoadingPromise = null; }
             })();
             return recipesLoadingPromise;
         }
 
-        // MODIFIED populateRecipeListsUI to handle no currentUserId
         function populateRecipeListsUI(recipes, isSearchMode = false) {
             const featuredContainer = document.getElementById('featured-recipes-container');
             const recentlyAddedHeading = document.getElementById('recently-added-heading');
@@ -1587,123 +1544,66 @@
             const searchResultsContainer = document.getElementById('search-results-container');
             const defaultRecipesView = document.getElementById('default-recipes-view');
             const categoryShortcutsContainer = document.getElementById('category-shortcuts-container');
-
-            if (!currentUserId && !isSearchMode) { // Handle not logged in state for default view
-                if (defaultRecipesView) defaultRecipesView.style.display = 'block';
-                if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
-                if (featuredContainer) featuredContainer.innerHTML = '';
-                if (recentlyAddedHeading) recentlyAddedHeading.style.display = 'none';
+            if (!currentUserId && !isSearchMode) {
+                if (defaultRecipesView) defaultRecipesView.style.display = 'block'; if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
+                if (featuredContainer) featuredContainer.innerHTML = ''; if (recentlyAddedHeading) recentlyAddedHeading.style.display = 'none';
                 if (categorizedRecipesContainer) categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">Please login to view your recipes.</p>';
-                if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
-                return;
+                if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none'; return;
             }
-
-            // ... (rest of the function, largely unchanged logic, but relies on `recipes` which is now user-specific)
             if (isSearchMode) {
                 if (defaultRecipesView) defaultRecipesView.style.display = 'none';
                 if (searchResultsContainer) {
-                    searchResultsContainer.innerHTML = '';
-                    searchResultsContainer.classList.remove('hidden');
-                    if (recipes.length === 0) {
-                        searchResultsContainer.innerHTML = '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes found matching your search.</p>';
-                    } else {
-                        recipes.forEach(recipe => searchResultsContainer.innerHTML += createRecipeCardHtml(recipe));
-                    }
+                    searchResultsContainer.innerHTML = ''; searchResultsContainer.classList.remove('hidden');
+                    if (recipes.length === 0) searchResultsContainer.innerHTML = '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No recipes found matching your search.</p>';
+                    else recipes.forEach(recipe => searchResultsContainer.innerHTML += createRecipeCardHtml(recipe));
                 }
                 if (categoryShortcutsContainer) categoryShortcutsContainer.style.display = 'none';
             } else {
-                if (searchResultsContainer) searchResultsContainer.classList.add('hidden');
-                if (defaultRecipesView) defaultRecipesView.style.display = 'block';
-
+                if (searchResultsContainer) searchResultsContainer.classList.add('hidden'); if (defaultRecipesView) defaultRecipesView.style.display = 'block';
                 if (featuredContainer && recentlyAddedHeading) {
-                    featuredContainer.innerHTML = "";
-                    const recentRecipes = recipes.slice(0, 3);
-                    if (recentRecipes.length > 0) {
-                        recentlyAddedHeading.style.display = 'block';
-                        featuredContainer.style.display = 'flex';
-                        recentRecipes.forEach(recipe => featuredContainer.innerHTML += createRecipeCardHtml(recipe, true));
-                    } else {
-                        recentlyAddedHeading.style.display = 'none';
-                        featuredContainer.style.display = 'none';
-                    }
+                    featuredContainer.innerHTML = ""; const recentRecipes = recipes.slice(0, 3);
+                    if (recentRecipes.length > 0) { recentlyAddedHeading.style.display = 'block'; featuredContainer.style.display = 'flex'; recentRecipes.forEach(recipe => featuredContainer.innerHTML += createRecipeCardHtml(recipe, true)); }
+                    else { recentlyAddedHeading.style.display = 'none'; featuredContainer.style.display = 'none'; }
                 }
-
                 const activeCategories = [];
                 if (categorizedRecipesContainer) {
                     categorizedRecipesContainer.innerHTML = '';
                     RECIPE_CATEGORIES.forEach(category => {
-                        const recipesInCategory = recipes.filter(r => r.category === category)
-                            .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-
+                        const recipesInCategory = recipes.filter(r => r.category === category).sort((a, b) => (a.title || "").localeCompare(b.title || ""));
                         if (recipesInCategory.length > 0) {
                             activeCategories.push(category);
                             let categoryHtml = `<h2 data-category-target="${category}" class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">${category} Recipes</h2>`;
                             categoryHtml += `<div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">`;
-                            recipesInCategory.forEach(recipe => {
-                                categoryHtml += createRecipeCardHtml(recipe);
-                            });
-                            categoryHtml += `</div>`;
-                            categorizedRecipesContainer.innerHTML += categoryHtml;
+                            recipesInCategory.forEach(recipe => categoryHtml += createRecipeCardHtml(recipe));
+                            categoryHtml += `</div>`; categorizedRecipesContainer.innerHTML += categoryHtml;
                         }
                     });
-
-                    if (categorizedRecipesContainer.innerHTML === '' && recipes.length > 0 && currentUserId) { // Check currentUserId too
-                        categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes found in any category.</p>';
-                    } else if (recipes.length === 0 && !isInitialPageLoad && currentUserId) {
-                        categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes added yet. Create one!</p>';
-                    } else if (!currentUserId && recipes.length === 0) { // Explicitly handle no user for categorized view
-                        categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your recipes.</p>';
-                    }
+                    if (categorizedRecipesContainer.innerHTML === '' && recipes.length > 0 && currentUserId) categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes found in any category.</p>';
+                    else if (recipes.length === 0 && !isInitialPageLoad && currentUserId) categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">No recipes added yet. Create one!</p>';
+                    else if (!currentUserId && recipes.length === 0) categorizedRecipesContainer.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your recipes.</p>';
                 }
-
                 if (categoryShortcutsContainer) {
-                    if (activeCategories.length > 0 && currentUserId) { // Check currentUserId
+                    if (activeCategories.length > 0 && currentUserId) {
                         categoryShortcutsContainer.innerHTML = '';
                         activeCategories.forEach(category => {
                             const button = document.createElement('button');
                             button.className = 'category-shortcut-btn interactive-scale bg-[#40322b] hover:bg-[#5a3a2a] text-white text-xs font-semibold px-3 py-1.5 rounded-md';
-                            button.textContent = category;
-                            button.dataset.category = category;
-                            categoryShortcutsContainer.appendChild(button);
+                            button.textContent = category; button.dataset.category = category; categoryShortcutsContainer.appendChild(button);
                         });
-                        categoryShortcutsContainer.style.display = 'flex';
-                        attachCategoryShortcutListeners();
-                    } else {
-                        categoryShortcutsContainer.innerHTML = '';
-                        categoryShortcutsContainer.style.display = 'none';
-                    }
+                        categoryShortcutsContainer.style.display = 'flex'; attachCategoryShortcutListeners();
+                    } else { categoryShortcutsContainer.innerHTML = ''; categoryShortcutsContainer.style.display = 'none'; }
                 }
             }
             attachRecipeCardListeners();
         }
 
-        // --- Create Recipe Card HTML (no change needed in this function itself) ---
-        function attachCategoryShortcutListeners() {
-            document.querySelectorAll('.category-shortcut-btn').forEach(button => {
-                button.removeEventListener('click', handleCategoryShortcutClick);
-                button.addEventListener('click', handleCategoryShortcutClick);
-            });
-        }
-
-        function handleCategoryShortcutClick(event) {
-            const category = event.currentTarget.dataset.category;
-            const targetHeader = document.querySelector(`#categorized-recipes-container h2[data-category-target="${category}"]`);
-            if (targetHeader) {
-                targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
+        function attachCategoryShortcutListeners() { document.querySelectorAll('.category-shortcut-btn').forEach(button => { button.removeEventListener('click', handleCategoryShortcutClick); button.addEventListener('click', handleCategoryShortcutClick); }); }
+        function handleCategoryShortcutClick(event) { const category = event.currentTarget.dataset.category; const targetHeader = document.querySelector(`#categorized-recipes-container h2[data-category-target="${category}"]`); if (targetHeader) targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         function createRecipeCardHtml(e, t = !1, c = !1) { const a = (e.description || "No description.").substring(0, 70) + ((e.description || "").length > 70 ? "..." : ""), n = `style='background-image: url("${e.imageURL || "https://via.placeholder.com/300x200.png?text=No+Image"}");'`, o = t ? `<div class="flex h-full flex-1 flex-col gap-4 rounded-lg min-w-60 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl" ${n}></div><div><p class="text-white text-base font-medium">${e.title || "Untitled"}</p><p class="text-[#bda89e] text-sm">${a}</p></div></div>` : `<div class="relative flex flex-col gap-3 pb-3 cursor-pointer" data-recipe-id="${e.id}"><div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl" ${n}></div><div><p class="text-white text-base font-medium">${e.title || "Untitled"}</p><p class="text-[#bda89e] text-sm">${a}</p></div>${c ? `<button class="favorite-remove-btn interactive-scale" data-remove-favorite-id="${e.id}" title="Remove from favorites"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256"><path fill="currentColor" d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path></svg></button>` : ""}</div>`; return o }
 
-        // --- Search Logic (handleSearch, renderFavoritesPage, populateFavoritesListUI, handleFavoritesSearch) ---
-        // These will rely on `allRecipesCache` which is now user-specific.
-        // `renderFavoritesPage` and `populateFavoritesListUI` should handle the case where `currentUserId` is null (show login message).
         function handleSearch() {
             const e = document.getElementById("search-recipe-input");
-            if (!e || !currentUserId) { // Added currentUserId check
-                populateRecipeListsUI([], true); // Show empty search or "login required"
-                document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e?.value);
-                return;
-            }
+            if (!e || !currentUserId) { populateRecipeListsUI([], true); document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e?.value); return; }
             const t = e.value.trim().toLowerCase();
             document.getElementById("clear-search-recipe-button")?.classList.toggle("hidden", !e.value);
             "" === t ? populateRecipeListsUI(allRecipesCache) : populateRecipeListsUI(allRecipesCache.filter(e => (e.title || "").toLowerCase().includes(t) || (e.description || "").toLowerCase().includes(t)), !0)
@@ -1711,10 +1611,7 @@
 
         function renderFavoritesPage() {
             const e = document.getElementById("favorites-recipes-container");
-            if (!currentUserId) { // Added check
-                if (e) e.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>';
-                return;
-            }
+            if (!currentUserId) { if (e) e.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>'; return; }
             e && (e.innerHTML = '<p class="loading-placeholder col-span-full">Loading favorites...</p>');
             const t = document.getElementById("search-favorites-input"), c = t ? t.value.trim().toLowerCase() : "";
             document.getElementById("clear-search-favorites-button")?.classList.toggle("hidden", !t?.value);
@@ -1723,18 +1620,12 @@
 
         function populateFavoritesListUI(e, t = !1) {
             const c = document.getElementById("favorites-recipes-container");
-            if (!currentUserId) { // Added check
-                c.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>';
-                return;
-            }
-            // ... rest of function is fine as it depends on `e` (recipes)
-            if (c.innerHTML = "", 0 === e.length) { const a = t ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>'; c.innerHTML = a } else e.forEach(e => c.innerHTML += createRecipeCardHtml(e, !1, !0)); attachRecipeCardListeners(), document.querySelectorAll(".favorite-remove-btn").forEach(e => e.addEventListener("click", t => { t.stopPropagation(); const c = e.dataset.removeFavoriteId; if (c && currentUserId) toggleBookmarkInRealtimeDB(c) }))
+            if (!c || !currentUserId) { if (c) c.innerHTML = '<p class="loading-placeholder col-span-full">Please login to see your favorite recipes.</p>'; return; }
+            c.innerHTML = ""; 0 === e.length ? (c.innerHTML = t ? '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes matching search.</p>' : '<p class="text-center text-[#cba390] py-4 col-span-full w-full">No favorite recipes yet. Bookmark some!</p>') : e.forEach(e => c.innerHTML += createRecipeCardHtml(e, !1, !0));
+            attachRecipeCardListeners(), document.querySelectorAll(".favorite-remove-btn").forEach(e => e.addEventListener("click", t => { t.stopPropagation(); const c = e.dataset.removeFavoriteId; if (c && currentUserId) toggleBookmarkInRealtimeDB(c) }))
         }
         function handleFavoritesSearch() { renderFavoritesPage() }
 
-
-        // --- Recipe Detail Logic (loadRecipeDetailFromRealtimeDB, displayRecipeDetailsUI) ---
-        // MODIFIED to use user-specific paths
         function attachRecipeCardListeners() { document.querySelectorAll("[data-recipe-id]").forEach(e => { e.removeEventListener("click", handleRecipeCardClick), e.addEventListener("click", handleRecipeCardClick) }) }
         function handleRecipeCardClick(e) {
             if (!currentUserId) { showCustomAlert("Login Required", "Please login to view recipe details."); return; }
@@ -1742,72 +1633,33 @@
         }
 
         async function loadRecipeDetailFromRealtimeDB(recipeId, fromHistoryOrInitialLoad = false) {
-            if (!currentUserId) { // Added check
-                showCustomAlert("Login Required", "Please login to view recipe details.");
-                showPage(previousPageId || "page-login", true); // Go to login or previous
-                return;
-            }
+            if (!currentUserId) { showCustomAlert("Login Required", "Please login to view recipe details."); showPage(previousPageId || "page-login", true); return; }
             let recipeData = allRecipesCache.find(r => r.id === recipeId);
-
-            if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
-                displayRecipeDetailsUI(recipeData);
-                showPage("page-recipe", fromHistoryOrInitialLoad);
-                return;
-            }
-
-            // If not in cache, or cache is empty, try loading all recipes for the user again, then check.
+            if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) { displayRecipeDetailsUI(recipeData); showPage("page-recipe", fromHistoryOrInitialLoad); return; }
             if (allRecipesCache.length === 0 || !recipeData) {
-                if (recipesLoadingPromise) await recipesLoadingPromise;
-                else await loadRecipesFromRealtimeDB(); // This will load user-specific recipes
-
+                if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB();
                 recipeData = allRecipesCache.find(r => r.id === recipeId);
-                if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
-                    displayRecipeDetailsUI(recipeData);
-                    showPage("page-recipe", fromHistoryOrInitialLoad);
-                    return;
-                }
+                if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) { displayRecipeDetailsUI(recipeData); showPage("page-recipe", fromHistoryOrInitialLoad); return; }
             }
-
-            // If still not found, try fetching specific recipe (might be redundant if loadRecipesFromRealtimeDB worked)
             try {
-                const recipeRef = getUserDataRef(`recipes/${recipeId}`); // MODIFIED
-                if (!recipeRef) throw new Error("User not authenticated for DB operation.");
+                const recipeRef = getUserDataRef(`recipes/${recipeId}`); if (!recipeRef) throw new Error("User not authenticated for DB operation.");
                 const snapshot = await recipeRef.once("value");
-
                 if (snapshot.exists()) {
                     const fetchedRecipe = { id: recipeId, ...snapshot.val() };
                     const cacheIndex = allRecipesCache.findIndex(r => r.id === recipeId);
-                    if (cacheIndex !== -1) allRecipesCache[cacheIndex] = fetchedRecipe;
-                    else allRecipesCache.push(fetchedRecipe); // Should already be there if loadRecipesFromRealtimeDB worked
-
-                    displayRecipeDetailsUI(fetchedRecipe);
-                    showPage("page-recipe", fromHistoryOrInitialLoad);
-                } else {
-                    showCustomAlert("Error", "Recipe not found for your account.");
-                    showPage(previousPageId || "page-index", true);
-                }
-            } catch (error) {
-                console.error("Error getting recipe:", error);
-                showCustomAlert("Error", "Recipe load failed. Please try again.");
-                showPage(previousPageId || "page-index", true);
-            }
+                    if (cacheIndex !== -1) allRecipesCache[cacheIndex] = fetchedRecipe; else allRecipesCache.push(fetchedRecipe);
+                    displayRecipeDetailsUI(fetchedRecipe); showPage("page-recipe", fromHistoryOrInitialLoad);
+                } else { showCustomAlert("Error", "Recipe not found for your account."); showPage(previousPageId || "page-index", true); }
+            } catch (error) { console.error("Error getting recipe:", error); showCustomAlert("Error", "Recipe load failed. Please try again."); showPage(previousPageId || "page-index", true); }
         }
 
-        function renderRecipeIngredientsUI() { // No direct DB access, relies on currentRecipeIngredientsState
-            const ingredientsListContainer = document.getElementById("recipe-ingredients-list");
-            if (!ingredientsListContainer) return;
+        function renderRecipeIngredientsUI() {
+            const ingredientsListContainer = document.getElementById("recipe-ingredients-list"); if (!ingredientsListContainer) return;
             ingredientsListContainer.innerHTML = "";
-            currentRecipeIngredientsState.sort((a, b) => {
-                if (a.checked === b.checked) return (a.name || "").localeCompare(b.name || "");
-                return a.checked ? 1 : -1;
-            });
+            currentRecipeIngredientsState.sort((a, b) => { if (a.checked === b.checked) return (a.name || "").localeCompare(b.name || ""); return a.checked ? 1 : -1; });
             currentRecipeIngredientsState.forEach((ingredient) => {
-                const label = document.createElement("label");
-                label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
-                label.innerHTML = `
-                    <input type="checkbox" class="form-checkbox-custom" data-ingredient-name="${ingredient.name}" ${ingredient.checked ? "checked" : ""}>
-                    <p class="text-white text-base ingredient-name">${ingredient.name}</p>
-                `;
+                const label = document.createElement("label"); label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
+                label.innerHTML = `<input type="checkbox" class="form-checkbox-custom" data-ingredient-name="${ingredient.name}" ${ingredient.checked ? "checked" : ""}><p class="text-white text-base ingredient-name">${ingredient.name}</p>`;
                 ingredientsListContainer.appendChild(label);
                 label.querySelector(".form-checkbox-custom").addEventListener("change", (event) => {
                     const changedIngredientName = event.target.dataset.ingredientName;
@@ -1817,444 +1669,193 @@
                 });
             });
         }
-        // displayRecipeDetailsUI relies on data passed to it, no direct DB access.
         function displayRecipeDetailsUI(e) {
-            document.getElementById("page-recipe").dataset.currentRecipeId = e.id;
-            localStorage.setItem("currentRecipeDetailId", e.id); // Consider namespacing this if multiple users on same browser
+            document.getElementById("page-recipe").dataset.currentRecipeId = e.id; localStorage.setItem("currentRecipeDetailId", e.id);
             document.getElementById("recipe-image").style.backgroundImage = `url("${e.imageURL || "https://via.placeholder.com/300x200.png?text=No+Image"}")`;
-            document.getElementById("recipe-title").textContent = e.title || "Untitled";
-            document.getElementById("recipe-description").textContent = e.description || "No description.";
+            document.getElementById("recipe-title").textContent = e.title || "Untitled"; document.getElementById("recipe-description").textContent = e.description || "No description.";
             const t = document.getElementById("recipe-meta-info"); if (t.innerHTML = "", (e.prepTime || e.cookTime || e.servings)) { let c = ""; e.prepTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path></svg> Prep: ${e.prepTime}</div>`), e.cookTime && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M208,88H164.86l15.25-41.19a12,12,0,0,0-22.22-8.22L140,82.38V40a12,12,0,0,0-24,0V88H72A36,36,0,0,0,72,160h8v48a20,20,0,0,0,40,0V160h16v48a20,20,0,0,0,40,0V160h8a36,36,0,0,0,24-72Zm-8,56H72a20,20,0,0,1,0-40H200a20,20,0,0,1,0,40Z"></path></svg> Cook: ${e.cookTime}</div>`), e.servings && (c += `<div class="flex items-center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="mr-1.5 shrink-0" viewBox="0 0 256 256"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path></svg> Serves: ${e.servings}</div>`), t.innerHTML = c }
-            currentRecipeIngredientsState = (e.ingredients || []).map(name => ({ name, checked: false }));
-            renderRecipeIngredientsUI();
+            currentRecipeIngredientsState = (e.ingredients || []).map(name => ({ name, checked: false })); renderRecipeIngredientsUI();
             const n = document.getElementById("recipe-instructions-list"); n.innerHTML = "", (e.instructions || []).forEach(e => n.innerHTML += `<div class="flex items-center min-h-14 py-1"><p class="text-white text-base flex-1">${e}</p></div>`);
-            const o = document.getElementById("recipe-bookmark-icon");
-            const filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>';
-            const outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
-            o.innerHTML = e.isBookmarked ? filledHeartSVG : outlineHeartSVG;
-            o.classList.toggle("text-[#f0560e]", !!e.isBookmarked);
-            o.classList.toggle("text-white", !e.isBookmarked);
+            const o = document.getElementById("recipe-bookmark-icon"), filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>', outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
+            o.innerHTML = e.isBookmarked ? filledHeartSVG : outlineHeartSVG; o.classList.toggle("text-[#f0560e]", !!e.isBookmarked); o.classList.toggle("text-white", !e.isBookmarked);
             document.getElementById("recipe-bookmark-button").dataset.recipeId = e.id;
         }
 
-
-        // --- Create/Edit Recipe Logic (resetCreateForm, prepareEditForm, saveRecipeData) ---
-        // MODIFIED to use user-specific paths
-        function resetCreateForm() { // No direct DB access, fine as is
-            document.getElementById("create-recipe-title").value = "";
-            currentSelectedRecipeCategory = "Dinner";
-            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
-            document.getElementById("create-recipe-description").value = "";
-            document.getElementById("create-recipe-ingredients").value = "";
-            document.getElementById("create-recipe-instructions").value = "";
-            document.getElementById("create-recipe-prepTime").value = "";
-            document.getElementById("create-recipe-cookTime").value = "";
-            document.getElementById("create-recipe-servings").value = "";
-            document.getElementById("create-recipe-photo-label").textContent = "Upload Photo";
-            document.getElementById("current-image-display").classList.add("hidden");
-            document.getElementById("current-image-filename").textContent = "";
-            document.getElementById("create-recipe-photoInput").value = "";
-            document.querySelector("#page-create-recipe .page-header h2").textContent = "New Recipe";
-            editingRecipeId = null;
-            currentRecipeImageURL = null;
+        function resetCreateForm() {
+            document.getElementById("create-recipe-title").value = ""; currentSelectedRecipeCategory = "Dinner"; if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
+            document.getElementById("create-recipe-description").value = ""; document.getElementById("create-recipe-ingredients").value = ""; document.getElementById("create-recipe-instructions").value = "";
+            document.getElementById("create-recipe-prepTime").value = ""; document.getElementById("create-recipe-cookTime").value = ""; document.getElementById("create-recipe-servings").value = "";
+            document.getElementById("create-recipe-photo-label").textContent = "Upload Photo"; document.getElementById("current-image-display").classList.add("hidden");
+            document.getElementById("current-image-filename").textContent = ""; document.getElementById("create-recipe-photoInput").value = "";
+            document.querySelector("#page-create-recipe .page-header h2").textContent = "New Recipe"; editingRecipeId = null; currentRecipeImageURL = null;
         }
 
-        async function prepareEditForm(recipeId) { // MODIFIED
+        async function prepareEditForm(recipeId) {
             if (!currentUserId) { showCustomAlert("Login Required", "Please login to edit recipes."); return; }
-            const recipeRef = getUserDataRef(`recipes/${recipeId}`); // MODIFIED
-            if (!recipeRef) { showCustomAlert("Error", "Cannot prepare edit form: Not logged in."); return; }
-
+            const recipeRef = getUserDataRef(`recipes/${recipeId}`); if (!recipeRef) { showCustomAlert("Error", "Cannot prepare edit form: Not logged in."); return; }
             try {
                 const snapshot = await recipeRef.once("value");
                 if (snapshot.exists()) {
-                    // ... (rest of function unchanged, it populates form from snapshot.val())
-                    const recipeData = snapshot.val();
-                    editingRecipeId = recipeId;
-
+                    const recipeData = snapshot.val(); editingRecipeId = recipeId;
                     document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe";
-                    document.getElementById("create-recipe-title").value = recipeData.title || "";
-                    currentSelectedRecipeCategory = recipeData.category || "Dinner";
+                    document.getElementById("create-recipe-title").value = recipeData.title || ""; currentSelectedRecipeCategory = recipeData.category || "Dinner";
                     if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
-                    document.getElementById("create-recipe-description").value = recipeData.description || "";
-                    document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
-                    document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n");
-                    document.getElementById("create-recipe-prepTime").value = recipeData.prepTime || "";
-                    document.getElementById("create-recipe-cookTime").value = recipeData.cookTime || "";
-                    document.getElementById("create-recipe-servings").value = recipeData.servings || "";
-
-                    const photoLabel = document.getElementById("create-recipe-photo-label");
-                    const currentImageDisplay = document.getElementById("current-image-display");
-                    const currentImageFilenameSpan = document.getElementById("current-image-filename");
-
-                    if (recipeData.imageURL) {
-                        currentRecipeImageURL = recipeData.imageURL;
-                        photoLabel.textContent = "Change Photo";
-                        currentImageFilenameSpan.textContent = recipeData.imageURL.substring(recipeData.imageURL.lastIndexOf('/') + 1);
-                        currentImageDisplay.classList.remove("hidden");
-                    } else {
-                        currentRecipeImageURL = null;
-                        photoLabel.textContent = "Upload Photo";
-                        currentImageDisplay.classList.add("hidden");
-                    }
-                    document.getElementById("create-recipe-photoInput").value = "";
-                    showPage("page-create-recipe");
-                } else {
-                    showCustomAlert("Error", "Recipe not found for editing in your account.");
-                    resetCreateForm();
-                }
-            } catch (error) {
-                console.error("Error fetching recipe for edit:", error);
-                showCustomAlert("Error", "Could not load recipe for editing. Please try again.");
-                resetCreateForm();
-            }
+                    document.getElementById("create-recipe-description").value = recipeData.description || ""; document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
+                    document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n"); document.getElementById("create-recipe-prepTime").value = recipeData.prepTime || "";
+                    document.getElementById("create-recipe-cookTime").value = recipeData.cookTime || ""; document.getElementById("create-recipe-servings").value = recipeData.servings || "";
+                    const photoLabel = document.getElementById("create-recipe-photo-label"), currentImageDisplay = document.getElementById("current-image-display"), currentImageFilenameSpan = document.getElementById("current-image-filename");
+                    if (recipeData.imageURL) { currentRecipeImageURL = recipeData.imageURL; photoLabel.textContent = "Change Photo"; currentImageFilenameSpan.textContent = recipeData.imageURL.substring(recipeData.imageURL.lastIndexOf('/') + 1); currentImageDisplay.classList.remove("hidden"); }
+                    else { currentRecipeImageURL = null; photoLabel.textContent = "Upload Photo"; currentImageDisplay.classList.add("hidden"); }
+                    document.getElementById("create-recipe-photoInput").value = ""; showPage("page-create-recipe");
+                } else { showCustomAlert("Error", "Recipe not found for editing in your account."); resetCreateForm(); }
+            } catch (error) { console.error("Error fetching recipe for edit:", error); showCustomAlert("Error", "Could not load recipe for editing. Please try again."); resetCreateForm(); }
         }
 
-        async function saveRecipeData() { // MODIFIED
+        async function saveRecipeData() {
             if (!currentUserId) { showCustomAlert("Error", "You must be logged in to save recipes."); return; }
-
-            const title = document.getElementById("create-recipe-title").value.trim();
-            // ... (rest of form value fetching and validation - unchanged)
-            const category = currentSelectedRecipeCategory;
-            const description = document.getElementById("create-recipe-description").value.trim();
-            const ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim();
-            const instructionsRaw = document.getElementById("create-recipe-instructions").value.trim();
-            const prepTime = document.getElementById("create-recipe-prepTime").value.trim();
-            const cookTime = document.getElementById("create-recipe-cookTime").value.trim();
-            const servings = document.getElementById("create-recipe-servings").value.trim();
-            const photoInput = document.getElementById("create-recipe-photoInput");
-
-            if (!title) return showCustomAlert("Validation Error", "Recipe title is required.");
-            if (!category) return showCustomAlert("Validation Error", "Category is required.");
-            if (!description) return showCustomAlert("Validation Error", "Description is required.");
-            if (!ingredientsRaw) return showCustomAlert("Validation Error", "Ingredients are required (at least one line).");
-            const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e);
-            if (ingredients.length === 0) return showCustomAlert("Validation Error", "At least one valid ingredient is required.");
-            if (!instructionsRaw) return showCustomAlert("Validation Error", "Instructions are required (at least one line).");
-            const instructions = instructionsRaw.split("\n").map(e => e.trim()).filter(e => e);
-            if (instructions.length === 0) return showCustomAlert("Validation Error", "At least one valid instruction step is required.");
-            if (!prepTime) return showCustomAlert("Validation Error", "Prep time is required.");
-            if (!cookTime) return showCustomAlert("Validation Error", "Cook time is required.");
-            if (!servings) return showCustomAlert("Validation Error", "Servings information is required.");
-
-            let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : "";
-            const saveButton = document.getElementById("save-recipe-button");
-            saveButton.textContent = "Saving...";
-            saveButton.disabled = true;
-
+            const title = document.getElementById("create-recipe-title").value.trim(), category = currentSelectedRecipeCategory, description = document.getElementById("create-recipe-description").value.trim(), ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim(), instructionsRaw = document.getElementById("create-recipe-instructions").value.trim(), prepTime = document.getElementById("create-recipe-prepTime").value.trim(), cookTime = document.getElementById("create-recipe-cookTime").value.trim(), servings = document.getElementById("create-recipe-servings").value.trim(), photoInput = document.getElementById("create-recipe-photoInput");
+            if (!title) return showCustomAlert("Validation Error", "Recipe title is required."); if (!category) return showCustomAlert("Validation Error", "Category is required."); if (!description) return showCustomAlert("Validation Error", "Description is required."); if (!ingredientsRaw) return showCustomAlert("Validation Error", "Ingredients are required (at least one line).");
+            const ingredients = ingredientsRaw.split("\n").map(e => e.trim()).filter(e => e); if (ingredients.length === 0) return showCustomAlert("Validation Error", "At least one valid ingredient is required.");
+            if (!instructionsRaw) return showCustomAlert("Validation Error", "Instructions are required (at least one line)."); const instructions = instructionsRaw.split("\n").map(e => e.trim()).filter(e => e); if (instructions.length === 0) return showCustomAlert("Validation Error", "At least one valid instruction step is required.");
+            if (!prepTime) return showCustomAlert("Validation Error", "Prep time is required."); if (!cookTime) return showCustomAlert("Validation Error", "Cook time is required."); if (!servings) return showCustomAlert("Validation Error", "Servings information is required.");
+            let imageToSaveURL = editingRecipeId ? currentRecipeImageURL : ""; const saveButton = document.getElementById("save-recipe-button"); saveButton.textContent = "Saving..."; saveButton.disabled = true;
             try {
                 if (photoInput.files[0]) {
-                    // ... (Cloudinary upload logic - unchanged)
-                    const file = photoInput.files[0];
-                    const formData = new FormData();
-                    formData.append("file", file);
-                    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-                    const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData });
-                    const cloudinaryData = await response.json();
-                    if (cloudinaryData.secure_url) {
-                        imageToSaveURL = cloudinaryData.secure_url;
-                    } else {
-                        throw new Error(cloudinaryData.error?.message || "Cloudinary upload failed");
-                    }
+                    const file = photoInput.files[0], formData = new FormData(); formData.append("file", file); formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+                    const response = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: formData }); const cloudinaryData = await response.json();
+                    if (cloudinaryData.secure_url) imageToSaveURL = cloudinaryData.secure_url; else throw new Error(cloudinaryData.error?.message || "Cloudinary upload failed");
                 }
-                if (!imageToSaveURL && !editingRecipeId && !currentRecipeImageURL) {
-                    saveButton.textContent = "Save Recipe"; saveButton.disabled = false;
-                    return showCustomAlert("Validation Error", "A recipe photo is required.");
-                }
-
-                const recipeData = { /* ... (unchanged structure) ... */
-                    title: title, category: category, description: description,
-                    ingredients: ingredients, instructions: instructions,
-                    prepTime: prepTime, cookTime: cookTime, servings: servings,
-                    imageURL: imageToSaveURL,
-                    isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false
-                };
-
-                const userRecipesRef = getUserDataRef("recipes"); // Get base ref for user's recipes
-                if (!userRecipesRef) throw new Error("User not authenticated for DB operation.");
-
+                if (!imageToSaveURL && !editingRecipeId && !currentRecipeImageURL) { saveButton.textContent = "Save Recipe"; saveButton.disabled = false; return showCustomAlert("Validation Error", "A recipe photo is required."); }
+                const recipeData = { title: title, category: category, description: description, ingredients: ingredients, instructions: instructions, prepTime: prepTime, cookTime: cookTime, servings: servings, imageURL: imageToSaveURL, isBookmarked: editingRecipeId ? (allRecipesCache.find(r => r.id === editingRecipeId)?.isBookmarked || false) : false };
+                const userRecipesRef = getUserDataRef("recipes"); if (!userRecipesRef) throw new Error("User not authenticated for DB operation.");
                 if (editingRecipeId) {
-                    const recipeToEditRef = getUserDataRef(`recipes/${editingRecipeId}`); // MODIFIED
-                    if (!recipeToEditRef) throw new Error("User not authenticated for DB operation.");
-                    const createdAtSnapshot = await recipeToEditRef.child("createdAt").once("value"); // MODIFIED
-                    recipeData.createdAt = createdAtSnapshot.exists() ? createdAtSnapshot.val() : serverTimestamp;
-                    recipeData.updatedAt = serverTimestamp;
-                    await recipeToEditRef.update(recipeData); // MODIFIED
-                    showCustomAlert("Success", "Recipe updated!");
-                } else {
-                    recipeData.createdAt = serverTimestamp;
-                    await userRecipesRef.push().set(recipeData); // MODIFIED (uses base user recipes ref)
-                    showCustomAlert("Success", "Recipe saved!");
-                }
-                resetCreateForm();
-                await loadRecipesFromRealtimeDB(); // Reloads user's recipes
-                showPage("page-index");
-
-            } catch (error) {
-                console.error("Error saving recipe:", error);
-                showCustomAlert("Error", `Failed to save recipe: ${error.message}`);
-            } finally {
-                saveButton.textContent = "Save Recipe";
-                saveButton.disabled = false;
-            }
+                    const recipeToEditRef = getUserDataRef(`recipes/${editingRecipeId}`); if (!recipeToEditRef) throw new Error("User not authenticated for DB operation.");
+                    const createdAtSnapshot = await recipeToEditRef.child("createdAt").once("value"); recipeData.createdAt = createdAtSnapshot.exists() ? createdAtSnapshot.val() : serverTimestamp;
+                    recipeData.updatedAt = serverTimestamp; await recipeToEditRef.update(recipeData); showCustomAlert("Success", "Recipe updated!");
+                } else { recipeData.createdAt = serverTimestamp; await userRecipesRef.push().set(recipeData); showCustomAlert("Success", "Recipe saved!"); }
+                resetCreateForm(); await loadRecipesFromRealtimeDB(); showPage("page-index");
+            } catch (error) { console.error("Error saving recipe:", error); showCustomAlert("Error", `Failed to save recipe: ${error.message}`); }
+            finally { saveButton.textContent = "Save Recipe"; saveButton.disabled = false; }
         }
 
-        // --- Delete/Bookmark Recipe Logic ---
-        // MODIFIED to use user-specific paths
         async function deleteRecipeFromRealtimeDB(recipeId, imageURL_unused) {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
             try {
-                const recipeRef = getUserDataRef(`recipes/${recipeId}`); // MODIFIED
-                if (!recipeRef) throw new Error("User not authenticated for DB operation.");
-                await recipeRef.remove();
-                showCustomAlert("Success", "Recipe deleted.");
-
+                const recipeRef = getUserDataRef(`recipes/${recipeId}`); if (!recipeRef) throw new Error("User not authenticated for DB operation.");
+                await recipeRef.remove(); showCustomAlert("Success", "Recipe deleted.");
                 allRecipesCache = allRecipesCache.filter(recipe => recipe.id !== recipeId);
-
                 if (currentPageId === "page-favorites") renderFavoritesPage();
-
-                // Remove from meal plan if it exists there
-                const mealPlanBaseRef = getUserDataRef('mealPlan'); // MODIFIED
-                if (!mealPlanBaseRef) throw new Error("User not authenticated for DB operation.");
+                const mealPlanBaseRef = getUserDataRef('mealPlan'); if (!mealPlanBaseRef) throw new Error("User not authenticated for DB operation.");
                 const mealPlanSnapshot = await mealPlanBaseRef.once('value');
-
                 if (mealPlanSnapshot.exists()) {
                     const updates = {};
-                    mealPlanSnapshot.forEach(dateSnapshot => {
-                        dateSnapshot.forEach(mealSnapshot => {
-                            if (mealSnapshot.val().recipeId === recipeId) {
-                                // Path for update needs to be relative to root for multi-path updates
-                                updates[`users/${currentUserId}/mealPlan/${dateSnapshot.key}/${mealSnapshot.key}`] = null;
-                            }
-                        });
-                    });
-                    if (Object.keys(updates).length > 0) {
-                        await database.ref().update(updates); // Use root ref for multi-path updates
-                    }
+                    mealPlanSnapshot.forEach(dateSnapshot => { dateSnapshot.forEach(mealSnapshot => { if (mealSnapshot.val().recipeId === recipeId) updates[`users/${currentUserId}/mealPlan/${dateSnapshot.key}/${mealSnapshot.key}`] = null; }); });
+                    if (Object.keys(updates).length > 0) await database.ref().update(updates);
                 }
-                showPage("page-index", true); // Go to index after delete
-            } catch (error) {
-                console.error("Error deleting recipe:", error);
-                showCustomAlert("Error", "Failed to delete recipe. Please try again.");
-            }
+                showPage("page-index", true);
+            } catch (error) { console.error("Error deleting recipe:", error); showCustomAlert("Error", "Failed to delete recipe. Please try again."); }
         }
-        async function toggleBookmarkInRealtimeDB(e) { // recipeId `e`
+        async function toggleBookmarkInRealtimeDB(e) {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const t = getUserDataRef(`recipes/${e}`); // MODIFIED (t is recipeRef)
-            if (!t) { console.error("Cannot toggle bookmark: Not logged in."); return; }
+            const t = getUserDataRef(`recipes/${e}`); if (!t) { console.error("Cannot toggle bookmark: Not logged in."); return; }
             try {
                 const c = await t.once("value");
                 if (c.exists()) {
-                    const a = !c.val().isBookmarked;
-                    await t.update({ isBookmarked: a });
+                    const a = !c.val().isBookmarked; await t.update({ isBookmarked: a });
                     const n = document.getElementById("recipe-bookmark-icon");
-                    if (n) { // UI update logic is fine
-                        const filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>';
-                        const outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
-                        n.innerHTML = a ? filledHeartSVG : outlineHeartSVG;
-                        n.classList.toggle("text-[#f0560e]", a);
-                        n.classList.toggle("text-white", !a);
-                        n.classList.add("bookmarked-animate");
-                        setTimeout(() => n.classList.remove("bookmarked-animate"), 200)
+                    if (n) {
+                        const filledHeartSVG = '<path d="M178,32c-20.65,0-38.41,8.88-50,23.89C116.41,40.88,98.65,32,78,32A62.07,62.07,0,0,0,16,94c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,220.66,240,164,240,94A62.07,62.07,0,0,0,178,32Z"></path>', outlineHeartSVG = '<path d="M240,94c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,220.66,16,164,16,94A62.07,62.07,0,0,1,78,32c20.65,0,38.41,8.88,50,23.89C139.59,40.88,157.35,32,178,32A62.07,62.07,0,0,1,240,94Zm-16,0a46.06,46.06,0,0,0-46-46c-19.45,0-35.78,10.36-42.6,27a8,8,0,0,1-14.8,0C114.78,58.36,98.45,48,79,48a46.06,46.06,0,0,0-46,46c0,51.91,74.22,96.66,91.08,107.18a8,8,0,0,0,7.84,0C148.78,190.66,224,145.91,224,94Z"></path>';
+                        n.innerHTML = a ? filledHeartSVG : outlineHeartSVG; n.classList.toggle("text-[#f0560e]", a); n.classList.toggle("text-white", !a);
+                        n.classList.add("bookmarked-animate"); setTimeout(() => n.classList.remove("bookmarked-animate"), 200)
                     }
-                    const o = allRecipesCache.find(t => t.id === e);
-                    o && (o.isBookmarked = a); // Update local cache
-                    "page-favorites" === currentPageId && renderFavoritesPage() // Re-render if on favorites page
+                    const o = allRecipesCache.find(t => t.id === e); o && (o.isBookmarked = a);
+                    "page-favorites" === currentPageId && renderFavoritesPage()
                 }
             } catch (e) { console.error("Error toggling bookmark:", e) }
         }
 
-        // --- Delete Recipe Modal Logic (no change to modal functions, but DB ops in handlers need update) ---
-        const deleteRecipeConfirmationModal = document.getElementById("delete-recipe-confirmation-modal");
-        const confirmDeleteRecipeButton = document.getElementById("confirm-delete-recipe-button");
-        const cancelDeleteRecipeButton = document.getElementById("cancel-delete-recipe-button");
-        function openDeleteRecipeModal(recipeId, imageURL) {
-            if (!deleteRecipeConfirmationModal || !confirmDeleteRecipeButton) return;
-            confirmDeleteRecipeButton.dataset.recipeId = recipeId;
-            confirmDeleteRecipeButton.dataset.imageURL = imageURL || "";
-            deleteRecipeConfirmationModal.classList.remove("hidden");
-        }
-        function closeDeleteRecipeModal() {
-            if (!deleteRecipeConfirmationModal) return;
-            deleteRecipeConfirmationModal.classList.add("hidden");
-        }
+        const deleteRecipeConfirmationModal = document.getElementById("delete-recipe-confirmation-modal"), confirmDeleteRecipeButton = document.getElementById("confirm-delete-recipe-button"), cancelDeleteRecipeButton = document.getElementById("cancel-delete-recipe-button");
+        function openDeleteRecipeModal(recipeId, imageURL) { if (!deleteRecipeConfirmationModal || !confirmDeleteRecipeButton) return; confirmDeleteRecipeButton.dataset.recipeId = recipeId; confirmDeleteRecipeButton.dataset.imageURL = imageURL || ""; deleteRecipeConfirmationModal.classList.remove("hidden"); }
+        function closeDeleteRecipeModal() { if (!deleteRecipeConfirmationModal) return; deleteRecipeConfirmationModal.classList.add("hidden"); }
 
-
-        // --- Meal Plan Logic (renderWeekView, loadMealsForSelectedDate, etc.) ---
-        // All DB interactions (`database.ref('mealPlan/...)` need to be getUserDataRef(`mealPlan/...`)
-        // renderWeekView, handleWeekDayClick, navigateToPreviousWeek, navigateToNextWeek: UI logic, no direct DB access, fine.
-        // loadMealsForSelectedDate calls loadMealPlanForDateFromRealtimeDB.
-        function updateScheduleDatesInStorageAndHistory() {
-            localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
-            localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
-            if (history.state && history.state.page === 'page-schedule') {
-                history.replaceState({
-                    ...history.state,
-                    selectedDate: currentSelectedDate.toISOString(),
-                    weekStart: currentDisplayedWeekStartDate.toISOString()
-                }, "Page page-schedule", location.href);
-            }
-        }
+        function updateScheduleDatesInStorageAndHistory() { localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString()); localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString()); if (history.state && history.state.page === 'page-schedule') history.replaceState({ ...history.state, selectedDate: currentSelectedDate.toISOString(), weekStart: currentDisplayedWeekStartDate.toISOString() }, "Page page-schedule", location.href); }
         function renderWeekView() { const e = document.getElementById("schedule-week-days"), t = document.getElementById("schedule-week-range"); if (!e || !t) return; e.innerHTML = ""; const c = new Intl.DateTimeFormat("en-US", { weekday: "short" }), a = new Intl.DateTimeFormat("en-US", { day: "numeric" }); let n = new Date(currentDisplayedWeekStartDate); for (let o = 0; o < 7; o++) { const i = document.createElement("button"); i.className = "schedule-day-btn flex flex-col items-center p-1.5 fo w-[calc(100%/7-4px)] mx-0.5", i.dataset.date = n.toISOString(); const r = isToday(n), s = isSameDate(n, currentSelectedDate); i.innerHTML = `<span class="day-name-span text-xs ${r && !s ? "text-[#f0560e]" : "text-gray-400"}">${c.format(n).toUpperCase()}</span><span class="day-number-span text-lg font-bold ${r && !s ? "text-[#f0560e]" : "text-white"}">${a.format(n)}</span>`, s && i.classList.add("selected"), r && i.classList.add("today"), i.addEventListener("click", handleWeekDayClick), e.appendChild(i), n = addDays(n, 1) } t.textContent = `${currentDisplayedWeekStartDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${addDays(currentDisplayedWeekStartDate, 6).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`, loadMealsForSelectedDate() }
-        function handleWeekDayClick(e) {
-            currentSelectedDate = new Date(e.currentTarget.dataset.date);
-            updateScheduleDatesInStorageAndHistory();
-            renderWeekView();
-        }
-        function navigateToPreviousWeek() {
-            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, -7);
-            currentSelectedDate = new Date(currentDisplayedWeekStartDate);
-            updateScheduleDatesInStorageAndHistory();
-            renderWeekView();
-        }
-        function navigateToNextWeek() {
-            currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, 7);
-            currentSelectedDate = new Date(currentDisplayedWeekStartDate);
-            updateScheduleDatesInStorageAndHistory();
-            renderWeekView();
-        }
+        function handleWeekDayClick(e) { currentSelectedDate = new Date(e.currentTarget.dataset.date); updateScheduleDatesInStorageAndHistory(); renderWeekView(); }
+        function navigateToPreviousWeek() { currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, -7); currentSelectedDate = new Date(currentDisplayedWeekStartDate); updateScheduleDatesInStorageAndHistory(); renderWeekView(); }
+        function navigateToNextWeek() { currentDisplayedWeekStartDate = addDays(currentDisplayedWeekStartDate, 7); currentSelectedDate = new Date(currentDisplayedWeekStartDate); updateScheduleDatesInStorageAndHistory(); renderWeekView(); }
 
         function loadMealsForSelectedDate() {
-            if (!currentUserId) { // ADDED check
-                const mealListContainer = document.getElementById("schedule-meal-list");
-                if (mealListContainer) mealListContainer.innerHTML = '<p class="loading-placeholder">Please login to view meal plan.</p>';
-                const dayTitle = document.getElementById("schedule-selected-day-title");
-                if (dayTitle) dayTitle.textContent = "Meal Planner"
-                return;
-            }
+            if (!currentUserId) { const mealListContainer = document.getElementById("schedule-meal-list"); if (mealListContainer) mealListContainer.innerHTML = '<p class="loading-placeholder">Please login to view meal plan.</p>'; const dayTitle = document.getElementById("schedule-selected-day-title"); if (dayTitle) dayTitle.textContent = "Meal Planner"; return; }
             const e = document.getElementById("schedule-selected-day-title"); e && (e.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`, loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate)))
         }
-        async function loadMealPlanForDateFromRealtimeDB(e) { // `e` is dateKey. MODIFIED
-            if (!currentUserId) return; // Already handled by loadMealsForSelectedDate, but good practice
-            const t = document.getElementById("schedule-meal-list"); if (!t) return; t.innerHTML = '<p class="loading-placeholder">Loading meals...</p>';
+        async function loadMealPlanForDateFromRealtimeDB(e) {
+            if (!currentUserId) return; const t = document.getElementById("schedule-meal-list"); if (!t) return; t.innerHTML = '<p class="loading-placeholder">Loading meals...</p>';
             try {
-                if (allRecipesCache.length === 0 && currentUserId) { // Ensure recipes are loaded for the current user
-                    if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB();
-                }
-                const mealPlanRef = getUserDataRef(`mealPlan/${e}`); // MODIFIED
-                if (!mealPlanRef) throw new Error("User not authenticated for DB operation.");
-                const c = await mealPlanRef.once("value");
-                displayPlannedMealsUI(c.exists() ? c.val() : {}, e)
+                if (allRecipesCache.length === 0 && currentUserId) { if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB(); }
+                const mealPlanRef = getUserDataRef(`mealPlan/${e}`); if (!mealPlanRef) throw new Error("User not authenticated for DB operation.");
+                const c = await mealPlanRef.once("value"); displayPlannedMealsUI(c.exists() ? c.val() : {}, e)
             } catch (e) { console.error("Error fetching meal plan:", e), t.innerHTML = '<p class="loading-placeholder text-red-500">Error loading meals.</p>' }
         }
-        // displayPlannedMealsUI relies on `allRecipesCache` (now user-specific) and data passed. No direct DB.
-        function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>', void 0) : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(); handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login."); return; } s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
-
-        async function handleRemoveMealClick(dateKey, mealEntryId) { // MODIFIED
+        function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>') : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(); handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login."); return; } s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
+        async function handleRemoveMealClick(dateKey, mealEntryId) {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const confirmed = await showCustomConfirm(
-                "Remove Meal", "Are you sure you want to remove this meal from your plan?",
-                "Remove", "bg-red-600 hover:bg-red-700"
-            );
+            const confirmed = await showCustomConfirm("Remove Meal", "Are you sure you want to remove this meal from your plan?", "Remove", "bg-red-600 hover:bg-red-700");
             if (!confirmed) return;
-            try {
-                const mealEntryRef = getUserDataRef(`mealPlan/${dateKey}/${mealEntryId}`); // MODIFIED
-                if (!mealEntryRef) throw new Error("User not authenticated for DB operation.");
-                await mealEntryRef.remove();
-                loadMealsForSelectedDate(); // Reloads for current user
-            } catch (error) {
-                console.error("Error removing meal:", error);
-                showCustomAlert("Error", "Failed to remove meal. Please try again.");
-            }
+            try { const mealEntryRef = getUserDataRef(`mealPlan/${dateKey}/${mealEntryId}`); if (!mealEntryRef) throw new Error("User not authenticated for DB operation."); await mealEntryRef.remove(); loadMealsForSelectedDate(); }
+            catch (error) { console.error("Error removing meal:", error); showCustomAlert("Error", "Failed to remove meal. Please try again."); }
         }
 
-        // Add Meal Modal: openAddMealModal, closeAddMealModal, populateAddMealModalRecipeList, handleAddMealModalSearch
-        // These are mostly UI, but populateAddMealModalRecipeList uses `allRecipesCache` (now user-specific).
-        const addMealModal = document.getElementById("add-meal-modal"), addMealModalRecipeList = document.getElementById("add-meal-modal-recipe-list"), addMealModalSearchInput = document.getElementById("add-meal-modal-search"); function openAddMealModal() { addMealModal && addMealModalSearchInput && (populateAddMealModalRecipeList(allRecipesCache), addMealModalSearchInput.value = "", addMealModal.classList.remove("hidden")) } function closeAddMealModal() { addMealModal && addMealModal.classList.add("hidden") }
-        function populateAddMealModalRecipeList(e) { if (!addMealModalRecipeList) return; addMealModalRecipeList.innerHTML = "", 0 === e.length ? (addMealModalRecipeList.innerHTML = '<p class="loading-placeholder">No recipes.</p>', void 0) : e.forEach(t => { const c = document.createElement("div"); c.className = "add-meal-recipe-item interactive-scale flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]", c.dataset.recipeId = t.id, c.dataset.recipeTitle = t.title; const a = t.imageURL || "https://via.placeholder.com/50x50.png?text=No+Img"; c.innerHTML = `<img src="${a}" alt="${t.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0"><span class="text-white flex-grow truncate" title="${t.title}">${t.title || "Untitled"}</span><button class="add-this-recipe-button interactive-scale bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`; const n = c.querySelector(".add-this-recipe-button"); n && n.addEventListener("click", e => { e.stopPropagation(); handleAddRecipeToPlan(t.id, t.title) }), c.addEventListener("click", () => handleAddRecipeToPlan(t.id, t.title)), addMealModalRecipeList.appendChild(c) }) }
+        const addMealModal = document.getElementById("add-meal-modal"), addMealModalRecipeList = document.getElementById("add-meal-modal-recipe-list"), addMealModalSearchInput = document.getElementById("add-meal-modal-search");
+        function openAddMealModal() { addMealModal && addMealModalSearchInput && (populateAddMealModalRecipeList(allRecipesCache), addMealModalSearchInput.value = "", addMealModal.classList.remove("hidden")) }
+        function closeAddMealModal() { addMealModal && addMealModal.classList.add("hidden") }
+        function populateAddMealModalRecipeList(e) { if (!addMealModalRecipeList) return; addMealModalRecipeList.innerHTML = "", 0 === e.length ? (addMealModalRecipeList.innerHTML = '<p class="loading-placeholder">No recipes.</p>') : e.forEach(t => { const c = document.createElement("div"); c.className = "add-meal-recipe-item interactive-scale flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]", c.dataset.recipeId = t.id, c.dataset.recipeTitle = t.title; const a = t.imageURL || "https://via.placeholder.com/50x50.png?text=No+Img"; c.innerHTML = `<img src="${a}" alt="${t.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0"><span class="text-white flex-grow truncate" title="${t.title}">${t.title || "Untitled"}</span><button class="add-this-recipe-button interactive-scale bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`; const n = c.querySelector(".add-this-recipe-button"); n && n.addEventListener("click", e => { e.stopPropagation(); handleAddRecipeToPlan(t.id, t.title) }), c.addEventListener("click", () => handleAddRecipeToPlan(t.id, t.title)), addMealModalRecipeList.appendChild(c) }) }
         function handleAddMealModalSearch() { if (!addMealModalSearchInput) return; const e = addMealModalSearchInput.value.trim().toLowerCase(); "" === e ? populateAddMealModalRecipeList(allRecipesCache) : populateAddMealModalRecipeList(allRecipesCache.filter(t => (t.title || "").toLowerCase().includes(e) || (t.description || "").toLowerCase().includes(e))) }
-        async function handleAddRecipeToPlan(e, t) { // recipeId `e`, recipeTitle `t`. MODIFIED
+        async function handleAddRecipeToPlan(e, t) {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const c = formatDateForFirebaseKey(currentSelectedDate); // `c` is dateKey
-            try {
-                const datePlanRef = getUserDataRef(`mealPlan/${c}`); // MODIFIED
-                if (!datePlanRef) throw new Error("User not authenticated for DB operation.");
-                await datePlanRef.push({ recipeId: e, recipeTitle: t });
-                closeAddMealModal();
-                loadMealsForSelectedDate(); // Reloads for current user
-            } catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") }
+            const c = formatDateForFirebaseKey(currentSelectedDate);
+            try { const datePlanRef = getUserDataRef(`mealPlan/${c}`); if (!datePlanRef) throw new Error("User not authenticated for DB operation."); await datePlanRef.push({ recipeId: e, recipeTitle: t }); closeAddMealModal(); loadMealsForSelectedDate(); }
+            catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") }
         }
 
-        // --- Shopping List Logic ---
-        // All DB interactions need to use user-specific paths.
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
-        // Long Press & Swipe Logic (no direct DB calls, fine)
         const LONG_PRESS_DURATION = 700; const MAX_MOVE_FOR_LONG_PRESS = 10; let longPressTimerId = null; let longPressActionTaken = false; let pressEventStartX, pressEventStartY;
         let swipeState = { isSwiping: false, startX: 0, startY: 0, currentX: 0, item: null, itemId: null, swipeThreshold: 80, maxSwipeDistanceForOpacity: 150, isVerticalScroll: false, scrollLockThreshold: 10 };
         const shoppingListSwipeMoveHandler = (event) => { if (!swipeState.isSwiping || !swipeState.item) return; const currentX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX; const currentY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY; const deltaX = currentX - swipeState.startX; const deltaY = currentY - swipeState.startY; if (!swipeState.isVerticalScroll && Math.abs(deltaX) < swipeState.scrollLockThreshold && Math.abs(deltaY) < swipeState.scrollLockThreshold) return; if (!swipeState.isVerticalScroll && Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > swipeState.scrollLockThreshold) swipeState.isVerticalScroll = true; if (swipeState.isVerticalScroll) return; if (event.type === 'touchmove' && event.cancelable) event.preventDefault(); swipeState.currentX = currentX; if (deltaX > 0) { swipeState.item.style.transform = `translateX(${deltaX}px)`; const opacity = Math.max(0.1, 1 - (deltaX / swipeState.maxSwipeDistanceForOpacity)); swipeState.item.style.opacity = opacity; } else { swipeState.item.style.transform = 'translateX(0px)'; swipeState.item.style.opacity = 1; } };
-        const shoppingListSwipeEndHandler = (event, forceReset = false) => { if (!swipeState.isSwiping || !swipeState.item) { document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (swipeState.item) swipeState.item.style.userSelect = ''; swipeState.isSwiping = false; return; } const itemToProcess = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX; const wasSwipingState = swipeState.isSwiping; swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false; document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (itemToProcess) itemToProcess.style.userSelect = ''; if (longPressActionTaken && !forceReset) { if (itemToProcess) { itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } return; } if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = `translateX(${window.innerWidth}px)`; itemToProcess.style.opacity = 0; itemToProcess.dataset.swipedForDelete = "true"; itemToProcess.addEventListener('transitionend', async () => { try { if (!currentUserId) { /* Handle no user */ return; } const itemRef = getUserDataRef(`shoppingList/${idToDelete}`); if (!itemRef) throw new Error("No ref for delete"); await itemRef.remove(); loadShoppingListFromDB(); } catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear."); } }, { once: true }); } else if (wasSwipingState && itemToProcess) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } };
+        const shoppingListSwipeEndHandler = (event, forceReset = false) => { if (!swipeState.isSwiping || !swipeState.item) { document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (swipeState.item) swipeState.item.style.userSelect = ''; swipeState.isSwiping = false; return; } const itemToProcess = swipeState.item; const idToDelete = swipeState.itemId; const deltaX = swipeState.currentX - swipeState.startX; const wasSwipingState = swipeState.isSwiping; swipeState.isSwiping = false; swipeState.item = null; swipeState.itemId = null; swipeState.isVerticalScroll = false; document.removeEventListener('mousemove', shoppingListSwipeMoveHandler); document.removeEventListener('mouseup', shoppingListSwipeEndHandler); document.removeEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.removeEventListener('touchmove', shoppingListSwipeMoveHandler); document.removeEventListener('touchend', shoppingListSwipeEndHandler); document.removeEventListener('touchcancel', shoppingListSwipeEndHandler); if (itemToProcess) itemToProcess.style.userSelect = ''; if (longPressActionTaken && !forceReset) { if (itemToProcess) { itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } return; } if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = `translateX(${window.innerWidth}px)`; itemToProcess.style.opacity = 0; itemToProcess.dataset.swipedForDelete = "true"; itemToProcess.addEventListener('transitionend', async () => { try { if (!currentUserId) { return; } const itemRef = getUserDataRef(`shoppingList/${idToDelete}`); if (!itemRef) throw new Error("No ref for delete"); await itemRef.remove(); loadShoppingListFromDB(); } catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear."); } }, { once: true }); } else if (wasSwipingState && itemToProcess) { itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out'; itemToProcess.style.transform = 'translateX(0px)'; itemToProcess.style.opacity = 1; itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true }); } };
         const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true); };
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => { if (longPressActionTaken) return; if (swipeState.isSwiping || (event.type === 'touchstart' && event.touches.length > 1)) return; if (event.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return; swipeState.isSwiping = true; swipeState.item = itemElement; swipeState.itemId = itemId; swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX; swipeState.startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY; swipeState.currentX = swipeState.startX; swipeState.isVerticalScroll = false; itemElement.style.transition = 'none'; itemElement.style.userSelect = 'none'; document.addEventListener('mousemove', shoppingListSwipeMoveHandler); document.addEventListener('mouseup', shoppingListSwipeEndHandler); document.addEventListener('mouseleave', shoppingListDocMouseLeaveHandler); document.addEventListener('touchmove', shoppingListSwipeMoveHandler, { passive: false }); document.addEventListener('touchend', shoppingListSwipeEndHandler); document.addEventListener('touchcancel', shoppingListSwipeEndHandler); };
 
-        async function loadShoppingListFromDB() { // MODIFIED
-            if (!currentUserId) { // Added check
-                if (shoppingListItemsContainer) shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>';
-                return;
-            }
-            if (!shoppingListItemsContainer) return;
-            shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>';
+        async function loadShoppingListFromDB() {
+            if (!currentUserId) { if (shoppingListItemsContainer) shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>'; return; }
+            if (!shoppingListItemsContainer) return; shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>';
             try {
-                const shoppingListRef = getUserDataRef("shoppingList"); // MODIFIED
-                if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
-                const e = await shoppingListRef.orderByChild("createdAt").once("value");
-                const t = [];
-                e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) });
-                displayShoppingListUI(t);
-            } catch (e) {
-                console.error("Error loading shopping list:", e);
-                shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>';
-            }
+                const shoppingListRef = getUserDataRef("shoppingList"); if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
+                const e = await shoppingListRef.orderByChild("createdAt").once("value"); const t = [];
+                e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) }); displayShoppingListUI(t);
+            } catch (e) { console.error("Error loading shopping list:", e); shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>'; }
         }
-        // displayShoppingListUI: Relies on data passed. Swipe delete DB op needs currentUserId (handled in shoppingListSwipeEndHandler)
-        // Long press for edit (openEditShoppingItemModal) relies on currentEditingShoppingItemId and its save handler needs currentUserId (updated).
         function displayShoppingListUI(shoppingItems) {
-            if (!shoppingListItemsContainer) return;
-            shoppingListItemsContainer.innerHTML = "";
-            if (!currentUserId && shoppingItems.length === 0) { // Check for no user and empty items
-                shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>';
-                return;
-            }
-            if (shoppingItems.length === 0) {
-                shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>';
-                return;
-            }
-
-            // Sorting logic (remains the same)
+            if (!shoppingListItemsContainer) return; shoppingListItemsContainer.innerHTML = "";
+            if (!currentUserId && shoppingItems.length === 0) { shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Please login to see your shopping list.</p>'; return; }
+            if (shoppingItems.length === 0) { shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Shopping list is empty!</p>'; return; }
             switch (currentShoppingListSort) {
                 case 'createdAt_desc': shoppingItems.sort((a, b) => { if (a.checked !== b.checked) return a.checked ? 1 : -1; return (b.createdAt || 0) - (a.createdAt || 0); }); break;
                 case 'createdAt_asc': shoppingItems.sort((a, b) => { if (a.checked !== b.checked) return a.checked ? 1 : -1; return (a.createdAt || 0) - (b.createdAt || 0); }); break;
                 case 'shop': shoppingItems.sort((a, b) => { if (a.checked !== b.checked) return a.checked ? 1 : -1; const shopA = a.shop || 'zzzz_no_shop_placeholder'; const shopB = b.shop || 'zzzz_no_shop_placeholder'; if (shopA.toLowerCase() !== shopB.toLowerCase()) return shopA.toLowerCase().localeCompare(shopB.toLowerCase()); return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase()); }); break;
                 case 'default': default: shoppingItems.sort((a, b) => { if (a.checked !== b.checked) return a.checked ? 1 : -1; return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase()); }); break;
             }
-
-            shoppingItems.forEach(itemData => { // Item rendering logic (remains mostly the same)
-                const itemElement = document.createElement("div");
-                itemElement.className = `shopping-item flex items-center gap-3 p-2 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`;
-                itemElement.dataset.itemId = itemData.id;
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox'; checkbox.className = 'shopping-item-checkbox'; checkbox.checked = itemData.checked;
-                checkbox.addEventListener("change", e => { if (currentUserId) toggleShoppingItemCheckedInDB(itemData.id, e.target.checked); });
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'item-name text-white flex-grow'; nameSpan.textContent = itemData.name || "Unnamed Item";
-
-                const locationButton = document.createElement('button');
-                locationButton.className = "shopping-item-location-button interactive-scale text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/10";
-                locationButton.title = "Set Shop Location"; locationButton.dataset.itemId = itemData.id;
-                const iconContainer = document.createElement('span');
-                iconContainer.className = 'flex items-center justify-center w-5 h-5';
+            shoppingItems.forEach(itemData => {
+                const itemElement = document.createElement("div"); itemElement.className = `shopping-item flex items-center gap-3 p-2 bg-[#40322b] rounded-lg list-item-enter ${itemData.checked ? "checked" : ""}`; itemElement.dataset.itemId = itemData.id;
+                const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.className = 'shopping-item-checkbox'; checkbox.checked = itemData.checked; checkbox.addEventListener("change", e => { if (currentUserId) toggleShoppingItemCheckedInDB(itemData.id, e.target.checked); });
+                const nameSpan = document.createElement('span'); nameSpan.className = 'item-name text-white flex-grow'; nameSpan.textContent = itemData.name || "Unnamed Item";
+                const locationButton = document.createElement('button'); locationButton.className = "shopping-item-location-button interactive-scale text-gray-400 hover:text-white p-1.5 rounded-full hover:bg-white/10"; locationButton.title = "Set Shop Location"; locationButton.dataset.itemId = itemData.id;
+                const iconContainer = document.createElement('span'); iconContainer.className = 'flex items-center justify-center w-5 h-5';
                 if (itemData.shop && SHOPS.includes(itemData.shop)) iconContainer.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${itemData.shop}.png" alt="${itemData.shop}" class="w-full h-full object-contain">`;
                 else iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,120a32,32,0,1,1,32-32A32,32,0,0,1,128,136Z"></path></svg>`;
-                locationButton.appendChild(iconContainer);
-                locationButton.addEventListener('click', () => { if (currentUserId) openShopSelectorModal(itemData.id, itemData.shop || null); });
-
-                itemElement.appendChild(checkbox); itemElement.appendChild(nameSpan); itemElement.appendChild(locationButton);
-                shoppingListItemsContainer.appendChild(itemElement);
+                locationButton.appendChild(iconContainer); locationButton.addEventListener('click', () => { if (currentUserId) openShopSelectorModal(itemData.id, itemData.shop || null); });
+                itemElement.appendChild(checkbox); itemElement.appendChild(nameSpan); itemElement.appendChild(locationButton); shoppingListItemsContainer.appendChild(itemElement);
                 requestAnimationFrame(() => { itemElement.classList.add("list-item-enter-active") });
-
-                // Swipe & Long Press handlers (remain structurally similar, DB ops within them need UID checks)
-                let itemLongPressTimerId; let itemPressStartX, itemPressStartY; let itemLongPressActionTaken = false;
-                const temporaryItemListeners = new Map();
+                let itemLongPressTimerId, itemPressStartX, itemPressStartY, itemLongPressActionTaken = false; const temporaryItemListeners = new Map();
                 function addItemEventListener(type, listener) { itemElement.addEventListener(type, listener); temporaryItemListeners.set(type, listener); }
                 function removeItemEventListeners() { temporaryItemListeners.forEach((listener, type) => itemElement.removeEventListener(type, listener)); temporaryItemListeners.clear(); }
                 function handleItemPressStart(e) { itemLongPressActionTaken = false; if (e.target.closest('.shopping-item-checkbox, .shopping-item-location-button')) return; itemPressStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX; itemPressStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY; shoppingListSwipeStartHandler(e, itemElement, itemData.id); clearTimeout(itemLongPressTimerId); itemLongPressTimerId = setTimeout(() => { if (swipeState.isSwiping && swipeState.item === itemElement) { const currentSwipeDeltaX = swipeState.currentX - swipeState.startX; if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) { clearTimeout(itemLongPressTimerId); removeItemEventListeners(); return; } } itemLongPressActionTaken = true; if (swipeState.isSwiping && swipeState.item === itemElement) shoppingListSwipeEndHandler(e, true); if (currentUserId) openEditShoppingItemModal(itemData.id, itemData.name); removeItemEventListeners(); }, LONG_PRESS_DURATION); addItemEventListener('mousemove', handleItemPressMove); addItemEventListener('touchmove', handleItemPressMove); addItemEventListener('mouseup', handleItemPressEnd); addItemEventListener('mouseleave', handleItemPressEnd); addItemEventListener('touchend', handleItemPressEnd); addItemEventListener('touchcancel', handleItemPressEnd); }
@@ -2263,103 +1864,62 @@
                 itemElement.addEventListener('mousedown', handleItemPressStart); itemElement.addEventListener('touchstart', handleItemPressStart, { passive: true });
             });
         }
-        async function addShoppingItemToDB() { // MODIFIED
-            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            if (!newShoppingItemNameInput) return;
-            const e = newShoppingItemNameInput.value.trim();
-            if (!e) return showCustomAlert("Input Error", "Please enter an item name.");
-            try {
-                const shoppingListRef = getUserDataRef("shoppingList"); // MODIFIED
-                if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
-                await shoppingListRef.push({ name: e, checked: !1, createdAt: serverTimestamp });
-                newShoppingItemNameInput.value = "";
-                newShoppingItemNameInput.focus();
-                loadShoppingListFromDB(); // Reloads for current user
-            } catch (e) {
-                console.error("Error adding shopping item:", e);
-                showCustomAlert("Error", "Failed to add item to shopping list.");
-            }
+        async function addShoppingItemToDB() {
+            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; } if (!newShoppingItemNameInput) return;
+            const e = newShoppingItemNameInput.value.trim(); if (!e) return showCustomAlert("Input Error", "Please enter an item name.");
+            try { const shoppingListRef = getUserDataRef("shoppingList"); if (!shoppingListRef) throw new Error("User not authenticated for DB operation."); await shoppingListRef.push({ name: e, checked: !1, createdAt: serverTimestamp }); newShoppingItemNameInput.value = ""; newShoppingItemNameInput.focus(); loadShoppingListFromDB(); }
+            catch (e) { console.error("Error adding shopping item:", e); showCustomAlert("Error", "Failed to add item to shopping list."); }
         }
-        async function toggleShoppingItemCheckedInDB(e, t) { // itemId `e`, checkedState `t`. MODIFIED
+        async function toggleShoppingItemCheckedInDB(e, t) {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            try {
-                const itemRef = getUserDataRef(`shoppingList/${e}`); // MODIFIED
-                if (!itemRef) throw new Error("User not authenticated for DB operation.");
-                await itemRef.update({ checked: t });
-                loadShoppingListFromDB(); // Reloads for current user
-            } catch (e) { console.error("Error updating shopping item:", e) }
+            try { const itemRef = getUserDataRef(`shoppingList/${e}`); if (!itemRef) throw new Error("User not authenticated for DB operation."); await itemRef.update({ checked: t }); loadShoppingListFromDB(); }
+            catch (e) { console.error("Error updating shopping item:", e) }
         }
-        async function deleteShoppingItemFromDB(itemId) { /* This specific one is used by swipe, updated there */ }
 
-        // Shop Selector Modal (open, close, handleSelected, handleClear)
-        // DB ops (handleShopSelected, handleClearShopSelection) need currentUserId and user-specific paths.
         let shopSelectorModal, shopSelectorOptionsContainer, closeShopSelectorModalButton, clearShopSelectionButton;
-        function openShopSelectorModal(itemId, currentShop) { /* UI only, fine */ if (!shopSelectorModal || !shopSelectorOptionsContainer) return; shopSelectorModal.dataset.currentItemId = itemId; shopSelectorOptionsContainer.innerHTML = ''; SHOPS.forEach(shop => { const shopButton = document.createElement('button'); shopButton.className = `flex items-center justify-center p-3 rounded-lg text-white font-medium hover:bg-[#5a3a2a] transition-colors duration-150 text-sm`; shopButton.classList.toggle('bg-[#f0560e]', shop === currentShop); shopButton.classList.toggle('hover:bg-orange-600', shop === currentShop); shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop); shopButton.classList.toggle('hover:bg-[#5a3a2a]', shop !== currentShop); shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`; shopButton.addEventListener('click', () => handleShopSelected(shop)); shopSelectorOptionsContainer.appendChild(shopButton); }); shopSelectorModal.classList.remove('hidden'); }
-        function closeShopSelectorModal() { /* UI only, fine */ if (shopSelectorModal) shopSelectorModal.classList.add('hidden'); }
-        async function handleShopSelected(shopName) { // MODIFIED
-            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const itemId = shopSelectorModal.dataset.currentItemId; if (!itemId) return;
-            try {
-                const itemRef = getUserDataRef(`shoppingList/${itemId}`); // MODIFIED
-                if (!itemRef) throw new Error("User not authenticated for DB operation.");
-                await itemRef.update({ shop: shopName });
-                closeShopSelectorModal(); loadShoppingListFromDB(); // Reloads for current user
-            } catch (error) { console.error("Error updating shop for item:", error); showCustomAlert("Error", "Could not update shop. Please try again."); }
+        function openShopSelectorModal(itemId, currentShop) { if (!shopSelectorModal || !shopSelectorOptionsContainer) return; shopSelectorModal.dataset.currentItemId = itemId; shopSelectorOptionsContainer.innerHTML = ''; SHOPS.forEach(shop => { const shopButton = document.createElement('button'); shopButton.className = `flex items-center justify-center p-3 rounded-lg text-white font-medium hover:bg-[#5a3a2a] transition-colors duration-150 text-sm`; shopButton.classList.toggle('bg-[#f0560e]', shop === currentShop); shopButton.classList.toggle('hover:bg-orange-600', shop === currentShop); shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop); shopButton.classList.toggle('hover:bg-[#5a3a2a]', shop !== currentShop); shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`; shopButton.addEventListener('click', () => handleShopSelected(shop)); shopSelectorOptionsContainer.appendChild(shopButton); }); shopSelectorModal.classList.remove('hidden'); }
+        function closeShopSelectorModal() { if (shopSelectorModal) shopSelectorModal.classList.add('hidden'); }
+        async function handleShopSelected(shopName) {
+            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; } const itemId = shopSelectorModal.dataset.currentItemId; if (!itemId) return;
+            try { const itemRef = getUserDataRef(`shoppingList/${itemId}`); if (!itemRef) throw new Error("User not authenticated for DB operation."); await itemRef.update({ shop: shopName }); closeShopSelectorModal(); loadShoppingListFromDB(); }
+            catch (error) { console.error("Error updating shop for item:", error); showCustomAlert("Error", "Could not update shop. Please try again."); }
         }
-        async function handleClearShopSelection() { // MODIFIED
-            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const itemId = shopSelectorModal.dataset.currentItemId; if (!itemId) return;
-            try {
-                const shopRef = getUserDataRef(`shoppingList/${itemId}/shop`); // MODIFIED
-                if (!shopRef) throw new Error("User not authenticated for DB operation.");
-                await shopRef.remove();
-                closeShopSelectorModal(); loadShoppingListFromDB(); // Reloads for current user
-            } catch (error) { console.error("Error clearing shop for item:", error); showCustomAlert("Error", "Could not clear shop. Please try again."); }
+        async function handleClearShopSelection() {
+            if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; } const itemId = shopSelectorModal.dataset.currentItemId; if (!itemId) return;
+            try { const shopRef = getUserDataRef(`shoppingList/${itemId}/shop`); if (!shopRef) throw new Error("User not authenticated for DB operation."); await shopRef.remove(); closeShopSelectorModal(); loadShoppingListFromDB(); }
+            catch (error) { console.error("Error clearing shop for item:", error); showCustomAlert("Error", "Could not clear shop. Please try again."); }
         }
 
-        // Shopping List Sort Modal (UI only, fine)
         let shoppingListSortModal, closeShoppingListSortModalButton;
         function openShoppingListSortModal() { if (shoppingListSortModal) { document.querySelectorAll('.shopping-sort-option-button').forEach(btn => { const isActive = btn.dataset.sortType === currentShoppingListSort; btn.classList.toggle('bg-[#f0560e]', isActive); btn.classList.toggle('hover:bg-orange-600', isActive); btn.classList.toggle('bg-[#40322b]', !isActive); btn.classList.toggle('hover:bg-[#5a3a2a]', !isActive); }); shoppingListSortModal.classList.remove('hidden'); } }
         function closeShoppingListSortModal() { if (shoppingListSortModal) shoppingListSortModal.classList.add('hidden'); }
 
-        async function clearCheckedShoppingItemsFromDB() { // MODIFIED
+        async function clearCheckedShoppingItemsFromDB() {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
-            const confirmed = await showCustomConfirm(
-                "Clear Checked Items", "Are you sure you want to clear all checked items?",
-                "Clear Items", "bg-red-600 hover:bg-red-700"
-            );
+            const confirmed = await showCustomConfirm("Clear Checked Items", "Are you sure you want to clear all checked items?", "Clear Items", "bg-red-600 hover:bg-red-700");
             if (!confirmed) return;
             try {
-                const shoppingListRef = getUserDataRef("shoppingList"); // MODIFIED
-                if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
+                const shoppingListRef = getUserDataRef("shoppingList"); if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
                 const e = await shoppingListRef.orderByChild("checked").equalTo(!0).once("value");
-                if (e.exists()) {
-                    const t = {}; // Path for update needs to be relative to root for multi-path updates
-                    e.forEach(itemSnapshot => { t[`users/${currentUserId}/shoppingList/${itemSnapshot.key}`] = null });
-                    await database.ref().update(t); // Use root ref for multi-path updates
-                }
-                loadShoppingListFromDB(); // Reloads for current user
+                if (e.exists()) { const t = {}; e.forEach(itemSnapshot => { t[`users/${currentUserId}/shoppingList/${itemSnapshot.key}`] = null }); await database.ref().update(t); }
+                loadShoppingListFromDB();
             } catch (e) { console.error("Error clearing checked items:", e); showCustomAlert("Error", "Failed to clear checked items."); }
         }
 
-        async function addUncheckedIngredientsToShoppingList() { // MODIFIED
+        async function addUncheckedIngredientsToShoppingList() {
             if (!currentUserId) { showCustomAlert("Error", "Not logged in."); return; }
             const ingredientsToAdd = currentRecipeIngredientsState.filter(ingredient => !ingredient.checked).map(ingredient => ingredient.name.trim());
             if (0 === ingredientsToAdd.length) return showCustomAlert("Info", "No unchecked ingredients to add, or no ingredients are listed.");
             try {
-                const shoppingListRef = getUserDataRef("shoppingList"); // MODIFIED
-                if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
-                const c = {};
-                ingredientsToAdd.forEach(e => { const t = shoppingListRef.push().key; c[t] = { name: e, checked: !1, createdAt: serverTimestamp } });
-                await shoppingListRef.update(c); // Update under user's shopping list
-                showCustomAlert("Success", `${ingredientsToAdd.length} ingredient${1 === ingredientsToAdd.length ? "" : "s"} added!`);
+                const shoppingListRef = getUserDataRef("shoppingList"); if (!shoppingListRef) throw new Error("User not authenticated for DB operation.");
+                const c = {}; ingredientsToAdd.forEach(e => { const t = shoppingListRef.push().key; c[t] = { name: e, checked: !1, createdAt: serverTimestamp } });
+                await shoppingListRef.update(c); showCustomAlert("Success", `${ingredientsToAdd.length} ingredient${1 === ingredientsToAdd.length ? "" : "s"} added!`);
             } catch (e) { console.error("Error adding ingredients:", e); showCustomAlert("Error", "Failed to add ingredients."); }
         }
 
 
         // --- DOMContentLoaded ---
         document.addEventListener("DOMContentLoaded", () => {
-            // Initialize Modals (no change to this part)
             customAlertModal = document.getElementById("custom-alert-modal"); customAlertTitle = document.getElementById("custom-alert-title"); customAlertMessage = document.getElementById("custom-alert-message"); customAlertOkButton = document.getElementById("custom-alert-ok-button");
             customConfirmModal = document.getElementById("custom-confirm-modal"); customConfirmTitle = document.getElementById("custom-confirm-title"); customConfirmMessage = document.getElementById("custom-confirm-message"); customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button"); customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
             customAlertOkButton?.addEventListener("click", closeCustomAlert); customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
@@ -2375,207 +1935,131 @@
             editShoppingItemNameInput?.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), handleSaveShoppingItemChanges()) });
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference'); if (savedSortPreference) currentShoppingListSort = savedSortPreference;
 
-            // --- Auth State Listener ---
             auth.onAuthStateChanged(async user => {
-                authInitialized = true; // Mark auth as initialized
-
-                const isFreshLogin = !previousAuthUserId && user; // True if previous was null and current user exists
-                previousAuthUserId = user ? user.uid : null;   // Update for the next auth state change
+                authInitialized = true;
+                const isFreshLogin = !previousAuthUserId && user;
+                previousAuthUserId = user ? user.uid : null;
 
                 if (user) {
-                    currentUserId = user.uid;
-                    console.log("User signed in:", currentUserId);
-                    const userEmailDisplay = document.getElementById("user-email-display");
-                    if (userEmailDisplay) userEmailDisplay.textContent = user.email;
-
-                    isInitialPageLoad = true; // Reset for data loading and page setup
-
-                    let targetPageIdAfterAuth = "page-index"; // Default to page-index
-                    let recipeIdForInitialLoad = null;
-                    let scheduleDateForInitialLoad = null;
-                    let scheduleWeekStartForInitialLoad = null;
-
+                    currentUserId = user.uid; console.log("User signed in:", currentUserId);
+                    const userEmailDisplay = document.getElementById("user-email-display"); if (userEmailDisplay) userEmailDisplay.textContent = user.email;
+                    isInitialPageLoad = true;
+                    let targetPageIdAfterAuth = "page-index", recipeIdForInitialLoad = null, scheduleDateForInitialLoad = null, scheduleWeekStartForInitialLoad = null;
                     if (isFreshLogin) {
                         console.log("Fresh login detected. Forcing navigation to page-index.");
-                        // targetPageIdAfterAuth is already "page-index"
-                        // Clear any user-specific last active page from a *previous* session for *this* user,
-                        // as we are now forcing page-index.
-                        localStorage.removeItem(`lastActivePageId_${currentUserId}`);
-                        localStorage.removeItem(`currentRecipeDetailId_${currentUserId}`); // Also clear specific recipe if any
+                        localStorage.removeItem(`lastActivePageId_${currentUserId}`); localStorage.removeItem(`currentRecipeDetailId_${currentUserId}`);
                     } else {
-                        // This is a page refresh or returning to an already logged-in session.
-                        // Use existing logic to determine the page.
                         targetPageIdAfterAuth = localStorage.getItem(`lastActivePageId_${currentUserId}`) || "page-index";
-                        if (targetPageIdAfterAuth === 'page-login' || targetPageIdAfterAuth === 'page-register') {
-                            targetPageIdAfterAuth = 'page-index';
-                        }
-
+                        if (targetPageIdAfterAuth === 'page-login' || targetPageIdAfterAuth === 'page-register') targetPageIdAfterAuth = 'page-index';
                         const hash = window.location.hash.substring(1);
                         if (history.state && history.state.page && history.state.page !== 'page-login' && history.state.page !== 'page-register') {
-                            targetPageIdAfterAuth = history.state.page;
-                            recipeIdForInitialLoad = history.state.recipeId;
-                            scheduleDateForInitialLoad = history.state.selectedDate;
-                            scheduleWeekStartForInitialLoad = history.state.weekStart;
+                            targetPageIdAfterAuth = history.state.page; recipeIdForInitialLoad = history.state.recipeId;
+                            scheduleDateForInitialLoad = history.state.selectedDate; scheduleWeekStartForInitialLoad = history.state.weekStart;
                         } else if (hash) {
-                            const parts = hash.split('/');
-                            const potentialPageId = parts[0];
+                            const parts = hash.split('/'), potentialPageId = parts[0];
                             if (document.getElementById(potentialPageId) && potentialPageId !== 'page-login' && potentialPageId !== 'page-register') {
                                 targetPageIdAfterAuth = potentialPageId;
-                                if (targetPageIdAfterAuth === "page-recipe" && parts[1]) {
-                                    recipeIdForInitialLoad = parts[1];
-                                } else if (targetPageIdAfterAuth === "page-recipe") {
-                                    // If hash is just #page-recipe, try getting ID from localStorage
-                                    recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
-                                }
+                                if (targetPageIdAfterAuth === "page-recipe" && parts[1]) recipeIdForInitialLoad = parts[1];
+                                else if (targetPageIdAfterAuth === "page-recipe") recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
                             }
                         }
-                        // Fallback if page-recipe is targeted but no ID is found
-                        if (targetPageIdAfterAuth === "page-recipe" && !recipeIdForInitialLoad) {
-                            targetPageIdAfterAuth = "page-index";
-                        }
+                        if (targetPageIdAfterAuth === "page-recipe" && !recipeIdForInitialLoad) targetPageIdAfterAuth = "page-index";
                     }
-
-                    currentPageId = targetPageIdAfterAuth; // Set global currentPageId before showPage
-
+                    currentPageId = targetPageIdAfterAuth;
                     if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
                     if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
-
-                    const initialState = getCurrentPageHistoryState(targetPageIdAfterAuth);
-                    const initialUrl = getCurrentPageFullHash(targetPageIdAfterAuth);
+                    const initialState = getCurrentPageHistoryState(targetPageIdAfterAuth), initialUrl = getCurrentPageFullHash(targetPageIdAfterAuth);
                     history.replaceState(initialState, `Page ${targetPageIdAfterAuth}`, initialUrl);
-
-                    await loadRecipesFromRealtimeDB(); // Load data for the signed-in user
-
-                    if (targetPageIdAfterAuth === "page-recipe" && recipeIdForInitialLoad) {
-                        await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
-                    } else {
-                        showPage(targetPageIdAfterAuth, true);
-                    }
-                    isInitialPageLoad = false; // Initial page load sequence finished
-                } else { // User is signed out or not yet signed in
-                    currentUserId = null;
-                    console.log("User signed out or not signed in.");
-                    clearUserSpecificDataAndUI();
-
-                    const loginState = getCurrentPageHistoryState("page-login");
-                    const loginUrl = getCurrentPageFullHash("page-login");
-                    history.replaceState(loginState, `Page page-login`, loginUrl);
-
-                    showPage("page-login", true);
-                    isInitialPageLoad = false; // Reset for any subsequent login session
+                    await loadRecipesFromRealtimeDB();
+                    if (targetPageIdAfterAuth === "page-recipe" && recipeIdForInitialLoad) await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
+                    else showPage(targetPageIdAfterAuth, true);
+                    isInitialPageLoad = false;
+                } else {
+                    currentUserId = null; console.log("User signed out or not signed in."); clearUserSpecificDataAndUI();
+                    const loginState = getCurrentPageHistoryState("page-login"), loginUrl = getCurrentPageFullHash("page-login");
+                    history.replaceState(loginState, `Page page-login`, loginUrl); showPage("page-login", true); isInitialPageLoad = false;
                 }
-
-                // Setup event listeners that might depend on auth state or initial page rendering
-                // Ensure these are setup only once after auth is initialized.
-                if (!commonListenersAreSetup) {
-                    setupCommonEventListeners();
-                    commonListenersAreSetup = true;
-                }
+                if (!commonListenersAreSetup) { setupCommonEventListeners(); commonListenersAreSetup = true; }
             });
 
             function setupCommonEventListeners() {
-                // --- Auth Page Navigation & Actions ---
                 document.getElementById("go-to-register-button")?.addEventListener("click", () => showPage("page-register"));
                 document.getElementById("go-to-login-button")?.addEventListener("click", () => showPage("page-login"));
-
                 document.getElementById("login-button")?.addEventListener("click", async () => {
-                    const email = document.getElementById("login-email").value;
-                    const password = document.getElementById("login-password").value;
+                    const email = document.getElementById("login-email").value, password = document.getElementById("login-password").value;
                     if (!email || !password) return showCustomAlert("Login Error", "Email and password are required.");
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                        // onAuthStateChanged handles the rest
-                    } catch (error) { showCustomAlert("Login Failed", error.message); console.error("Login error:", error); }
+                    try { await auth.signInWithEmailAndPassword(email, password); }
+                    catch (error) { showCustomAlert("Login Failed", error.message); console.error("Login error:", error); }
                 });
                 document.getElementById("login-email")?.addEventListener("keypress", e => { if (e.key === "Enter") document.getElementById("login-password")?.focus(); });
                 document.getElementById("login-password")?.addEventListener("keypress", e => { if (e.key === "Enter") document.getElementById("login-button")?.click(); });
 
-
+                // --- MODIFIED Register Button Listener ---
                 document.getElementById("register-button")?.addEventListener("click", async () => {
-                    const email = document.getElementById("register-email").value;
-                    const password = document.getElementById("register-password").value;
-                    const confirmPassword = document.getElementById("register-confirm-password").value;
-                    if (!email || !password || !confirmPassword) return showCustomAlert("Registration Error", "All fields are required.");
-                    if (password.length < 6) return showCustomAlert("Registration Error", "Password must be at least 6 characters.");
-                    if (password !== confirmPassword) return showCustomAlert("Registration Error", "Passwords do not match.");
+                    const emailElement = document.getElementById("register-email");
+                    const passwordElement = document.getElementById("register-password");
+                    const confirmPasswordElement = document.getElementById("register-confirm-password");
+
+                    const email = emailElement ? emailElement.value : "";
+                    const password = passwordElement ? passwordElement.value : "";
+                    const confirmPassword = confirmPasswordElement ? confirmPasswordElement.value : "";
+                    
+                    if (!email || !password || !confirmPassword) {
+                        return showCustomAlert("Registration Error", "All fields are required.");
+                    }
+                    if (password.length < 6) {
+                        return showCustomAlert("Registration Error", "Password must be at least 6 characters.");
+                    }
+                    if (password !== confirmPassword) {
+                        return showCustomAlert("Registration Error", "Passwords do not match.");
+                    }
+
+                    // --- Check registration limit ---
+                    const canRegister = await checkRegistrationLimit();
+                    if (!canRegister) {
+                        showCustomAlert("Registration Limit Reached", "Sorry, we've reached the maximum number of new registrations for today. Please try again tomorrow.");
+                        return; // Stop the registration process
+                    }
+                    // --- End check registration limit ---
+
                     try {
-                        await auth.createUserWithEmailAndPassword(email, password);
-                        // onAuthStateChanged handles the rest
-                        // Optionally, create a user profile node in DB
-                        // const userProfileRef = getUserDataRef('profile');
-                        // if(userProfileRef) await userProfileRef.set({ email: email, createdAt: serverTimestamp });
-                    } catch (error) { showCustomAlert("Registration Failed", error.message); console.error("Registration error:", error); }
-                });
-
-                document.getElementById("logout-button")?.addEventListener("click", async () => {
-                    try { await auth.signOut(); /* onAuthStateChanged handles UI */ }
-                    catch (error) { showCustomAlert("Logout Failed", error.message); console.error("Logout error:", error); }
-                });
-
-                // --- General App Event Listeners (add currentUserId checks where necessary) ---
-                window.addEventListener('popstate', (event) => {
-                    if (!authInitialized) return;
-                    const openModalId = getOpenModalId();
-                    if (openModalId) {
-                        closeModalById(openModalId);
-                        const currentState = getCurrentPageHistoryState(currentPageId);
-                        const currentHash = getCurrentPageFullHash(currentPageId);
-                        history.pushState(currentState, `Page ${currentPageId}`, currentHash);
-                        return;
-                    }
-
-                    const targetPageFromState = event.state ? event.state.page : null;
-
-                    if (!currentUserId) { // User is logged out
-                        if (targetPageFromState !== 'page-login' && targetPageFromState !== 'page-register') {
-                            showPage('page-login', true);
-                        } else if (targetPageFromState) {
-                            showPage(targetPageFromState, true);
-                        } else {
-                            showPage('page-login', true);
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        if (userCredential && userCredential.user) {
+                           await incrementRegistrationCount();
                         }
-                        return;
+                    } catch (error) {
+                        showCustomAlert("Registration Failed", error.message);
+                        console.error("Registration error:", error);
                     }
-                    // User is logged in
-                    if (targetPageFromState === 'page-login' || targetPageFromState === 'page-register') {
-                        showPage('page-index', true); return;
-                    }
-                    if (currentPageId === 'page-index' && (!targetPageFromState || targetPageFromState === 'page-index')) {
-                        if (event.state && event.state.page) { currentPageId = event.state.page; updateNavbarUI(currentPageId); }
-                        else { currentPageId = 'page-index'; updateNavbarUI('page-index'); }
-                        return;
-                    }
-                    if (targetPageFromState) {
-                        if (targetPageFromState === 'page-recipe' && event.state.recipeId) {
-                            loadRecipeDetailFromRealtimeDB(event.state.recipeId, true);
-                        } else if (targetPageFromState === 'page-schedule') {
-                            showPage('page-schedule', true);
-                        } else if (document.getElementById(targetPageFromState)) {
-                            showPage(targetPageFromState, true);
-                        } else { showPage('page-index', true); }
-                    } else { showPage('page-index', true); }
                 });
+                // --- END MODIFIED Register Button Listener ---
 
-                const searchRecipeInput = document.getElementById("search-recipe-input"); const clearSearchRecipeButton = document.getElementById("clear-search-recipe-button");
-                const searchFavoritesInput = document.getElementById("search-favorites-input"); const clearSearchFavoritesButton = document.getElementById("clear-search-favorites-button");
+                document.getElementById("logout-button")?.addEventListener("click", async () => { try { await auth.signOut(); } catch (error) { showCustomAlert("Logout Failed", error.message); console.error("Logout error:", error); } });
+                window.addEventListener('popstate', (event) => {
+                    if (!authInitialized) return; const openModalId = getOpenModalId();
+                    if (openModalId) { closeModalById(openModalId); const currentState = getCurrentPageHistoryState(currentPageId), currentHash = getCurrentPageFullHash(currentPageId); history.pushState(currentState, `Page ${currentPageId}`, currentHash); return; }
+                    const targetPageFromState = event.state ? event.state.page : null;
+                    if (!currentUserId) { if (targetPageFromState !== 'page-login' && targetPageFromState !== 'page-register') showPage('page-login', true); else if (targetPageFromState) showPage(targetPageFromState, true); else showPage('page-login', true); return; }
+                    if (targetPageFromState === 'page-login' || targetPageFromState === 'page-register') { showPage('page-index', true); return; }
+                    if (currentPageId === 'page-index' && (!targetPageFromState || targetPageFromState === 'page-index')) { if (event.state && event.state.page) { currentPageId = event.state.page; updateNavbarUI(currentPageId); } else { currentPageId = 'page-index'; updateNavbarUI('page-index'); } return; }
+                    if (targetPageFromState) { if (targetPageFromState === 'page-recipe' && event.state.recipeId) loadRecipeDetailFromRealtimeDB(event.state.recipeId, true); else if (targetPageFromState === 'page-schedule') showPage('page-schedule', true); else if (document.getElementById(targetPageFromState)) showPage(targetPageFromState, true); else showPage('page-index', true); }
+                    else showPage('page-index', true);
+                });
+                const searchRecipeInput = document.getElementById("search-recipe-input"), clearSearchRecipeButton = document.getElementById("clear-search-recipe-button"), searchFavoritesInput = document.getElementById("search-favorites-input"), clearSearchFavoritesButton = document.getElementById("clear-search-favorites-button");
                 function setupSearchClearButton(inputElement, clearButtonElement, searchHandler) { if (inputElement && clearButtonElement) { inputElement.addEventListener("input", () => { clearButtonElement.classList.toggle("hidden", !inputElement.value); if (searchHandler) searchHandler(); }); clearButtonElement.addEventListener("click", () => { inputElement.value = ""; clearButtonElement.classList.add("hidden"); inputElement.blur(); if (searchHandler) searchHandler(); }); clearButtonElement.classList.toggle("hidden", !inputElement.value); } }
-                setupSearchClearButton(searchRecipeInput, clearSearchRecipeButton, debounce(handleSearch, 300));
-                setupSearchClearButton(searchFavoritesInput, clearSearchFavoritesButton, debounce(handleFavoritesSearch, 300));
-
+                setupSearchClearButton(searchRecipeInput, clearSearchRecipeButton, debounce(handleSearch, 300)); setupSearchClearButton(searchFavoritesInput, clearSearchFavoritesButton, debounce(handleFavoritesSearch, 300));
                 document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); if (!currentUserId) { showCustomAlert("Login Required", "Please login to use app features."); showPage("page-login"); return; } const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
                 document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => { const newButton = button.cloneNode(true); button.parentNode.replaceChild(newButton, button); newButton.addEventListener('click', (e) => { e.preventDefault(); performBackAction(); }); });
                 document.getElementById("header-profile-button-index")?.addEventListener("click", () => { if (!currentUserId) showPage("page-login"); else showPage("page-profile"); });
                 document.getElementById("header-profile-button-favorites")?.addEventListener("click", () => { if (!currentUserId) showPage("page-login"); else showPage("page-profile"); });
-
                 document.getElementById("save-recipe-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to save recipes."); return; } saveRecipeData(); });
                 document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to bookmark recipes."); return; } const recipeId = e.currentTarget.dataset.recipeId; if (recipeId) toggleBookmarkInRealtimeDB(recipeId); });
-                document.getElementById("recipe-delete-header-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to delete recipes."); return; } const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; const recipeData = allRecipesCache.find(r => r.id === recipeId); const imageURL = recipeData ? recipeData.imageURL : ""; if (recipeId) { openDeleteRecipeModal(recipeId, imageURL); } else { showCustomAlert("Error", "Cannot delete: Recipe ID not found."); } });
-                confirmDeleteRecipeButton?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Error", "Not logged in."); closeDeleteRecipeModal(); return; } const recipeId = confirmDeleteRecipeButton.dataset.recipeId; const imageURL = confirmDeleteRecipeButton.dataset.imageURL; if (recipeId) deleteRecipeFromRealtimeDB(recipeId, imageURL); closeDeleteRecipeModal(); });
-                cancelDeleteRecipeButton?.addEventListener("click", closeDeleteRecipeModal);
-                deleteRecipeConfirmationModal?.addEventListener("click", (event) => { if (event.target === deleteRecipeConfirmationModal) closeDeleteRecipeModal(); });
+                document.getElementById("recipe-delete-header-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to delete recipes."); return; } const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; const recipeData = allRecipesCache.find(r => r.id === recipeId); const imageURL = recipeData ? recipeData.imageURL : ""; if (recipeId) openDeleteRecipeModal(recipeId, imageURL); else showCustomAlert("Error", "Cannot delete: Recipe ID not found."); });
+                confirmDeleteRecipeButton?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Error", "Not logged in."); closeDeleteRecipeModal(); return; } const recipeId = confirmDeleteRecipeButton.dataset.recipeId, imageURL = confirmDeleteRecipeButton.dataset.imageURL; if (recipeId) deleteRecipeFromRealtimeDB(recipeId, imageURL); closeDeleteRecipeModal(); });
+                cancelDeleteRecipeButton?.addEventListener("click", closeDeleteRecipeModal); deleteRecipeConfirmationModal?.addEventListener("click", (event) => { if (event.target === deleteRecipeConfirmationModal) closeDeleteRecipeModal(); });
                 document.getElementById("recipe-edit-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to edit recipes."); return; } const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; if (recipeId) prepareEditForm(recipeId); else showCustomAlert("Error", "Could not initiate edit: Recipe ID not found."); });
                 document.getElementById("remove-current-image-button")?.addEventListener("click", () => { currentRecipeImageURL = null; document.getElementById("current-image-display").classList.add("hidden"); document.getElementById("current-image-filename").textContent = ""; document.getElementById("create-recipe-photo-label").textContent = "Upload Photo"; const photoInput = document.getElementById("create-recipe-photoInput"); if (photoInput) photoInput.value = ""; });
-                document.getElementById("create-recipe-photoInput")?.addEventListener("change", function () { const photoLabel = document.getElementById("create-recipe-photo-label"); const currentImageDisplay = document.getElementById("current-image-display"); const currentImageFilenameSpan = document.getElementById("current-image-filename"); if (this.files && this.files.length > 0) { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Photo Selected"; } else { if (editingRecipeId && currentRecipeImageURL) { currentImageFilenameSpan.textContent = currentRecipeImageURL.substring(currentRecipeImageURL.lastIndexOf('/') + 1); currentImageDisplay.classList.remove("hidden"); photoLabel.textContent = "Change Photo"; } else { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Upload Photo"; } } });
+                document.getElementById("create-recipe-photoInput")?.addEventListener("change", function () { const photoLabel = document.getElementById("create-recipe-photo-label"), currentImageDisplay = document.getElementById("current-image-display"), currentImageFilenameSpan = document.getElementById("current-image-filename"); if (this.files && this.files.length > 0) { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Photo Selected"; } else { if (editingRecipeId && currentRecipeImageURL) { currentImageFilenameSpan.textContent = currentRecipeImageURL.substring(currentRecipeImageURL.lastIndexOf('/') + 1); currentImageDisplay.classList.remove("hidden"); photoLabel.textContent = "Change Photo"; } else { currentImageDisplay.classList.add("hidden"); photoLabel.textContent = "Upload Photo"; } } });
                 document.getElementById("add-ingredients-to-shopping-list")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } addUncheckedIngredientsToShoppingList(); });
                 document.getElementById("schedule-prev-week")?.addEventListener("click", navigateToPreviousWeek); document.getElementById("schedule-next-week")?.addEventListener("click", navigateToNextWeek);
                 document.getElementById("schedule-open-add-meal-modal-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to plan meals."); return; } openAddMealModal(); });
@@ -2585,12 +2069,10 @@
                 newShoppingItemNameInput && newShoppingItemNameInput.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), (() => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } addShoppingItemToDB(); })()) });
                 document.getElementById("clear-checked-shopping-items-button")?.addEventListener("click", () => { if (!currentUserId) { showCustomAlert("Login Required", "Please login to manage shopping list."); return; } clearCheckedShoppingItemsFromDB(); });
                 document.getElementById('sort-shopping-list-button')?.addEventListener('click', openShoppingListSortModal);
-                closeShoppingListSortModalButton?.addEventListener('click', closeShoppingListSortModal);
-                shoppingListSortModal?.addEventListener('click', (event) => { if (event.target === shoppingListSortModal) closeShoppingListSortModal(); });
+                closeShoppingListSortModalButton?.addEventListener('click', closeShoppingListSortModal); shoppingListSortModal?.addEventListener('click', (event) => { if (event.target === shoppingListSortModal) closeShoppingListSortModal(); });
                 document.querySelectorAll('.shopping-sort-option-button').forEach(button => { button.addEventListener('click', (event) => { const sortType = event.currentTarget.dataset.sortType; if (sortType) { currentShoppingListSort = sortType; localStorage.setItem('shoppingListSortPreference', currentShoppingListSort); closeShoppingListSortModal(); if (currentUserId) loadShoppingListFromDB(); } }); });
-            } // End setupCommonEventListeners
+            }
 
-            // Service worker registration
             "serviceWorker" in navigator && window.addEventListener("load", () => { navigator.serviceWorker.register("/cookbook_bare/sw.js", { scope: "/cookbook_bare/" }).then(e => console.log("SW registered!", e.scope)).catch(e => console.log("SW registration failed: ", e)) });
         });
     </script>
