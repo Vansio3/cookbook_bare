@@ -1375,26 +1375,44 @@
         function getStartOfWeek(e, t = 0) { const c = new Date(e), a = c.getDay(), n = (a < t ? a + 7 : a) - t; return c.setDate(c.getDate() - n), c.setHours(0, 0, 0, 0), c } function addDays(e, t) { const c = new Date(e); return c.setDate(c.getDate() + t), c } function formatDateForDisplay(e) { return isToday(e) ? "Today" : isSameDate(e, addDays(new Date, 1)) ? "Tomorrow" : e.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) } function formatDateForFirebaseKey(e) { return `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}` } function isSameDate(e, t) { return !(!e || !t) && e.getFullYear() === t.getFullYear() && e.getMonth() === t.getMonth() && e.getDate() === t.getDate() } function isToday(e) { return isSameDate(e, new Date) } function debounce(e, t) { let c; return function (...a) { clearTimeout(c), c = setTimeout(() => e.apply(this, a), t) } }
 
 
-        function showPage(pageId, fromHistoryOrInitialLoad = false) {
+                function showPage(pageId, fromHistoryOrInitialLoad = false) {
             const newPage = document.getElementById(pageId);
+
             if (!newPage) {
-                console.warn(`Page ${pageId} not found, redirecting.`);
-                const fallbackPage = currentUserId ? "page-index" : "page-login";
-                if (pageId === fallbackPage) {
-                    document.body.innerHTML = `Critical error: Fallback page ${fallbackPage} not found. Cannot recover.`;
+                console.warn(`Page ${pageId} not found. Current auth state: ${currentUserId ? 'logged in' : 'logged out'}. Attempting to redirect.`);
+                const fallbackPageId = currentUserId ? "page-index" : "page-login";
+
+                if (pageId === fallbackPageId) { // Avoid infinite loop if fallback itself is missing
+                    document.body.innerHTML = `Critical error: Fallback page ${fallbackPageId} (which was also target ${pageId}) is missing. App cannot recover.`;
+                    // Attempt to hide any active page to prevent unresponsive UI
+                    const anyActivePage = document.querySelector(".page.active");
+                    if (anyActivePage) anyActivePage.classList.remove("active");
                     return;
                 }
-                showPage(fallbackPage, fromHistoryOrInitialLoad);
+                
+                showPage(fallbackPageId, true); // Redirect, ensuring it's treated like a history/initial load
                 return;
             }
 
-            const oldPage = document.getElementById(currentPageId);
-            if (oldPage && oldPage !== newPage) {
-                oldPage.classList.remove("active");
-            }
+            const pageActuallyChanging = currentPageId !== pageId;
+
+            // Deactivate ALL currently active pages EXCEPT the new one (if it happened to be already active, though unlikely).
+            // This ensures a clean slate and prevents multiple pages from being active.
+            document.querySelectorAll(".page.active").forEach(p => {
+                if (p.id !== pageId) {
+                    p.classList.remove("active");
+                }
+            });
+            // If newPage was not among active pages, the old `currentPageId` based removal would also work,
+            // but this is more explicit if there was any state inconsistency.
+            // const oldPage = document.getElementById(currentPageId);
+            // if (oldPage && oldPage !== newPage) {
+            //     oldPage.classList.remove("active");
+            // }
+
 
             if (!fromHistoryOrInitialLoad) {
-                if (currentPageId !== pageId) {
+                if (pageActuallyChanging) { 
                     previousPageId = currentPageId;
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
@@ -1410,28 +1428,31 @@
                 }
             }
 
-            currentPageId = pageId;
-            if(currentUserId) { // Only save last active page if logged in and not an auth page
+            currentPageId = pageId; // Update global currentPageId to the new page
+
+            if (currentUserId) {
                  if (pageId !== 'page-login' && pageId !== 'page-register') {
-                    localStorage.setItem("lastActivePageId", pageId);
+                    localStorage.setItem(`lastActivePageId_${currentUserId}`, pageId); // User-specific key
                  }
             }
 
-
             requestAnimationFrame(() => {
-                newPage.classList.add("active");
+                if (!newPage.classList.contains('active')) { // Add active class if not already (e.g. from the loop above)
+                    newPage.classList.add("active");
+                }
             });
+            
             updateNavbarUI(pageId);
 
             const pageContent = newPage.querySelector(".page-content");
             if (pageContent) {
-                if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) {
+                // Scroll to top if the page actually changed or if it's the initial page load.
+                if (pageActuallyChanging || (isInitialPageLoad && pageId === currentPageId) ) {
                     pageContent.scrollTo(0, 0);
                 }
             }
             
-            // Specific page load logic
-            // Ensure currentUserId is checked before loading data
+            // Specific page load logic (this part remains the same)
             if (pageId === "page-index" && currentUserId) {
                 document.getElementById("search-recipe-input")?.value.trim() ? handleSearch() : populateRecipeListsUI(allRecipesCache);
             } else if (pageId === "page-favorites" && currentUserId) {
@@ -1443,6 +1464,7 @@
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
                     currentDisplayedWeekStartDate = stateWeekStart ? new Date(stateWeekStart) : getStartOfWeek(currentSelectedDate, 1);
                 }
+                // Ensure these are always stored (even if not fromHistoryOrInitialLoad, for consistency if user refreshes)
                 localStorage.setItem("scheduleView_currentSelectedDate", currentSelectedDate.toISOString());
                 localStorage.setItem("scheduleView_currentDisplayedWeekStartDate", currentDisplayedWeekStartDate.toISOString());
                 renderWeekView();
@@ -1454,7 +1476,6 @@
                     userEmailDisplay.textContent = auth.currentUser.email;
                 }
             }
-            // If currentUserId is null, data-loading pages will show empty/login states.
         }
 
         function updateNavbarUI(e) {
@@ -2386,16 +2407,24 @@
                         showPage(initialPageId, true);
                     }
                     isInitialPageLoad = false;
-                } else { // User is signed out or not yet signed in
+                                } else { // User is signed out or not yet signed in
                     currentUserId = null;
                     console.log("User signed out or not signed in.");
-                    clearUserSpecificDataAndUI();
-                    currentPageId = "page-login";
+                    
+                    // IMPORTANT: Call clearUserSpecificDataAndUI AFTER currentUserId is null,
+                    // but ensure global currentPageId still reflects the page the user WAS on.
+                    // clearUserSpecificDataAndUI should not modify navigation state like currentPageId.
+                    clearUserSpecificDataAndUI(); 
+
                     const loginState = getCurrentPageHistoryState("page-login");
                     const loginUrl = getCurrentPageFullHash("page-login");
                     history.replaceState(loginState, `Page page-login`, loginUrl);
-                    showPage("page-login", true);
-                    isInitialPageLoad = false;
+                    
+                    // At this point, global `currentPageId` is still the ID of the page the user was on (e.g., 'page-profile').
+                    // `showPage` will use this to correctly identify and deactivate the old page.
+                    // `showPage` will then update the global `currentPageId` to 'page-login'.
+                    showPage("page-login", true); 
+                    isInitialPageLoad = false; // Reset for any subsequent login session
                 }
                 // Setup event listeners that might depend on auth state or initial page rendering
                 setupCommonEventListeners();
