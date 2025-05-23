@@ -727,7 +727,7 @@
                 <input type="text" id="new-shopping-item-name" placeholder="Add item..."
     class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]"
     readonly
-    onfocus="this.removeAttribute('readonly');">
+    onfocus="if(this.hasAttribute('readonly')) { this.removeAttribute('readonly'); this.blur(); this.focus(); }">
                 <button id="add-shopping-item-button"
                     class="interactive-scale bg-[#f0560e] text-white rounded-lg p-2.5 h-11 w-11 flex items-center justify-center shrink-0 hover:bg-orange-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor"
