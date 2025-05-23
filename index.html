@@ -85,10 +85,11 @@
         }
 
         #page-shopping-list .page-content {
-            padding-bottom: 140px; 
+            padding-bottom: 140px;
         }
-         #page-shopping-list #shopping-list-items-container {
-            position: relative; 
+
+        #page-shopping-list #shopping-list-items-container {
+            position: relative;
         }
 
         #page-index .page-content,
@@ -134,9 +135,9 @@
         }
 
         input[type="checkbox"].form-checkbox-custom:checked {
-            background-color: #f0560e; 
-            border-color: #f0560e;     
-            background-image: var(--checkbox-tick-svg); 
+            background-color: #f0560e;
+            border-color: #f0560e;
+            background-image: var(--checkbox-tick-svg);
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -148,7 +149,7 @@
 
         .form-checkbox-custom:focus {
             outline: none;
-            border-color: #f0560e; 
+            border-color: #f0560e;
             box-shadow: 0 0 0 2px #231610, 0 0 0 4px #f0560e;
         }
 
@@ -168,9 +169,9 @@
         }
 
         input[type="checkbox"].shopping-item-checkbox:checked {
-            background-color: #f0560e; 
-            border-color: #f0560e;     
-            background-image: var(--checkbox-tick-svg); 
+            background-color: #f0560e;
+            border-color: #f0560e;
+            background-image: var(--checkbox-tick-svg);
             background-repeat: no-repeat;
             background-position: center;
             background-size: 70%;
@@ -184,6 +185,14 @@
             outline: none;
             border-color: #f0560e;
             box-shadow: 0 0 0 2px #40322b, 0 0 0 4px #f0560e;
+        }
+
+        input[type="search"]::-webkit-search-decoration,
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-results-button,
+        input[type="search"]::-webkit-search-results-decoration {
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .horizontal-scroll-cards {
@@ -228,12 +237,16 @@
             text-decoration: line-through;
             color: #857065;
         }
-         .shopping-item {
-            position: relative; 
+
+        .shopping-item {
+            position: relative;
         }
+
         .shopping-item-location-button {
-            margin-left: auto; /* Push to the right */
-            flex-shrink: 0; /* Prevent shrinking */
+            margin-left: auto;
+            /* Push to the right */
+            flex-shrink: 0;
+            /* Prevent shrinking */
         }
 
         .ingredient-item.checked .ingredient-name {
@@ -260,17 +273,38 @@
             animation: pulseOpacity 1.5s infinite ease-in-out;
         }
 
-        #add-meal-modal, #delete-recipe-confirmation-modal, #custom-alert-modal, #custom-confirm-modal, #shop-selector-modal, #shopping-list-sort-modal, #category-selector-modal, #edit-shopping-item-modal {
+        #add-meal-modal,
+        #delete-recipe-confirmation-modal,
+        #custom-alert-modal,
+        #custom-confirm-modal,
+        #shop-selector-modal,
+        #shopping-list-sort-modal,
+        #category-selector-modal,
+        #edit-shopping-item-modal {
             transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
         }
 
-        #add-meal-modal>div, #delete-recipe-confirmation-modal>div, #custom-alert-modal>div, #custom-confirm-modal>div, #shop-selector-modal>div, #shopping-list-sort-modal>div, #category-selector-modal>div, #edit-shopping-item-modal>div {
+        #add-meal-modal>div,
+        #delete-recipe-confirmation-modal>div,
+        #custom-alert-modal>div,
+        #custom-confirm-modal>div,
+        #shop-selector-modal>div,
+        #shopping-list-sort-modal>div,
+        #category-selector-modal>div,
+        #edit-shopping-item-modal>div {
             transition: transform 0.2s ease-out, opacity 0.2s ease-out;
             transform: scale(0.95);
             opacity: 0;
         }
 
-        #add-meal-modal:not(.hidden)>div, #delete-recipe-confirmation-modal:not(.hidden)>div, #custom-alert-modal:not(.hidden)>div, #custom-confirm-modal:not(.hidden)>div, #shop-selector-modal:not(.hidden)>div, #shopping-list-sort-modal:not(.hidden)>div, #category-selector-modal:not(.hidden)>div, #edit-shopping-item-modal:not(.hidden)>div {
+        #add-meal-modal:not(.hidden)>div,
+        #delete-recipe-confirmation-modal:not(.hidden)>div,
+        #custom-alert-modal:not(.hidden)>div,
+        #custom-confirm-modal:not(.hidden)>div,
+        #shop-selector-modal:not(.hidden)>div,
+        #shopping-list-sort-modal:not(.hidden)>div,
+        #category-selector-modal:not(.hidden)>div,
+        #edit-shopping-item-modal:not(.hidden)>div {
             transform: scale(1);
             opacity: 1;
         }
@@ -507,8 +541,11 @@
                         </button>
                         <button id="recipe-delete-header-button" title="Delete Recipe"
                             class="interactive-scale flex h-12 w-12 items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor"
+                                viewBox="0 0 256 256">
+                                <path
+                                    d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z">
+                                </path>
                             </svg>
                         </button>
                     </div>
@@ -563,7 +600,8 @@
                         <button type="button" id="create-recipe-category-button"
                             class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e] text-left flex justify-between items-center">
                             <span id="create-recipe-category-display">Select Category</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#bda89e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#bda89e]" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
@@ -571,34 +609,34 @@
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Description</p><textarea
                             id="create-recipe-description" placeholder="Brief description"
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-24 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-24 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Ingredients (one per line)</p><textarea
                             id="create-recipe-ingredients" placeholder="Flour, 1 cup..."
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Instructions (one step per line)</p><textarea
                             id="create-recipe-instructions" placeholder="1. Mix flour..."
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] min-h-36 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]"></textarea>
                     </label>
                     <div class="flex gap-4 w-full">
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Prep Time</p><input
                                 id="create-recipe-prepTime" placeholder="e.g., 15 mins"
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                         </label>
                         <label class="flex flex-col flex-1">
                             <p class="text-white text-base font-medium pb-2">Cook Time</p><input
                                 id="create-recipe-cookTime" placeholder="e.g., 30 mins"
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                         </label>
                     </div>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Servings</p><input id="create-recipe-servings"
                             placeholder="e.g., 4"
-    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
                     </label>
                     <div
                         class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-[#684231]">
@@ -703,8 +741,11 @@
                     <div class="flex items-center"> <!-- Container for right-side buttons -->
                         <button id="sort-shopping-list-button" title="Sort Items"
                             class="interactive-scale text-white flex size-12 items-center justify-center rounded-full hover:bg-white/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
-                                <path d="M40,88H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM40,136H168a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm0,48H104a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm152,8a12,12,0,0,0-12,12v28.69l-10.34-10.35a8,8,0,0,0-11.32,11.32l24,24a8,8,0,0,0,11.32,0l24-24a8,8,0,0,0-11.32-11.32L204,212.69V192A12,12,0,0,0,192,184Z"></path>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                                viewBox="0 0 256 256">
+                                <path
+                                    d="M40,88H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM40,136H168a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm0,48H104a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16Zm152,8a12,12,0,0,0-12,12v28.69l-10.34-10.35a8,8,0,0,0-11.32,11.32l24,24a8,8,0,0,0,11.32,0l24-24a8,8,0,0,0-11.32-11.32L204,212.69V192A12,12,0,0,0,192,184Z">
+                                </path>
                             </svg>
                         </button>
                         <button id="clear-checked-shopping-items-button" title="Clear Checked Items"
@@ -725,8 +766,8 @@
             <div
                 class="sticky bottom-[4px] left-0 right-0 bg-[#2e241f] p-3 border-t border-[#40322b] z-50 flex gap-2 items-center">
                 <input type="search" id="new-shopping-item-name" placeholder="Add item..."
-    class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]"
-    autocomplete="off">
+                    class="form-input flex-grow rounded-lg text-white bg-[#40322b] border-[#684231] h-11 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]"
+                    autocomplete="off">
                 <button id="add-shopping-item-button"
                     class="interactive-scale bg-[#f0560e] text-white rounded-lg p-2.5 h-11 w-11 flex items-center justify-center shrink-0 hover:bg-orange-600">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor"
@@ -764,7 +805,8 @@
         class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <h3 class="text-white text-xl font-bold mb-4">Confirm Deletion</h3>
-            <p class="text-[#bda89e] text-base mb-6">Are you sure you want to delete this recipe? This action cannot be undone.</p>
+            <p class="text-[#bda89e] text-base mb-6">Are you sure you want to delete this recipe? This action cannot be
+                undone.</p>
             <div class="flex justify-end gap-3">
                 <button id="cancel-delete-recipe-button"
                     class="interactive-scale px-4 py-2 rounded-md text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">
@@ -779,7 +821,8 @@
     </div>
 
     <!-- Generic Custom Alert Modal -->
-    <div id="custom-alert-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+    <div id="custom-alert-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <h3 id="custom-alert-title" class="text-white text-xl font-bold mb-4">Alert</h3>
             <p id="custom-alert-message" class="text-[#bda89e] text-base mb-6">Message goes here.</p>
@@ -793,7 +836,8 @@
     </div>
 
     <!-- Generic Custom Confirm Modal -->
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+    <div id="custom-confirm-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <h3 id="custom-confirm-title" class="text-white text-xl font-bold mb-4">Confirm Action</h3>
             <p id="custom-confirm-message" class="text-[#bda89e] text-base mb-6">Are you sure?</p>
@@ -811,53 +855,77 @@
     </div>
 
     <!-- Shop Selector Modal -->
-    <div id="shop-selector-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+    <div id="shop-selector-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-white text-xl font-bold">Select Shop</h3>
-                <button id="close-shop-selector-modal-button" class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                <button id="close-shop-selector-modal-button"
+                    class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        viewBox="0 0 256 256">
+                        <path
+                            d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z">
+                        </path>
                     </svg>
                 </button>
             </div>
             <div id="shop-selector-options" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <!-- Shop buttons will be populated here by JS -->
             </div>
-            <button id="clear-shop-selection-button" class="mt-6 w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-gray-600 hover:bg-gray-700 font-medium">
+            <button id="clear-shop-selection-button"
+                class="mt-6 w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-gray-600 hover:bg-gray-700 font-medium">
                 Clear Shop Selection
             </button>
         </div>
     </div>
 
     <!-- Shopping List Sort Modal -->
-    <div id="shopping-list-sort-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+    <div id="shopping-list-sort-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-white text-xl font-bold">Sort Shopping List</h3>
-                <button id="close-shopping-list-sort-modal-button" class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                <button id="close-shopping-list-sort-modal-button"
+                    class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        viewBox="0 0 256 256">
+                        <path
+                            d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z">
+                        </path>
                     </svg>
                 </button>
             </div>
             <div class="space-y-3">
-                <button data-sort-type="default" class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Default (Name / Checked)</button>
-                <button data-sort-type="createdAt_desc" class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Date Added (Newest First)</button>
-                <button data-sort-type="createdAt_asc" class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Date Added (Oldest First)</button>
-                <button data-sort-type="shop" class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">By Shop</button>
+                <button data-sort-type="default"
+                    class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Default
+                    (Name / Checked)</button>
+                <button data-sort-type="createdAt_desc"
+                    class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Date
+                    Added (Newest First)</button>
+                <button data-sort-type="createdAt_asc"
+                    class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">Date
+                    Added (Oldest First)</button>
+                <button data-sort-type="shop"
+                    class="shopping-sort-option-button w-full interactive-scale px-4 py-2.5 rounded-lg text-white bg-[#40322b] hover:bg-[#5a3a2a] font-medium">By
+                    Shop</button>
             </div>
         </div>
     </div>
 
     <!-- Category Selector Modal -->
-    <div id="category-selector-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
+    <div id="category-selector-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-white text-xl font-bold">Select Category</h3>
-                <button id="close-category-selector-modal-button" class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                <button id="close-category-selector-modal-button"
+                    class="interactive-scale text-white p-1 hover:bg-white/10 rounded-full" title="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        viewBox="0 0 256 256">
+                        <path
+                            d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z">
+                        </path>
                     </svg>
                 </button>
             </div>
@@ -868,13 +936,13 @@
     </div>
 
     <!-- Edit Shopping Item Modal -->
-        <div id="edit-shopping-item-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center pt-20 z-[1200] hidden">
+    <div id="edit-shopping-item-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center pt-20 z-[1200] hidden">
         <div class="bg-[#2e241f] p-6 rounded-lg shadow-xl w-11/12 max-w-sm">
             <h3 class="text-white text-xl font-bold mb-4">Edit Shopping Item</h3>
             <label class="flex flex-col w-full mb-6"> <!-- Increased bottom margin -->
                 <p class="text-white text-base font-medium pb-1">Item Name</p>
-                <input id="edit-shopping-item-name-input"
-                    placeholder="Enter item name"
+                <input id="edit-shopping-item-name-input" placeholder="Enter item name"
                     class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
             </label>
             <div class="flex justify-end gap-3">
@@ -955,12 +1023,12 @@
         let currentPageId = "page-index", previousPageId = "page-index", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date), isInitialPageLoad = !0;
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish", "DM"];
-        const SHOP_ICON_BASE_PATH = "img/shop_icons/"; 
+        const SHOP_ICON_BASE_PATH = "img/shop_icons/";
 
         let recipesLoadingPromise = null;
         let currentRecipeIngredientsState = [];
-        let currentShoppingListSort = 'default'; 
-        let currentSelectedRecipeCategory = "Dinner"; 
+        let currentShoppingListSort = 'default';
+        let currentSelectedRecipeCategory = "Dinner";
 
 
         // --- Custom Alert Modal Elements & Functions ---
@@ -983,14 +1051,14 @@
         function showCustomConfirm(title, message, confirmButtonText = "Confirm", confirmButtonClasses = "bg-[#f0560e] hover:bg-orange-600") {
             return new Promise((resolve) => {
                 if (!customConfirmModal || !customConfirmTitle || !customConfirmMessage || !customConfirmConfirmButton || !customConfirmCancelButton) {
-                    resolve(false); 
+                    resolve(false);
                     return;
                 }
                 customConfirmTitle.textContent = title || "Confirm Action";
                 customConfirmMessage.textContent = message;
                 customConfirmConfirmButton.textContent = confirmButtonText;
-                
-                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold'; 
+
+                customConfirmConfirmButton.className = 'interactive-scale px-4 py-2 rounded-md text-white font-bold';
                 confirmButtonClasses.split(' ').forEach(cls => customConfirmConfirmButton.classList.add(cls));
 
                 currentConfirmResolver = resolve;
@@ -1009,12 +1077,12 @@
 
         // --- Category Selector Modal Elements & Functions ---
         let categorySelectorModal, categorySelectorOptionsContainer, closeCategorySelectorModalButton;
-        let createRecipeCategoryButton, createRecipeCategoryDisplay; 
+        let createRecipeCategoryButton, createRecipeCategoryDisplay;
 
         function openCategorySelectorModal() {
             if (!categorySelectorModal || !categorySelectorOptionsContainer) return;
 
-            categorySelectorOptionsContainer.innerHTML = ''; 
+            categorySelectorOptionsContainer.innerHTML = '';
             RECIPE_CATEGORIES.forEach(category => {
                 const categoryButton = document.createElement('button');
                 categoryButton.className = `w-full interactive-scale px-4 py-2.5 rounded-lg text-white font-medium text-left`;
@@ -1022,7 +1090,7 @@
                 categoryButton.classList.toggle('hover:bg-orange-600', category === currentSelectedRecipeCategory);
                 categoryButton.classList.toggle('bg-[#40322b]', category !== currentSelectedRecipeCategory);
                 categoryButton.classList.toggle('hover:bg-[#5a3a2a]', category !== currentSelectedRecipeCategory);
-                
+
                 categoryButton.textContent = category;
                 categoryButton.dataset.category = category;
                 categoryButton.addEventListener('click', () => handleCategorySelected(category));
@@ -1060,7 +1128,7 @@
             if (!editShoppingItemModal) return;
             editShoppingItemModal.classList.add("hidden");
             currentEditingShoppingItemId = null;
-            if(editShoppingItemNameInput) editShoppingItemNameInput.value = "";
+            if (editShoppingItemNameInput) editShoppingItemNameInput.value = "";
         }
 
         async function handleSaveShoppingItemChanges() {
@@ -1074,7 +1142,7 @@
                 await database.ref(`shoppingList/${currentEditingShoppingItemId}`).update({ name: newName });
                 // showCustomAlert("Success", "Item updated!"); // Can be a bit noisy, consider removing
                 closeEditShoppingItemModal();
-                loadShoppingListFromDB(); 
+                loadShoppingListFromDB();
             } catch (error) {
                 console.error("Error updating shopping item:", error);
                 showCustomAlert("Error", "Failed to update item. Please try again.");
@@ -1085,7 +1153,7 @@
         // --- New Navigation Logic Helpers ---
         const ALL_MODAL_IDS = [
             'add-meal-modal', 'delete-recipe-confirmation-modal', 'custom-alert-modal',
-            'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal', 
+            'custom-confirm-modal', 'shop-selector-modal', 'shopping-list-sort-modal',
             'category-selector-modal', 'edit-shopping-item-modal'
         ];
 
@@ -1112,7 +1180,7 @@
             else if (modalId === 'shopping-list-sort-modal') closeShoppingListSortModal();
             else if (modalId === 'category-selector-modal') closeCategorySelectorModal();
             else if (modalId === 'edit-shopping-item-modal') closeEditShoppingItemModal();
-            else { 
+            else {
                 modal.classList.add('hidden');
             }
         }
@@ -1121,7 +1189,7 @@
             let state = { page: pageId };
             if (pageId === 'page-recipe') {
                 const recipeId = document.getElementById('page-recipe')?.dataset.currentRecipeId || localStorage.getItem("currentRecipeDetailId");
-                if(recipeId) state.recipeId = recipeId;
+                if (recipeId) state.recipeId = recipeId;
             } else if (pageId === 'page-schedule') {
                 state.selectedDate = currentSelectedDate.toISOString();
                 state.weekStart = currentDisplayedWeekStartDate.toISOString();
@@ -1145,7 +1213,7 @@
                 // The popstate handler will deal with re-pushing state if native back was used.
                 // For in-app back button, just closing the modal is enough, then the next back
                 // (if it's an in-app button) will call showPage('page-index').
-                return; 
+                return;
             }
 
             if (currentPageId !== 'page-index') {
@@ -1161,21 +1229,21 @@
             const newPage = document.getElementById(pageId);
             if (!newPage) {
                 console.warn(`Page ${pageId} not found, redirecting to page-index.`);
-                if (pageId === "page-index") { 
+                if (pageId === "page-index") {
                     document.body.innerHTML = "Critical error: page-index not found. Cannot recover.";
                     return;
                 }
                 showPage("page-index", fromHistoryOrInitialLoad); // Pass along fromHistoryOrInitialLoad
                 return;
             }
-            
+
             const oldPage = document.getElementById(currentPageId);
             if (oldPage && oldPage !== newPage) {
                 oldPage.classList.remove("active");
             }
 
-            if (!fromHistoryOrInitialLoad) { 
-                if (currentPageId !== pageId) { 
+            if (!fromHistoryOrInitialLoad) {
+                if (currentPageId !== pageId) {
                     previousPageId = currentPageId;
                 }
                 let stateToPush = getCurrentPageHistoryState(pageId);
@@ -1202,12 +1270,12 @@
                 newPage.classList.add("active");
             });
             updateNavbarUI(pageId);
-            
+
             const pageContent = newPage.querySelector(".page-content");
             if (pageContent) {
-                 if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) { // Refined scroll condition
-                     pageContent.scrollTo(0,0);
-                 }
+                if (!oldPage || oldPage !== newPage || (fromHistoryOrInitialLoad && pageId !== previousPageId)) { // Refined scroll condition
+                    pageContent.scrollTo(0, 0);
+                }
             }
 
             // Specific page load logic
@@ -1219,7 +1287,7 @@
                 // State for schedule (currentSelectedDate, currentDisplayedWeekStartDate)
                 // should be managed based on whether it's an initial load with state/localStorage,
                 // or a direct navigation.
-                if (fromHistoryOrInitialLoad) { 
+                if (fromHistoryOrInitialLoad) {
                     const stateSelectedDate = history.state?.selectedDate || localStorage.getItem("scheduleView_currentSelectedDate");
                     const stateWeekStart = history.state?.weekStart || localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     currentSelectedDate = stateSelectedDate ? new Date(stateSelectedDate) : new Date();
@@ -1368,7 +1436,7 @@
 
         function attachCategoryShortcutListeners() {
             document.querySelectorAll('.category-shortcut-btn').forEach(button => {
-                button.removeEventListener('click', handleCategoryShortcutClick); 
+                button.removeEventListener('click', handleCategoryShortcutClick);
                 button.addEventListener('click', handleCategoryShortcutClick);
             });
         }
@@ -1412,7 +1480,7 @@
 
             if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                 displayRecipeDetailsUI(recipeData);
-                showPage("page-recipe", fromHistoryOrInitialLoad); 
+                showPage("page-recipe", fromHistoryOrInitialLoad);
                 return;
             }
 
@@ -1425,7 +1493,7 @@
                 recipeData = allRecipesCache.find(r => r.id === recipeId);
                 if (recipeData && recipeData.ingredients && recipeData.instructions && recipeData.description && recipeData.category) {
                     displayRecipeDetailsUI(recipeData);
-                    showPage("page-recipe", fromHistoryOrInitialLoad); 
+                    showPage("page-recipe", fromHistoryOrInitialLoad);
                     return;
                 }
             }
@@ -1439,15 +1507,15 @@
                     else allRecipesCache.push(fetchedRecipe);
 
                     displayRecipeDetailsUI(fetchedRecipe);
-                    showPage("page-recipe", fromHistoryOrInitialLoad); 
+                    showPage("page-recipe", fromHistoryOrInitialLoad);
                 } else {
                     showCustomAlert("Error", "Recipe not found.");
-                    showPage(previousPageId || "page-index", true); 
+                    showPage(previousPageId || "page-index", true);
                 }
             } catch (error) {
                 console.error("Error getting recipe:", error);
                 showCustomAlert("Error", "Recipe load failed. Please try again.");
-                showPage(previousPageId || "page-index", true); 
+                showPage(previousPageId || "page-index", true);
             }
         }
 
@@ -1464,7 +1532,7 @@
                 return a.checked ? 1 : -1;
             });
 
-            currentRecipeIngredientsState.forEach((ingredient) => { 
+            currentRecipeIngredientsState.forEach((ingredient) => {
                 const label = document.createElement("label");
                 label.className = `flex gap-x-3 py-3 items-center ingredient-item ${ingredient.checked ? "checked" : ""}`;
 
@@ -1510,8 +1578,8 @@
 
         function resetCreateForm() {
             document.getElementById("create-recipe-title").value = "";
-            currentSelectedRecipeCategory = "Dinner"; 
-            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
+            currentSelectedRecipeCategory = "Dinner";
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
             document.getElementById("create-recipe-description").value = "";
             document.getElementById("create-recipe-ingredients").value = "";
             document.getElementById("create-recipe-instructions").value = "";
@@ -1539,8 +1607,8 @@
 
                     document.querySelector("#page-create-recipe .page-header h2").textContent = "Edit Recipe";
                     document.getElementById("create-recipe-title").value = recipeData.title || "";
-                    currentSelectedRecipeCategory = recipeData.category || "Dinner"; 
-                    if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
+                    currentSelectedRecipeCategory = recipeData.category || "Dinner";
+                    if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
                     document.getElementById("create-recipe-description").value = recipeData.description || "";
                     document.getElementById("create-recipe-ingredients").value = (recipeData.ingredients || []).join("\n");
                     document.getElementById("create-recipe-instructions").value = (recipeData.instructions || []).join("\n");
@@ -1553,7 +1621,7 @@
                     const currentImageFilenameSpan = document.getElementById("current-image-filename");
 
                     if (recipeData.imageURL) {
-                        currentRecipeImageURL = recipeData.imageURL; 
+                        currentRecipeImageURL = recipeData.imageURL;
                         photoLabel.textContent = "Change Photo";
                         currentImageFilenameSpan.textContent = recipeData.imageURL.substring(recipeData.imageURL.lastIndexOf('/') + 1);
                         currentImageDisplay.classList.remove("hidden");
@@ -1562,7 +1630,7 @@
                         photoLabel.textContent = "Upload Photo";
                         currentImageDisplay.classList.add("hidden");
                     }
-                    document.getElementById("create-recipe-photoInput").value = ""; 
+                    document.getElementById("create-recipe-photoInput").value = "";
 
                     showPage("page-create-recipe");
                 } else {
@@ -1578,7 +1646,7 @@
 
         async function saveRecipeData() {
             const title = document.getElementById("create-recipe-title").value.trim();
-            const category = currentSelectedRecipeCategory; 
+            const category = currentSelectedRecipeCategory;
             const description = document.getElementById("create-recipe-description").value.trim();
             const ingredientsRaw = document.getElementById("create-recipe-ingredients").value.trim();
             const instructionsRaw = document.getElementById("create-recipe-instructions").value.trim();
@@ -1621,12 +1689,12 @@
                     }
                 }
 
-                if (!imageToSaveURL && !editingRecipeId) { 
-                     if (!currentRecipeImageURL) { 
-                        saveButton.textContent = "Save Recipe"; 
+                if (!imageToSaveURL && !editingRecipeId) {
+                    if (!currentRecipeImageURL) {
+                        saveButton.textContent = "Save Recipe";
                         saveButton.disabled = false;
                         return showCustomAlert("Validation Error", "A recipe photo is required.");
-                     }
+                    }
                 }
 
 
@@ -1650,7 +1718,7 @@
                     showCustomAlert("Success", "Recipe saved!");
                 }
                 resetCreateForm();
-                await loadRecipesFromRealtimeDB(); 
+                await loadRecipesFromRealtimeDB();
                 showPage("page-index");
 
             } catch (error) {
@@ -1666,13 +1734,13 @@
             try {
                 await database.ref(`recipes/${recipeId}`).remove();
                 showCustomAlert("Success", "Recipe deleted.");
-                
+
                 allRecipesCache = allRecipesCache.filter(recipe => recipe.id !== recipeId);
-                
+
                 if (currentPageId === "page-favorites") {
                     renderFavoritesPage();
                 }
-                
+
                 const mealPlanSnapshot = await database.ref('mealPlan').once('value');
                 if (mealPlanSnapshot.exists()) {
                     const updates = {};
@@ -1688,7 +1756,7 @@
                     }
                 }
 
-                showPage("page-index", true); 
+                showPage("page-index", true);
             } catch (error) {
                 console.error("Error deleting recipe:", error);
                 showCustomAlert("Error", "Failed to delete recipe. Please try again.");
@@ -1720,7 +1788,7 @@
                 console.error("Error toggling bookmark:", e)
             }
         }
-        
+
         const deleteRecipeConfirmationModal = document.getElementById("delete-recipe-confirmation-modal");
         const confirmDeleteRecipeButton = document.getElementById("confirm-delete-recipe-button");
         const cancelDeleteRecipeButton = document.getElementById("cancel-delete-recipe-button");
@@ -1728,7 +1796,7 @@
         function openDeleteRecipeModal(recipeId, imageURL) {
             if (!deleteRecipeConfirmationModal || !confirmDeleteRecipeButton) return;
             confirmDeleteRecipeButton.dataset.recipeId = recipeId;
-            confirmDeleteRecipeButton.dataset.imageURL = imageURL || ""; 
+            confirmDeleteRecipeButton.dataset.imageURL = imageURL || "";
 
             deleteRecipeConfirmationModal.classList.remove("hidden");
         }
@@ -1771,10 +1839,10 @@
         function loadMealsForSelectedDate() { const e = document.getElementById("schedule-selected-day-title"); e && (e.textContent = `Meals for ${formatDateForDisplay(currentSelectedDate)}`, loadMealPlanForDateFromRealtimeDB(formatDateForFirebaseKey(currentSelectedDate))) }
         async function loadMealPlanForDateFromRealtimeDB(e) { const t = document.getElementById("schedule-meal-list"); if (!t) return; t.innerHTML = '<p class="loading-placeholder">Loading meals...</p>'; try { if (allRecipesCache.length === 0) { if (recipesLoadingPromise) await recipesLoadingPromise; else await loadRecipesFromRealtimeDB(); } const c = await database.ref(`mealPlan/${e}`).once("value"); displayPlannedMealsUI(c.exists() ? c.val() : {}, e) } catch (e) { console.error("Error fetching meal plan:", e), t.innerHTML = '<p class="loading-placeholder text-red-500">Error loading meals.</p>' } }
         function displayPlannedMealsUI(e, t) { const c = document.getElementById("schedule-meal-list"); if (!c) return; c.innerHTML = "", 0 === Object.keys(e).length ? (c.innerHTML = '<p class="loading-placeholder">No meals planned.</p>', void 0) : Object.entries(e).forEach(([a, n]) => { const o = allRecipesCache.find(e => e.id === n.recipeId), i = o?.imageURL || "https://via.placeholder.com/100x100.png?text=No+Img", r = o?.cookTime || "N/A", s = document.createElement("div"); s.className = "flex items-center justify-between gap-4 p-2 mb-2 bg-[#40322b] rounded-lg", s.dataset.recipeId = n.recipeId, s.dataset.mealPlanEntryId = a, s.innerHTML = `<div class="flex items-center gap-3 flex-grow cursor-pointer" data-action="view-recipe-from-plan"><div class="bg-center bg-no-repeat aspect-square bg-cover rounded-md size-14 shrink-0" style='background-image: url("${i}");'></div><div><p class="text-white text-base font-medium">${n.recipeTitle || "Unknown"}</p><p class="text-[#cba390] text-sm">Cook: ${r}</p></div></div><button class="interactive-scale remove-meal-button text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-white/10" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path></svg></button>`, c.appendChild(s), s.querySelector(".remove-meal-button").addEventListener("click", e => { e.stopPropagation(), handleRemoveMealClick(t, a) }), s.querySelector('[data-action="view-recipe-from-plan"]').addEventListener("click", () => { s.dataset.recipeId && loadRecipeDetailFromRealtimeDB(s.dataset.recipeId) }) }) }
-        
+
         async function handleRemoveMealClick(dateKey, mealEntryId) {
             const confirmed = await showCustomConfirm(
-                "Remove Meal", 
+                "Remove Meal",
                 "Are you sure you want to remove this meal from your plan?",
                 "Remove",
                 "bg-red-600 hover:bg-red-700"
@@ -1783,7 +1851,7 @@
 
             try {
                 await database.ref(`mealPlan/${dateKey}/${mealEntryId}`).remove();
-                loadMealsForSelectedDate(); 
+                loadMealsForSelectedDate();
             } catch (error) {
                 console.error("Error removing meal:", error);
                 showCustomAlert("Error", "Failed to remove meal. Please try again.");
@@ -1794,9 +1862,9 @@
         function populateAddMealModalRecipeList(e) { if (!addMealModalRecipeList) return; addMealModalRecipeList.innerHTML = "", 0 === e.length ? (addMealModalRecipeList.innerHTML = '<p class="loading-placeholder">No recipes.</p>', void 0) : e.forEach(t => { const c = document.createElement("div"); c.className = "add-meal-recipe-item interactive-scale flex items-center p-2 bg-[#40322b] rounded-lg cursor-pointer hover:bg-[#5a3a2a]", c.dataset.recipeId = t.id, c.dataset.recipeTitle = t.title; const a = t.imageURL || "https://via.placeholder.com/50x50.png?text=No+Img"; c.innerHTML = `<img src="${a}" alt="${t.title}" class="w-12 h-12 rounded-md mr-3 object-cover shrink-0"><span class="text-white flex-grow truncate" title="${t.title}">${t.title || "Untitled"}</span><button class="add-this-recipe-button interactive-scale bg-[#f0560e] text-white text-xs px-3 py-1.5 rounded-md ml-2 shrink-0 hover:bg-orange-600">Add</button>`; const n = c.querySelector(".add-this-recipe-button"); n && n.addEventListener("click", e => { e.stopPropagation(), handleAddRecipeToPlan(t.id, t.title) }), c.addEventListener("click", () => handleAddRecipeToPlan(t.id, t.title)), addMealModalRecipeList.appendChild(c) }) }
         function handleAddMealModalSearch() { if (!addMealModalSearchInput) return; const e = addMealModalSearchInput.value.trim().toLowerCase(); "" === e ? populateAddMealModalRecipeList(allRecipesCache) : populateAddMealModalRecipeList(allRecipesCache.filter(t => (t.title || "").toLowerCase().includes(e) || (t.description || "").toLowerCase().includes(e))) }
         async function handleAddRecipeToPlan(e, t) { const c = formatDateForFirebaseKey(currentSelectedDate); try { await database.ref(`mealPlan/${c}`).push({ recipeId: e, recipeTitle: t }), closeAddMealModal(), loadMealsForSelectedDate() } catch (e) { console.error("Error adding to meal plan:", e), showCustomAlert("Error", "Failed to add recipe to meal plan.") } }
-        
+
         const shoppingListItemsContainer = document.getElementById("shopping-list-items-container"), newShoppingItemNameInput = document.getElementById("new-shopping-item-name");
-        
+
         // --- Long Press & Swipe Logic for Shopping List ---
         const LONG_PRESS_DURATION = 700; // milliseconds
         const MAX_MOVE_FOR_LONG_PRESS = 10; // pixels
@@ -1844,16 +1912,16 @@
                 swipeState.isSwiping = false; // Explicitly set here
                 return;
             }
-            
-            const itemToProcess = swipeState.item; 
-            const idToDelete = swipeState.itemId; 
+
+            const itemToProcess = swipeState.item;
+            const idToDelete = swipeState.itemId;
             const deltaX = swipeState.currentX - swipeState.startX;
             const wasSwipingState = swipeState.isSwiping; // Capture before reset
 
             // Reset swipe state immediately
-            swipeState.isSwiping = false; 
-            swipeState.item = null; 
-            swipeState.itemId = null; 
+            swipeState.isSwiping = false;
+            swipeState.item = null;
+            swipeState.itemId = null;
             swipeState.isVerticalScroll = false;
 
             document.removeEventListener('mousemove', shoppingListSwipeMoveHandler);
@@ -1865,15 +1933,15 @@
             if (itemToProcess) itemToProcess.style.userSelect = '';
 
             // If long press took action, swipe should already be visually reset or ignored.
-            if (longPressActionTaken && !forceReset) { 
+            if (longPressActionTaken && !forceReset) {
                 // Ensure item is visually reset if long press interrupted mid-swipe anim
-                if(itemToProcess) {
+                if (itemToProcess) {
                     itemToProcess.style.transition = 'transform 0.1s ease-out, opacity 0.1s ease-out';
                     itemToProcess.style.transform = 'translateX(0px)';
                     itemToProcess.style.opacity = 1;
                     itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true });
                 }
-                return; 
+                return;
             }
 
             if (wasSwipingState && !forceReset && deltaX > swipeState.swipeThreshold) {
@@ -1882,8 +1950,8 @@
                 itemToProcess.style.opacity = 0;
                 itemToProcess.dataset.swipedForDelete = "true";
                 itemToProcess.addEventListener('transitionend', async () => {
-                    try { await database.ref(`shoppingList/${idToDelete}`).remove(); loadShoppingListFromDB(); } 
-                    catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear.");}
+                    try { await database.ref(`shoppingList/${idToDelete}`).remove(); loadShoppingListFromDB(); }
+                    catch (error) { console.error("Error deleting shopping item after swipe:", error); loadShoppingListFromDB(); showCustomAlert("Error", "Could not delete item. It will reappear."); }
                 }, { once: true });
             } else if (wasSwipingState && itemToProcess) { // Check itemToProcess if it might be null
                 itemToProcess.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
@@ -1892,8 +1960,8 @@
                 itemToProcess.addEventListener('transitionend', () => { if (itemToProcess) itemToProcess.style.transition = 'none'; }, { once: true });
             }
         };
-        
-        const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true);};
+
+        const shoppingListDocMouseLeaveHandler = (event) => { if (event.relatedTarget === null && swipeState.isSwiping) shoppingListSwipeEndHandler(event, true); };
 
         const shoppingListSwipeStartHandler = (event, itemElement, itemId) => {
             if (longPressActionTaken) return; // If long press just handled this item, don't start swipe.
@@ -1905,9 +1973,9 @@
             swipeState.startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
             swipeState.startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
             swipeState.currentX = swipeState.startX; swipeState.isVerticalScroll = false;
-            
+
             itemElement.style.transition = 'none'; itemElement.style.userSelect = 'none';
-            
+
             document.addEventListener('mousemove', shoppingListSwipeMoveHandler);
             document.addEventListener('mouseup', shoppingListSwipeEndHandler);
             document.addEventListener('mouseleave', shoppingListDocMouseLeaveHandler);
@@ -1917,18 +1985,18 @@
         };
 
 
-        async function loadShoppingListFromDB() { 
-            if (!shoppingListItemsContainer) return; 
-            shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>'; 
-            try { 
+        async function loadShoppingListFromDB() {
+            if (!shoppingListItemsContainer) return;
+            shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder">Loading list...</p>';
+            try {
                 const e = await database.ref("shoppingList").orderByChild("createdAt").once("value");
-                const t = []; 
+                const t = [];
                 e.exists() && e.forEach(e => { t.push({ id: e.key, ...e.val() }) });
                 displayShoppingListUI(t);
-            } catch (e) { 
+            } catch (e) {
                 console.error("Error loading shopping list:", e);
                 shoppingListItemsContainer.innerHTML = '<p class="loading-placeholder text-red-500">Error loading list.</p>';
-            } 
+            }
         }
 
         function displayShoppingListUI(shoppingItems) {
@@ -1966,8 +2034,8 @@
                 case 'default':
                 default:
                     shoppingItems.sort((a, b) => {
-                         if (a.checked !== b.checked) return a.checked ? 1 : -1;
-                         return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase());
+                        if (a.checked !== b.checked) return a.checked ? 1 : -1;
+                        return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase());
                     });
                     break;
             }
@@ -2039,7 +2107,7 @@
                     }
                     itemPressStartX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
                     itemPressStartY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-                    
+
                     shoppingListSwipeStartHandler(e, itemElement, itemData.id); // Initiate swipe detection
 
                     clearTimeout(itemLongPressTimerId);
@@ -2047,7 +2115,7 @@
                         // Check if swipe has moved significantly or if vertical scroll
                         if (swipeState.isSwiping && swipeState.item === itemElement) {
                             const currentSwipeDeltaX = swipeState.currentX - swipeState.startX;
-                             if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) {
+                            if (Math.abs(currentSwipeDeltaX) > MAX_MOVE_FOR_LONG_PRESS || swipeState.isVerticalScroll) {
                                 clearTimeout(itemLongPressTimerId); // Ensure timer is cleared
                                 removeItemEventListeners(); // Clean up item-specific listeners
                                 return; // Swipe is dominant or scrolling
@@ -2087,33 +2155,33 @@
                     clearTimeout(itemLongPressTimerId);
                     removeItemEventListeners();
                 }
-                
+
                 itemElement.addEventListener('mousedown', handleItemPressStart);
                 itemElement.addEventListener('touchstart', handleItemPressStart, { passive: true });
             });
         }
-        async function addShoppingItemToDB() { 
-            if (!newShoppingItemNameInput) return; 
-            const e = newShoppingItemNameInput.value.trim(); 
-            if (!e) return showCustomAlert("Input Error", "Please enter an item name."); 
-            try { 
+        async function addShoppingItemToDB() {
+            if (!newShoppingItemNameInput) return;
+            const e = newShoppingItemNameInput.value.trim();
+            if (!e) return showCustomAlert("Input Error", "Please enter an item name.");
+            try {
                 await database.ref("shoppingList").push({ name: e, checked: !1, createdAt: serverTimestamp });
-                newShoppingItemNameInput.value = ""; 
+                newShoppingItemNameInput.value = "";
                 newShoppingItemNameInput.focus();
                 loadShoppingListFromDB();
-            } catch (e) { 
+            } catch (e) {
                 console.error("Error adding shopping item:", e);
                 showCustomAlert("Error", "Failed to add item to shopping list.");
-            } 
+            }
         }
-        async function toggleShoppingItemCheckedInDB(e, t) { 
-            try { 
+        async function toggleShoppingItemCheckedInDB(e, t) {
+            try {
                 await database.ref(`shoppingList/${e}`).update({ checked: t });
-                loadShoppingListFromDB(); 
-            } catch (e) { console.error("Error updating shopping item:", e) } 
+                loadShoppingListFromDB();
+            } catch (e) { console.error("Error updating shopping item:", e) }
         }
-        
-        async function deleteShoppingItemFromDB(itemId) { 
+
+        async function deleteShoppingItemFromDB(itemId) {
             try {
                 await database.ref(`shoppingList/${itemId}`).remove();
             } catch (error) {
@@ -2129,7 +2197,7 @@
             if (!shopSelectorModal || !shopSelectorOptionsContainer) return;
 
             shopSelectorModal.dataset.currentItemId = itemId;
-            shopSelectorOptionsContainer.innerHTML = ''; 
+            shopSelectorOptionsContainer.innerHTML = '';
 
             SHOPS.forEach(shop => {
                 const shopButton = document.createElement('button');
@@ -2138,7 +2206,7 @@
                 shopButton.classList.toggle('hover:bg-orange-600', shop === currentShop);
                 shopButton.classList.toggle('bg-[#40322b]', shop !== currentShop);
                 shopButton.classList.toggle('hover:bg-[#5a3a2a]', shop !== currentShop);
-                
+
                 shopButton.innerHTML = `<img src="${SHOP_ICON_BASE_PATH}${shop}.png" alt="${shop}" class="w-6 h-6 mr-2 object-contain pointer-events-none"> <span class="pointer-events-none">${shop}</span>`;
                 shopButton.addEventListener('click', () => handleShopSelected(shop));
                 shopSelectorOptionsContainer.appendChild(shopButton);
@@ -2157,7 +2225,7 @@
             try {
                 await database.ref(`shoppingList/${itemId}`).update({ shop: shopName });
                 closeShopSelectorModal();
-                loadShoppingListFromDB(); 
+                loadShoppingListFromDB();
             } catch (error) {
                 console.error("Error updating shop for item:", error);
                 showCustomAlert("Error", "Could not update shop. Please try again.");
@@ -2185,7 +2253,7 @@
                 document.querySelectorAll('.shopping-sort-option-button').forEach(btn => {
                     const isActive = btn.dataset.sortType === currentShoppingListSort;
                     btn.classList.toggle('bg-[#f0560e]', isActive);
-                    btn.classList.toggle('hover:bg-orange-600', isActive); 
+                    btn.classList.toggle('hover:bg-orange-600', isActive);
                     btn.classList.toggle('bg-[#40322b]', !isActive);
                     btn.classList.toggle('hover:bg-[#5a3a2a]', !isActive);
                 });
@@ -2202,7 +2270,7 @@
 
         async function clearCheckedShoppingItemsFromDB() {
             const confirmed = await showCustomConfirm(
-                "Clear Checked Items", 
+                "Clear Checked Items",
                 "Are you sure you want to clear all checked items from the shopping list?",
                 "Clear Items",
                 "bg-red-600 hover:bg-red-700"
@@ -2222,7 +2290,7 @@
                 showCustomAlert("Error", "Failed to clear checked items.");
             }
         }
-        
+
         async function addUncheckedIngredientsToShoppingList() {
             const ingredientsToAdd = currentRecipeIngredientsState
                 .filter(ingredient => !ingredient.checked)
@@ -2251,10 +2319,10 @@
             customConfirmMessage = document.getElementById("custom-confirm-message");
             customConfirmCancelButton = document.getElementById("custom-confirm-cancel-button");
             customConfirmConfirmButton = document.getElementById("custom-confirm-confirm-button");
-            
+
             customAlertOkButton?.addEventListener("click", closeCustomAlert);
             customAlertModal?.addEventListener("click", (event) => { if (event.target === customAlertModal) closeCustomAlert(); });
-            
+
             customConfirmCancelButton?.addEventListener("click", () => closeCustomConfirm(false));
             customConfirmConfirmButton?.addEventListener("click", () => closeCustomConfirm(true));
             customConfirmModal?.addEventListener("click", (event) => { if (event.target === customConfirmModal) closeCustomConfirm(false); });
@@ -2263,7 +2331,7 @@
             shopSelectorOptionsContainer = document.getElementById('shop-selector-options');
             closeShopSelectorModalButton = document.getElementById('close-shop-selector-modal-button');
             clearShopSelectionButton = document.getElementById('clear-shop-selection-button');
-            
+
             closeShopSelectorModalButton?.addEventListener("click", closeShopSelectorModal);
             clearShopSelectionButton?.addEventListener("click", handleClearShopSelection);
             shopSelectorModal?.addEventListener("click", (event) => { if (event.target === shopSelectorModal) closeShopSelectorModal(); });
@@ -2276,13 +2344,13 @@
             closeCategorySelectorModalButton = document.getElementById('close-category-selector-modal-button');
             createRecipeCategoryButton = document.getElementById('create-recipe-category-button');
             createRecipeCategoryDisplay = document.getElementById('create-recipe-category-display');
-            
+
             createRecipeCategoryButton?.addEventListener('click', openCategorySelectorModal);
             closeCategorySelectorModalButton?.addEventListener('click', closeCategorySelectorModal);
-            categorySelectorModal?.addEventListener('click', (event) => { 
-                if (event.target === categorySelectorModal) closeCategorySelectorModal(); 
+            categorySelectorModal?.addEventListener('click', (event) => {
+                if (event.target === categorySelectorModal) closeCategorySelectorModal();
             });
-            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory; 
+            if (createRecipeCategoryDisplay) createRecipeCategoryDisplay.textContent = currentSelectedRecipeCategory;
 
             editShoppingItemModal = document.getElementById("edit-shopping-item-modal");
             editShoppingItemNameInput = document.getElementById("edit-shopping-item-name-input");
@@ -2326,7 +2394,7 @@
                     } else if (initialPageId === "page-recipe") { // Hash is just #page-recipe, try localStorage
                         recipeIdForInitialLoad = localStorage.getItem("currentRecipeDetailId");
                     }
-                    if (initialPageId === "page-schedule"){
+                    if (initialPageId === "page-schedule") {
                         scheduleDateForInitialLoad = localStorage.getItem("scheduleView_currentSelectedDate");
                         scheduleWeekStartForInitialLoad = localStorage.getItem("scheduleView_currentDisplayedWeekStartDate");
                     }
@@ -2344,7 +2412,7 @@
             const initialState = getCurrentPageHistoryState(initialPageId);
             const initialUrl = getCurrentPageFullHash(initialPageId);
             history.replaceState(initialState, `Page ${initialPageId}`, initialUrl);
-            
+
             const recipesDataPromise = loadRecipesFromRealtimeDB();
 
             if (initialPageId === "page-recipe") {
@@ -2352,7 +2420,7 @@
             } else {
                 showPage(initialPageId, true);
             }
-            
+
             await recipesDataPromise;
 
             window.addEventListener('popstate', (event) => {
@@ -2384,13 +2452,13 @@
                         // Allow browser to handle exit or navigation to pre-app history.
                         // Update internal state for consistency if we somehow don't exit.
                         if (event.state && event.state.page) {
-                             currentPageId = event.state.page; // Keep internal state aligned
-                             updateNavbarUI(currentPageId);
+                            currentPageId = event.state.page; // Keep internal state aligned
+                            updateNavbarUI(currentPageId);
                         } else { // Popped to a state before our app (null state)
                             currentPageId = 'page-index'; // Assume we're back at "root" of our app's view
                             updateNavbarUI('page-index');
                         }
-                        return; 
+                        return;
                     }
                     // If event.state points to something else *from* page-index (shouldn't happen with this logic
                     // unless user manually typed URL or used fwd/back extensively), then fall through to go to index.
@@ -2401,7 +2469,7 @@
                 //    The browser has already changed the URL. We call showPage to update the UI
                 //    to page-index and ensure the URL is corrected to #page-index if needed.
                 //    This handles Bug 1 (part 2: second back action goes to page-index).
-                
+
                 // Check if the state we popped to is a specific, valid deep link we want to honor.
                 if (event.state && event.state.page) {
                     const targetPage = event.state.page;
@@ -2411,12 +2479,12 @@
                     } else if (targetPage === 'page-schedule') {
                         // currentSelectedDate and currentDisplayedWeekStartDate will be set by showPage
                         // when called with fromHistoryOrInitialLoad=true and history.state is available.
-                        showPage('page-schedule', true); 
+                        showPage('page-schedule', true);
                         return;
                     }
                     // If it's page-favorites or page-create-recipe, etc., we'll default to page-index below.
                 }
-                
+
                 // Default action for back from a non-index page, or if state is unclear: go to page-index.
                 showPage('page-index', true);
             });
@@ -2429,15 +2497,15 @@
 
             function setupSearchClearButton(inputElement, clearButtonElement, searchHandler) {
                 if (inputElement && clearButtonElement) {
-                    inputElement.addEventListener("input", () => { 
+                    inputElement.addEventListener("input", () => {
                         clearButtonElement.classList.toggle("hidden", !inputElement.value);
-                        if (searchHandler) searchHandler(); 
+                        if (searchHandler) searchHandler();
                     });
                     clearButtonElement.addEventListener("click", () => {
                         inputElement.value = "";
                         clearButtonElement.classList.add("hidden");
                         inputElement.blur();
-                        if (searchHandler) searchHandler(); 
+                        if (searchHandler) searchHandler();
                     });
                     clearButtonElement.classList.toggle("hidden", !inputElement.value);
                 }
@@ -2448,7 +2516,7 @@
 
 
             document.querySelectorAll(".nav-item").forEach(e => { e.addEventListener("click", t => { t.preventDefault(); const c = e.dataset.target; "page-create-recipe" === c && resetCreateForm(), showPage(c) }) });
-            
+
             document.querySelectorAll('[data-action="back"], [data-action="back-from-create"]').forEach(button => {
                 const newButton = button.cloneNode(true); // Clone to remove old listeners
                 button.parentNode.replaceChild(newButton, button);
@@ -2457,16 +2525,16 @@
                     performBackAction();
                 });
             });
-            
+
             document.getElementById("header-profile-button-index")?.addEventListener("click", () => showPage("page-profile"));
             document.getElementById("header-profile-button-favorites")?.addEventListener("click", () => showPage("page-profile"));
             document.getElementById("save-recipe-button")?.addEventListener("click", saveRecipeData);
-            
-            document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => { 
+
+            document.getElementById("recipe-bookmark-button")?.addEventListener("click", e => {
                 const recipeId = e.currentTarget.dataset.recipeId;
                 if (recipeId) toggleBookmarkInRealtimeDB(recipeId);
             });
-            
+
             document.getElementById("recipe-delete-header-button")?.addEventListener("click", () => {
                 const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId;
                 const recipeData = allRecipesCache.find(r => r.id === recipeId);
@@ -2488,15 +2556,15 @@
             });
 
             cancelDeleteRecipeButton?.addEventListener("click", closeDeleteRecipeModal);
-            
+
             deleteRecipeConfirmationModal?.addEventListener("click", (event) => {
-                if (event.target === deleteRecipeConfirmationModal) { 
+                if (event.target === deleteRecipeConfirmationModal) {
                     closeDeleteRecipeModal();
                 }
             });
 
-            document.getElementById("recipe-edit-button")?.addEventListener("click", () => { 
-                const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId; 
+            document.getElementById("recipe-edit-button")?.addEventListener("click", () => {
+                const recipeId = document.getElementById("page-recipe").dataset.currentRecipeId;
                 if (recipeId) {
                     prepareEditForm(recipeId);
                 } else {
@@ -2522,7 +2590,7 @@
                     currentImageDisplay.classList.add("hidden");
                     photoLabel.textContent = "Photo Selected";
                 } else {
-                    if (editingRecipeId && currentRecipeImageURL) { 
+                    if (editingRecipeId && currentRecipeImageURL) {
                         currentImageFilenameSpan.textContent = currentRecipeImageURL.substring(currentRecipeImageURL.lastIndexOf('/') + 1);
                         currentImageDisplay.classList.remove("hidden");
                         photoLabel.textContent = "Change Photo";
@@ -2555,7 +2623,7 @@
                         currentShoppingListSort = sortType;
                         localStorage.setItem('shoppingListSortPreference', currentShoppingListSort);
                         closeShoppingListSortModal();
-                        loadShoppingListFromDB(); 
+                        loadShoppingListFromDB();
                     }
                 });
             });
