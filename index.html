@@ -1098,7 +1098,10 @@
         // Keep existing global vars like currentPageId, previousPageId, etc.
         // Add: currentUserId, authInitialized (done in <head> script)
 
-        let currentPageId = "page-login", previousPageId = "page-login", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date, 1), isInitialPageLoad = !0;
+        let currentPageId = "page-login", previousPageId = "page-login", allRecipesCache = [], editingRecipeId = null, currentRecipeImageURL = null, currentSelectedDate = new Date, currentDisplayedWeekStartDate = getStartOfWeek(new Date, 1), isInitialPageLoad = true; // Changed !0 to true for clarity
+        let previousAuthUserId = null; // To detect a fresh login event
+        let commonListenersAreSetup = false; // To ensure listeners are set up only once
+
         const RECIPE_CATEGORIES = ["Dinner", "Breakfast", "Lunch", "Appetizers & Snacks", "Desserts", "Drinks"];
         const SHOPS = ["Billa", "Spar", "Penny", "Hofer", "Lidl", "Turkish", "DM"];
         const SHOP_ICON_BASE_PATH = "img/shop_icons/";
@@ -2357,77 +2360,102 @@
             editShoppingItemNameInput?.addEventListener("keypress", e => { "Enter" === e.key && (e.preventDefault(), handleSaveShoppingItemChanges()) });
             const savedSortPreference = localStorage.getItem('shoppingListSortPreference'); if (savedSortPreference) currentShoppingListSort = savedSortPreference;
 
-            // --- Auth State Listener ---
+                        // --- Auth State Listener ---
             auth.onAuthStateChanged(async user => {
                 authInitialized = true; // Mark auth as initialized
+
+                const isFreshLogin = !previousAuthUserId && user; // True if previous was null and current user exists
+                previousAuthUserId = user ? user.uid : null;   // Update for the next auth state change
+
                 if (user) {
                     currentUserId = user.uid;
                     console.log("User signed in:", currentUserId);
                     const userEmailDisplay = document.getElementById("user-email-display");
                     if(userEmailDisplay) userEmailDisplay.textContent = user.email;
 
-                    isInitialPageLoad = true;
-                    let initialPageId = localStorage.getItem(`lastActivePageId_${currentUserId}`) || "page-index"; // User-specific last page
-                    if (initialPageId === 'page-login' || initialPageId === 'page-register') initialPageId = 'page-index';
+                    isInitialPageLoad = true; // Reset for data loading and page setup
                     
+                    let targetPageIdAfterAuth = "page-index"; // Default to page-index
                     let recipeIdForInitialLoad = null;
                     let scheduleDateForInitialLoad = null;
                     let scheduleWeekStartForInitialLoad = null;
 
-                    const hash = window.location.hash.substring(1);
-                    if (history.state && history.state.page && history.state.page !== 'page-login' && history.state.page !== 'page-register') {
-                        initialPageId = history.state.page;
-                        recipeIdForInitialLoad = history.state.recipeId;
-                        scheduleDateForInitialLoad = history.state.selectedDate;
-                        scheduleWeekStartForInitialLoad = history.state.weekStart;
-                    } else if (hash) {
-                        const parts = hash.split('/');
-                        const potentialPageId = parts[0];
-                        if (document.getElementById(potentialPageId) && potentialPageId !== 'page-login' && potentialPageId !== 'page-register') {
-                            initialPageId = potentialPageId;
-                            if (initialPageId === "page-recipe" && parts[1]) recipeIdForInitialLoad = parts[1];
-                            else if (initialPageId === "page-recipe") recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
+                    if (isFreshLogin) {
+                        console.log("Fresh login detected. Forcing navigation to page-index.");
+                        // targetPageIdAfterAuth is already "page-index"
+                        // Clear any user-specific last active page from a *previous* session for *this* user,
+                        // as we are now forcing page-index.
+                        localStorage.removeItem(`lastActivePageId_${currentUserId}`);
+                        localStorage.removeItem(`currentRecipeDetailId_${currentUserId}`); // Also clear specific recipe if any
+                    } else {
+                        // This is a page refresh or returning to an already logged-in session.
+                        // Use existing logic to determine the page.
+                        targetPageIdAfterAuth = localStorage.getItem(`lastActivePageId_${currentUserId}`) || "page-index";
+                        if (targetPageIdAfterAuth === 'page-login' || targetPageIdAfterAuth === 'page-register') {
+                            targetPageIdAfterAuth = 'page-index';
+                        }
+                        
+                        const hash = window.location.hash.substring(1);
+                        if (history.state && history.state.page && history.state.page !== 'page-login' && history.state.page !== 'page-register') {
+                            targetPageIdAfterAuth = history.state.page;
+                            recipeIdForInitialLoad = history.state.recipeId;
+                            scheduleDateForInitialLoad = history.state.selectedDate;
+                            scheduleWeekStartForInitialLoad = history.state.weekStart;
+                        } else if (hash) {
+                            const parts = hash.split('/');
+                            const potentialPageId = parts[0];
+                            if (document.getElementById(potentialPageId) && potentialPageId !== 'page-login' && potentialPageId !== 'page-register') {
+                                targetPageIdAfterAuth = potentialPageId;
+                                if (targetPageIdAfterAuth === "page-recipe" && parts[1]) {
+                                    recipeIdForInitialLoad = parts[1];
+                                } else if (targetPageIdAfterAuth === "page-recipe") {
+                                    // If hash is just #page-recipe, try getting ID from localStorage
+                                    recipeIdForInitialLoad = localStorage.getItem(`currentRecipeDetailId_${currentUserId}`);
+                                }
+                            }
+                        }
+                         // Fallback if page-recipe is targeted but no ID is found
+                        if (targetPageIdAfterAuth === "page-recipe" && !recipeIdForInitialLoad) {
+                            targetPageIdAfterAuth = "page-index";
                         }
                     }
                     
-                    currentPageId = initialPageId; // Set before showPage
+                    currentPageId = targetPageIdAfterAuth; // Set global currentPageId before showPage
+
                     if (scheduleDateForInitialLoad) currentSelectedDate = new Date(scheduleDateForInitialLoad);
                     if (scheduleWeekStartForInitialLoad) currentDisplayedWeekStartDate = new Date(scheduleWeekStartForInitialLoad);
-                    if (initialPageId === "page-recipe" && !recipeIdForInitialLoad) initialPageId = "page-index";
-
-                    const initialState = getCurrentPageHistoryState(initialPageId);
-                    const initialUrl = getCurrentPageFullHash(initialPageId);
-                    history.replaceState(initialState, `Page ${initialPageId}`, initialUrl);
+                    
+                    const initialState = getCurrentPageHistoryState(targetPageIdAfterAuth);
+                    const initialUrl = getCurrentPageFullHash(targetPageIdAfterAuth);
+                    history.replaceState(initialState, `Page ${targetPageIdAfterAuth}`, initialUrl);
 
                     await loadRecipesFromRealtimeDB(); // Load data for the signed-in user
 
-                    if (initialPageId === "page-recipe") {
+                    if (targetPageIdAfterAuth === "page-recipe" && recipeIdForInitialLoad) {
                         await loadRecipeDetailFromRealtimeDB(recipeIdForInitialLoad, true);
                     } else {
-                        showPage(initialPageId, true);
+                        showPage(targetPageIdAfterAuth, true);
                     }
-                    isInitialPageLoad = false;
-                                } else { // User is signed out or not yet signed in
+                    isInitialPageLoad = false; // Initial page load sequence finished
+                } else { // User is signed out or not yet signed in
                     currentUserId = null;
                     console.log("User signed out or not signed in.");
-                    
-                    // IMPORTANT: Call clearUserSpecificDataAndUI AFTER currentUserId is null,
-                    // but ensure global currentPageId still reflects the page the user WAS on.
-                    // clearUserSpecificDataAndUI should not modify navigation state like currentPageId.
                     clearUserSpecificDataAndUI(); 
 
                     const loginState = getCurrentPageHistoryState("page-login");
                     const loginUrl = getCurrentPageFullHash("page-login");
                     history.replaceState(loginState, `Page page-login`, loginUrl);
                     
-                    // At this point, global `currentPageId` is still the ID of the page the user was on (e.g., 'page-profile').
-                    // `showPage` will use this to correctly identify and deactivate the old page.
-                    // `showPage` will then update the global `currentPageId` to 'page-login'.
                     showPage("page-login", true); 
                     isInitialPageLoad = false; // Reset for any subsequent login session
                 }
+
                 // Setup event listeners that might depend on auth state or initial page rendering
-                setupCommonEventListeners();
+                // Ensure these are setup only once after auth is initialized.
+                if (!commonListenersAreSetup) {
+                    setupCommonEventListeners();
+                    commonListenersAreSetup = true;
+                }
             });
 
             function setupCommonEventListeners() {
