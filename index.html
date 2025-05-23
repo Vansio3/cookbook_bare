@@ -415,8 +415,8 @@
                                     </path>
                                 </svg>
                             </div>
-                            <input placeholder="Search recipes" id="search-recipe-input"
-                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" />
+                            <input type="search" placeholder="Search recipes" id="search-recipe-input"
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" autocomplete="off"/>
                             <button id="clear-search-recipe-button"
                                 class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden"
                                 title="Clear search">
@@ -489,8 +489,8 @@
                                     </path>
                                 </svg>
                             </div>
-                            <input placeholder="Search favorite recipes" id="search-favorites-input"
-                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" />
+                            <input type="search" placeholder="Search favorite recipes" id="search-favorites-input"
+                                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#40322b] focus:border-none h-full placeholder:text-[#bda89e] px-4 rounded-l-none border-l-0 pl-2 pr-10" autocomplete="off" />
                             <button id="clear-search-favorites-button"
                                 class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-[#bda89e] hover:text-white hidden"
                                 title="Clear search">
@@ -591,9 +591,9 @@
             <div class="page-content">
                 <div class="flex max-w-[480px] flex-col gap-4 px-4 py-3 mx-auto w-full">
                     <label class="flex flex-col w-full">
-                        <p class="text-white text-base font-medium pb-2">Recipe Title</p><input id="create-recipe-title"
+                        <p class="text-white text-base font-medium pb-2">Recipe Title</p><input type="search" id="create-recipe-title"
                             placeholder="Enter recipe title"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
                     </label>
                     <label class="flex flex-col w-full">
                         <p class="text-white text-base font-medium pb-2">Category</p>
@@ -623,20 +623,20 @@
                     </label>
                     <div class="flex gap-4 w-full">
                         <label class="flex flex-col flex-1">
-                            <p class="text-white text-base font-medium pb-2">Prep Time</p><input
+                            <p class="text-white text-base font-medium pb-2">Prep Time</p><input type="search"
                                 id="create-recipe-prepTime" placeholder="e.g., 15 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
                         </label>
                         <label class="flex flex-col flex-1">
-                            <p class="text-white text-base font-medium pb-2">Cook Time</p><input
+                            <p class="text-white text-base font-medium pb-2">Cook Time</p><input type="search"
                                 id="create-recipe-cookTime" placeholder="e.g., 30 mins"
-                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                                class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
                         </label>
                     </div>
                     <label class="flex flex-col w-full">
-                        <p class="text-white text-base font-medium pb-2">Servings</p><input id="create-recipe-servings"
+                        <p class="text-white text-base font-medium pb-2">Servings</p><input type="search" id="create-recipe-servings"
                             placeholder="e.g., 4"
-                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                            class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
                     </label>
                     <div
                         class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-[#684231]">
@@ -719,8 +719,8 @@
                                 </path>
                             </svg></button>
                     </div>
-                    <div class="mb-3"><input type="text" id="add-meal-modal-search" placeholder="Search recipes..."
-                            class="form-input w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-12 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]">
+                    <div class="mb-3"><input type="search" id="add-meal-modal-search" placeholder="Search recipes..."
+                            class="form-input w-full rounded-lg text-white bg-[#40322b] border-[#684231] h-12 p-3 placeholder:text-[#bda89e] focus:ring-1 focus:ring-[#f0560e] focus:border-[#f0560e]" autocomplete="off">
                     </div>
                     <div id="add-meal-modal-recipe-list" class="overflow-y-auto flex-grow space-y-2 pr-1"></div>
                 </div>
@@ -942,8 +942,8 @@
             <h3 class="text-white text-xl font-bold mb-4">Edit Shopping Item</h3>
             <label class="flex flex-col w-full mb-6"> <!-- Increased bottom margin -->
                 <p class="text-white text-base font-medium pb-1">Item Name</p>
-                <input id="edit-shopping-item-name-input" placeholder="Enter item name"
-                    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" />
+                <input type="search" id="edit-shopping-item-name-input" placeholder="Enter item name"
+                    class="form-input w-full rounded-xl text-white bg-[#342118] border-[#684231] h-14 p-[15px] focus:border-[#f0560e] focus:ring-1 focus:ring-[#f0560e]" autocomplete="off" />
             </label>
             <div class="flex justify-end gap-3">
                 <button id="cancel-edit-shopping-item-button"
